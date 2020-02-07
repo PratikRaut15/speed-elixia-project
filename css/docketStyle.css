@@ -1,0 +1,457 @@
+.modal {
+    display: table;
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    margin: 0px !important;
+}
+
+/* Modal Content */
+.modal-content {
+    height:auto;
+    background-color: #DBF1FC;
+    margin: auto;
+    padding: 20px;
+    border: 3px solid #3b5998;
+    border-radius: 10px;
+    width: 50%;
+    
+}
+#tickets{
+  box-shadow:2px 2px 2px #666;
+}
+#buckets{
+  box-shadow:2px 2px 2px #666;
+}
+/* The Close Button */
+.close {
+    color: red;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+   table.sortable td {
+    width:auto !important;
+    }
+    table.sortable th {
+    width:auto !important;
+    }
+    label{
+    font-weight: 600!important;
+    font-size: 12px !important;
+    color:black;
+    /*margin:0 0 1% 5%;*/
+    /*border:1px solid black;*/
+    border-radius: 2px;
+    }
+    .interaction_type_div select{
+    margin:0 0 1% 2%;
+    font-size: 12px;
+    font-weight: 600 !important;
+    }
+    #addDocket{
+    background-color: #DBF1FC;
+    width:100% !important;
+    height:100% !important;
+    color:black;
+    }
+    [id^="formId"] {
+    padding:10px;
+    margin 10px 10px 10px 10px;
+    }
+    #ticketDiv input[type="text"]{
+    box-shadow:2px 2px 2px #666; 
+    }
+    .interaction_type_div{
+    width: 75%;
+    }
+    .interaction_type_div1{
+    width: 25%;
+    }
+    .column {
+    border-left : 1px;
+    padding-left: 10px;
+    float: left;
+    width: 45%;     
+    height: auto; /* Should be removed. Only for demonstration */
+    }
+    .column3{
+        padding:10px;
+        width:30%;
+    }
+    /* Clear floats after the columns */
+    .rows:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+
+    /* fallback */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/materialicons/v36/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  /* font-weight: normal; */
+  font-style: normal;
+  font-size: 18px;
+  /* line-height: 1; */
+  /* letter-spacing: normal; */
+  /* text-transform: none; */
+  display: inline-block;
+  /* white-space: nowrap; */
+  /* word-wrap: normal; */
+  /* direction: ltr; */
+  /* -webkit-font-feature-settings: 'liga'; */
+  /* -webkit-font-smoothing: antialiased; */
+}
+.minimizedTicket{
+    width: 75%;
+    border:1px #888 solid;
+    margin : 5px;
+}
+.formControl{
+    margin:2px !important;
+    margin-bottom:5px;
+}
+.bucket {
+    display: table;
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 50px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    margin: 0px !important;
+}
+
+/* Modal Content */
+.bucket-content {
+    height:auto;
+    background-color: #DBF1FC;
+    margin: auto;
+    padding: 20px;
+    border: 3px solid #3b5998;
+    border-radius: 10px;
+    width: 50%;
+}
+
+.history-content {
+    height:auto;
+    background-color: #DBF1FC;
+    margin: 200px auto auto auto;
+    padding: 20px;
+    border: 3px solid #3b5998;
+    border-radius: 10px;
+    width: 20%;
+    box-shadow: 1px 1px 1px 1px;
+}
+
+/* The Close Button */
+.close {
+    color: red;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+   table.sortable td {
+    width:auto !important;
+    }
+    table.sortable th {
+    width:auto !important;
+    }
+    label{
+    font-weight: 600!important;
+    font-size: 12px !important;
+    color:black;
+    margin-top:5%;
+    /*border:1px solid black;*/
+    border-radius: 2px;
+    display: inline !important;
+    }
+    .interaction_type_div select{
+    margin:0 0 1% 2%;
+    font-size: 12px;
+    font-weight: 600 !important;
+    }
+    #addDocket{
+    background-color: #DBF1FC;
+    width:100% !important;
+    height:100% !important;
+    color:black;
+    }
+    [id^="formId"] {
+    padding:10px;
+    margin 10px 10px 10px 10px;
+    }
+    #ticketDiv input[type="text"]{
+    margin:0 0 0 0 !important;
+    }
+    .interaction_type_div{
+    width: 75%;
+    }
+    .interaction_type_div1{
+    width: 25%;
+    }
+    .column {
+    border-left : 1px;
+    padding-left: 10px;
+    float: left;
+    width: 45%;     
+    height: auto; /* Should be removed. Only for demonstration */
+    }
+    .column3{
+        padding:10px;
+        width:30%;
+    }
+    /* Clear floats after the columns */
+    .row:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+    tbody td{
+      font-weight: 600 !important;
+      font-size: 12px !important;
+      padding-left: 1% !important;
+      vertical-align: middle !important;
+    }
+    /* fallback */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/materialicons/v36/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  /* font-weight: normal; */
+  font-style: normal;
+  font-size: 18px;
+  /* line-height: 1; */
+  /* letter-spacing: normal; */
+  /* text-transform: none; */
+  display: inline-block;
+  /* white-space: nowrap; */
+  /* word-wrap: normal; */
+  /* direction: ltr; */
+  /* -webkit-font-feature-settings: 'liga'; */
+  /* -webkit-font-smoothing: antialiased; */
+}
+.minimizedBucket{
+    width: 75%;
+    border:1px #888 solid;
+    margin : 5px;
+}
+
+.bucket2 {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    margin: 0px !important;
+}
+p{
+    width: auto !important;
+}
+textarea{
+    resize: none;
+    height: 40px;
+    width:200px;
+    box-shadow:2px 2px 2px #666; 
+}
+input[type="checkbox"], input[type="radio"]
+{
+    margin:0 10px 0 0;
+}
+/*select{
+     margin:0 10px 0 0 !important;
+}*/
+input[type="button"]:active {
+transform: translateY(4px);
+}
+
+.dropdown1 {
+  position: relative;
+  transform: translateY(-50%);
+}
+
+
+.dropdown1 dd,
+.dropdown1 dt {
+  margin: 0px;
+  padding: 0px;
+}
+
+.dropdown1 ul {
+  margin: -1px 0 0 0;
+}
+
+.dropdown1 dd {
+  position: relative;
+}
+
+.dropdown1 a,
+.dropdown1 a:visited {
+  color: #fff;
+  text-decoration: none;
+  outline: none;
+  font-size: 12px;
+}
+
+.dropdown1 dt a {
+  display: block;
+  min-height: 25px;
+  overflow: hidden;
+  width: 150px;
+}
+
+.dropdown1 dt a span,
+.multiSel span {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0 3px 2px 0;
+}
+
+.dropdown1 dd ul {
+  background-color: #DBF1FC;
+  border: 1px solid black;
+  color: #fff;
+  display: none;
+  left: 0px;
+  padding: 2px 15px 2px 5px;
+  position: absolute;
+  top: 2px;
+  width: 110px;
+  list-style: none;
+  height: 100px;
+  overflow: auto;
+}
+
+.dropdown1 span.value {
+  display: none;
+}
+
+.dropdown1 dd ul li a {
+  padding: 5px;
+  display: block;
+}
+
+.dropdown1 dd ul li a:hover {
+  background-color: #fff;
+}
+
+.hida{
+  text-align: center !important;
+}
+button {
+  background-color: #6BBE92;
+  width: 302px;
+  border: 0;
+  padding: 10px 0;
+  margin: 5px 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+}
+
+label{
+  height:auto !important;
+  width:auto !important;
+}
+select{
+  box-shadow:2px 2px 2px #666; 
+  height: 30px !important;
+  width: 170px !important;
+}
+
+.recipientbox{
+  width: 200px !important;
+  border: 1px solid;
+  border-radius: 4px;
+  padding-left: 10px;
+  margin-top: 5px;
+  background: #3b5998;
+  color: #fff;
+  font-family: Arial;
+}
+.clickimage{
+  width: 10px;
+  height: 10px;
+  padding-top: 3px;
+  padding-right: 2px;
+  float: right;
+}
+
+.ag-row-focus{
+  z-index: 0 !important;
+}
+
+input[type="text"]{
+  box-shadow:2px 2px 2px #666;   
+}
+.ticketForm input[type="text"]{
+    margin-bottom: 10% !important;
+    }
+.ticketForm select{
+  margin-bottom: 10% !important;
+}
+input[type="button"]{
+margin-left:40%;
+background-color:#3b5998;
+color:#ffffff;
+}
+.bucketForm input[type="text"]{
+  margin-right: 5px !important;
+}
+label input, label textarea, label select{
+  display: inline !important;
+}
+.recipientbox span{
+  font-size: 12px !important;
+}
+.rows label,span{
+    font-size: 14px !important;     
+    }
+.testing label{
+  font-size: 12px !important;
+}

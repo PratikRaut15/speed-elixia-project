@@ -1,0 +1,557 @@
+<?php
+include '../../lib/system/utilities.php';
+include '../../lib/components/ajaxpage.inc.php';
+include_once '../../lib/bo/GeoCoder.php';
+include '../../lib/bo/DeviceManager.php';
+include '../../lib/bo/UserManager.php';
+include '../common/map_common_functions.php';
+include_once '../../lib/comman_function/reports_func.php';
+
+if(!isset($_SESSION))
+{
+    session_start();
+}
+
+class jsonop
+{
+    // Empty class!
+}
+
+function getvehicle($vehicleids)
+{
+    $idarray = explode(",", $vehicleids);
+    $IST = getIST();
+    if(isset($idarray))
+    {
+        $finaloutput = array();
+        foreach($idarray as $vehicleid)
+        {
+            if(isset($vehicleid) && $vehicleid !="")
+            {
+                $devicemanager = new DeviceManager($_SESSION['customerno']);
+                $vehicleid = GetSafeValueString($vehicleid,"string");
+                $device = $devicemanager->deviceformapping($vehicleid);
+                if(isset($device))
+                {
+                    $output = new jsonop();
+                    $lastupdated2 = strtotime($device->lastupdated);
+                    $output->cgeolat = $device->devicelat;
+                    $output->cgeolong = $device->devicelong;
+                    $output->cname = $device->vehicleno;
+                    $output->cdrivername = $device->drivername;
+                    $output->cdriverphone = $device->driverphone;
+                    $output->cspeed = $device->curspeed;
+                    $output->clastupdated = diff($IST,$lastupdated2);
+                    $output->iimage = vehicleimage($device);
+                    $output->cvehicleid = $device->vehicleid;
+                    $output->image = vehicleimage($device);
+                    $output->idleimage = vehicleimageidle($device);
+                    $output->extbatt = round($device->extbatt/100,2);
+                    $output->inbatt = $device->inbatt/1000;
+                    $network = round($device->gsmstrength/31*100);
+                    if($network>70)
+                    {
+                        $output->gsmimg = '../../images/RTD/Network/best.png';
+                        $output->network = "Excellent: ".$network."%";
+                    }
+                    else if($network>30)
+                    {
+                        $output->gsmimg = '../../images/RTD/Network/on.png';
+                        $output->network = "Good: ".$network."%";
+                    }
+                    else if($network>=0)
+                    {
+                        $output->gsmimg = '../../images/RTD/Network/off.png';
+                        $output->network = "Bad: ".$network."%";
+                    }
+                $finaloutput[] = $output;
+                }
+            }
+        }
+    }
+    $ajaxpage = new ajaxpage();
+    $ajaxpage->SetResult($finaloutput);
+    $ajaxpage->Render();
+}
+
+function getvehicles()
+{
+    $finaloutput = Array();
+    $IST = getIST();
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->deviceformappings();
+    $group_based_vehicle = vehicles_array(groupBased_vehicles_cron($_SESSION['customerno'], $_SESSION['userid']));
+
+    if(isset($devices))
+    {
+        $a=0;
+        $b=0;
+        $c=0;
+        $d=0;
+        $e=0;
+        $j=1;
+        foreach($devices as $device)
+        {
+            if(!array_key_exists($device->vehicleid, $group_based_vehicle)){
+                continue;
+            }
+            $output = new jsonop();
+            $output->a = $a;
+            $output->b = $b;
+            $output->c = $c;
+            $output->d = $d;
+            $output->e = $e;
+            $lastupdated2 = strtotime($device->lastupdated);
+            $output->cgeolat = $device->devicelat;
+            $output->cgeolong = $device->devicelong;
+            if($_SESSION['customerno'] == 97 && ($j==10||$j==20||$j==30)){
+            $output->location = location($device->devicelat, $device->devicelong, $device->use_geolocation);
+            sleep(1);
+            }else{
+            $output->location = location($device->devicelat, $device->devicelong, $device->use_geolocation);
+            }
+            $j++;
+            $output->cspeed = $device->curspeed;
+            $output->lastupdated = diff($IST,$lastupdated2);
+            $output->clastupdated = getduration($device->lastupdated);
+            $output->status = getstatus($device->stoppage_flag,$device->stoppage_transit_time,$device->lastupdated_store);
+            $output->cvehicleid = $device->vehicleid;
+            $output->idleimage = vehicleimageidle($device);
+            $output->iimage = vehicleimage($device);
+            if($device->tamper == 1 && $_SESSION['customerno'] == 135)
+            {
+               $output->tamper = '../../images/RTD/Tamper/on.png';
+                $output->tampertitle = "Normal";
+            }else if($device->tamper == 1 && $_SESSION['customerno'] != 135){
+                $output->tamper = '../../images/RTD/Tamper/off.png';
+                $output->tampertitle = "Tampered";
+            }
+            else
+            {
+                $output->tamper = '../../images/RTD/Tamper/on.png';
+                $output->tampertitle = "Normal";
+            }
+            if($device->powercut == 0)
+            {
+                $output->pc = '../../images/RTD/PowerCut/off.png';
+                $output->pctitle = "Power Cut";
+            }
+            else
+            {
+                $output->pc = '../../images/RTD/PowerCut/on.png';
+                $output->pctitle = "Normal";
+            }
+            $output->totaldist = round(getdistance($device->unitno,$device->lastupdated),2);
+            if($output->totaldist < 0)
+            {
+              $output->totaldist = round(getdistance($device->unitno,$device->lastupdated),2);
+            }
+            // Loading
+            if($device->msgkey == 1)
+            {
+                $output->msgkey = "Loading";
+            }
+            elseif($device->msgkey == 2)
+            {
+                $output->msgkey = "Unloading";
+            }
+            else
+            {
+                $output->msgkey = "Normal";
+            }
+
+            // AC Sensor
+            if($_SESSION['use_ac_sensor'] == 1 || $_SESSION['use_genset_sensor'] == 1){
+                if($device->acsensor == 1)
+                {
+                    if($device->digitalioupdated != '0000-00-00 00:00:00')
+                    {
+                      $digitaldiff = getduration_digitalio($device->digitalioupdated, date('Y-m-d H:i:s',strtotime($device->lastupdated)));
+                    }
+                    if($device->digitalio == 0)
+                    {
+                        if($device->isacopp == 0)
+                        {
+                            if($device->digitalioupdated != '0000-00-00 00:00:00'){
+                                $output->acsensor = "On since ".$digitaldiff;
+                            }
+                            else
+                            {
+                                $output->acsensor = "On ";
+                            }
+                        }
+                        else
+                        {
+                           if($device->digitalioupdated != '0000-00-00 00:00:00'){
+                                $output->acsensor = "Off since ".$digitaldiff;
+                            }
+                            else
+                            {
+                                $output->acsensor = "Off ";
+                            }
+                        }
+                    }
+                    else
+                        if($device->isacopp == 0)
+                        {
+                            if($device->digitalioupdated != '0000-00-00 00:00:00'){
+                                $output->acsensor = "Off since ".$digitaldiff;
+                            }
+                            else
+                            {
+                                $output->acsensor = "Off ";
+                            }
+                        }
+                        else
+                        {
+                            if($device->digitalioupdated != '0000-00-00 00:00:00'){
+                                $output->acsensor = "On since ".$digitaldiff;
+                            }
+                            else
+                            {
+                                $output->acsensor = "On ";
+                            }
+                        }
+                }
+                else
+                {
+                    $output->acsensor = "Not Active";
+                }
+            }
+
+            if($_SESSION['use_door_sensor']){
+                $digitaldiff = 'Not Active';
+                if($device->digitalioupdated != '0000-00-00 00:00:00'){
+                    $digitaldiff = getduration_digitalio($device->digitalioupdated, date('Y-m-d H:i:s',strtotime($device->lastupdated)));
+                    $door_status = door_status($device->is_door_opp, $device->digitalio);
+                    if(!$door_status){
+                        $digitaldiff = "Open <br/>since $digitaldiff";
+                    }
+                    else{
+                        $digitaldiff = "Closed <br/>since $digitaldiff";
+                    }
+                }
+                $output->doorsensor = $digitaldiff;
+            }
+
+            $output->temp_sensors = $_SESSION['temp_sensors'];
+            if($_SESSION['temp_sensors'] == 1)
+            {
+                // Temperature Sensor
+                $temp = 'Not Active';
+                if(isset($device->analog1_sen))
+                {
+                    if($device->analog1_sen==1)
+                    {
+                        if($device->analog1!=0)
+                            $temp = gettemp($device->analog1);
+                        else
+                            $temp = '-';
+                    }
+                }
+                if(isset($device->analog2_sen))
+                {
+                    if($device->analog2_sen==1)
+                    {
+                        if($device->analog2!=0)
+                            $temp = gettemp($device->analog2);
+                        else
+                            $temp = '-';
+                    }
+                }
+                $output->temp = $temp;
+                if($temp!='-' && $temp != "Not Active")
+                {
+                    $output->tempon = 1;
+                }
+                else
+                {
+                    $output->tempon = 0;
+                }
+
+            }
+
+        if($_SESSION['temp_sensors'] == 2)
+        {
+            $output->temp1 = 'Not Active';
+            $output->temp2 = 'Not Active';
+
+            if(isset($device->analog1_sen) && isset($device->analog2_sen) && isset($device->analog3_sen) && isset($device->analog4_sen))
+            {
+                if($device->analog1_sen==1)
+                {
+                    if($device->analog1!=0)
+                    {
+                        $output->temp1 = gettemp($device->analog1);
+                    }
+                    else
+                    {
+                        $output->temp1 = '-';
+                    }
+                }
+                if($device->analog2_sen==1 && $device != "Not Active")
+                {
+                    if($device->analog2!=0)
+                    {
+                        $output->temp2 = gettemp($device->analog2);
+                    }
+                    else
+                    {
+                        $output->temp2 = '-';
+                    }
+                }
+                elseif($device->analog2_sen==1 && $temp1 == "Not Active")
+                {
+                    if($device->analog2!=0)
+                    {
+                        $output->temp1 = gettemp($device->analog2);
+                    }
+                    else
+                    {
+                        $output->temp1 = '-';
+                    }
+                }
+                if($device->analog3_sen==1 && $temp1 != "Not Active")
+                {
+                    if($device->analog3!=0)
+                    {
+                        $output->temp2 = gettemp($device->analog3);
+                    }
+                    else
+                    {
+                        $output->temp2 = '-';
+                    }
+                }
+                elseif($device->analog3_sen==1 && $temp1 == "Not Active")
+                {
+                    if($device->analog3!=0)
+                    {
+                        $output->temp1 = gettemp($device->analog3);
+                    }
+                    else
+                    {
+                        $output->temp1 = '-';
+                    }
+                }
+                if($device->analog4_sen==1 && $temp1 != "Not Active")
+                {
+                    if($device->analog4!=0)
+                    {
+                        $output->temp2 = gettemp($device->analog4);
+                    }
+                    else
+                    {
+                        $output->temp2 = '-';
+                    }
+                }
+                elseif($device->analog4_sen==1 && $temp1 == "Not Active")
+                {
+                    if($device->analog4!=0)
+                    {
+                        $output->temp1 = gettemp($device->analog4);
+                    }
+                    else
+                    {
+                        $output->temp1 = '-';
+                    }
+                }
+            }
+
+            if($output->temp1!='-' && $output->temp1 != "Not Active")
+            {
+                    $output->temp1on = 1;
+            }
+            else
+            {
+                    $output->temp1on = 0;
+            }
+
+            if($output->temp2!='-' && $output->temp2 != "Not Active")
+            {
+                    $output->temp2on = 1;
+            }
+            else
+            {
+                    $output->temp2on = 0;
+            }
+
+        }
+
+            $ServerIST_less1 = new DateTime();
+            $ServerIST_less1->modify('-60 minutes');
+            $lastupdated = new DateTime($device->lastupdated_store);
+            if($lastupdated < $ServerIST_less1)
+            {
+                $e++;
+                $output->e = $e;
+            }
+            else
+            {
+                if ($device->ignition=='0')
+                {
+                    $d++ ;
+                    $output->d = $d;
+                }
+                else
+                {
+                    if($device->curspeed > $device->overspeed_limit)
+                    {
+                        $a++;
+                        $output->a = $a;
+                    }
+                    elseif($device->stoppage_flag == '0')
+                    {
+                        $c++;
+                        $output->c = $c;
+                    }
+                    else
+                    {
+                        $b++;
+                        $output->b = $b;
+                    }
+                }
+            }
+
+            $finaloutput[] = $output;
+        }
+    }
+    $ajaxpage = new ajaxpage();
+    $ajaxpage->SetResult($finaloutput);
+    $ajaxpage->Render();
+}
+
+function getIST()
+{
+
+    $IST = strtotime(date("Y-m-d H:i:s"));
+    return $IST;
+}
+
+function getdistance($unitno,$date)
+{
+    $date = date("Y-m-d", strtotime($date));
+    $totaldistance = 0;
+    $lastodometer = GetOdometer($date,$unitno,'DESC');
+    $firstodometer = GetOdometer($date,$unitno,'ASC');
+    if($lastodometer < $firstodometer)
+    {
+        $lastodometermax = GetOdometerMax($date,$unitno) ;
+        $lastodometer = $lastodometermax + $lastodometer;
+    }
+    $totaldistance = $lastodometer - $firstodometer;
+    if($totaldistance!=0)
+        return $totaldistance/1000;
+    return $totaldistance;
+}
+
+function location($lat,$long, $usegeolocation)
+{
+    $address = NULL;
+    if($lat !='0' && $long!='0')
+    {
+        if($usegeolocation == 1)
+        {
+            $API = "http://www.speed.elixiatech.com/location.php?lat=".$lat."&long=".$long."";
+            $location = json_decode(file_get_contents("$API&sensor=false"));
+            @$address = "Near ".$location->results[0]->formatted_address;
+			if($location->results[0]->formatted_address==""){
+					$GeoCoder_Obj = new GeoCoder($_SESSION['customerno']);
+					$address=$GeoCoder_Obj->get_location_bylatlong($lat,$long);
+			}
+        }
+        else
+        {
+            $GeoCoder_Obj = new GeoCoder($_SESSION['customerno']);
+            $address=$GeoCoder_Obj->get_location_bylatlong($lat,$long);
+        }
+    }
+    return $address;
+}
+
+function locationtest($lat,$long, $usegeolocation)
+{
+    $address = NULL;
+    if($lat !='0' && $long!='0')
+    {
+        if($usegeolocation == 1)
+        {
+            $API = "http://www.speed.elixiatech.com/location.php?lat=".$lat."&long=".$long."";
+            $location = json_decode(file_get_contents("$API&sensor=false"));
+            @$address = "Near ".$location->results[0]->formatted_address;
+
+        }
+
+    }
+    return $address;
+}
+
+function GetOdometer($date,$unitno,$order)
+{
+    $date = substr($date, 0,11);
+    $customerno = $_SESSION['customerno'];
+    $location = "../../customer/$customerno/unitno/$unitno/sqlite/$date.sqlite";
+    $ODOMETER = 0;
+    if(file_exists($location))
+    {
+        $path = "sqlite:$location";
+        $db = new PDO($path);
+        $query = "SELECT odometer from vehiclehistory ORDER BY vehiclehistory.lastupdated $order LIMIT 0,1";
+        $result = $db->query($query);
+        foreach ($result as $row)
+        {
+            $ODOMETER = $row['odometer'];
+        }
+    }
+    return $ODOMETER;
+}
+function GetOdometerMax($date,$unitno)
+{
+    $date = substr($date, 0,11);
+    $customerno = $_SESSION['customerno'];
+    $location = "../../customer/$customerno/unitno/$unitno/sqlite/$date.sqlite";
+    $ODOMETER = 0;
+    if(file_exists($location))
+    {
+        $path = "sqlite:$location";
+        $db = new PDO($path);
+        $query = "SELECT max(odometer) as odometerm from vehiclehistory";
+        $result = $db->query($query);
+        foreach ($result as $row)
+        {
+            $ODOMETER =  $row['odometerm'];
+        }
+    }
+    return $ODOMETER;
+
+}
+function gettemp($rawtemp)
+{
+    $temp = round((($rawtemp-1150)/4.45),1);
+    return $temp;
+}
+
+function getduration_digitalio($StartTime, $EndTime)
+{
+    //$EndTime = date('Y-m-d H:i:s');
+//                echo $EndTime.'_'.$StartTime.'<br>';
+                $idleduration = strtotime($EndTime) - strtotime($StartTime);
+                $years = floor($idleduration / (365 * 60 * 60 * 24));
+                $months = floor(($idleduration - $years * 365 * 60 * 60 * 24) / (30 * 60 * 60 * 24));
+                $days = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24) / (60 * 60 * 24));
+                $hours = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24) / (60 * 60));
+                $minutes = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24 - $hours * 60 * 60) / 60);
+                if($years >= '1' || $months >= '1'){
+                    $diff = date('d-m-Y', strtotime($StartTime));
+                }
+                else if($days>0){
+                    $diff = $days.' days '.$hours.' hrs ';
+                }
+                else if($hours>0){
+                    $diff = $hours.' hrs and '.$minutes.' mins ';
+                }
+                else{
+                    $diff = $minutes.' mins ';
+                }
+                return $diff;
+}
+?>

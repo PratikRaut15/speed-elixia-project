@@ -1,0 +1,30 @@
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+.searchbox{overflow:none;position:relative;}
+.searchresults{text-align:left; position:absolute; top:2em; left:0;  width:350px;  z-index:101; border:#000000 1px solid; padding:8px; background:#FFFFFF; overflow:auto; height:auto;}
+.searchresults div{ padding:3px; display:block; position:relative; cursor:pointer; overflow:hidden;}
+div .highlight { background:#3399CC; color:#FFFFFF; }
+.SAYTprogress
+{
+    position:relative;
+    left:-20px;
+    right:-11px;
+    top:1px;
+    height:20px;
+    margin-right:-12px;
+    width:16px;
+    height:auto;
+}
+
+.SAYTicon
+{
+    position:relative;
+    left:-20px;
+    right:-11px;
+    top:1px;
+    margin-right:-12px;
+    width:11px;
+    height:auto;
+}

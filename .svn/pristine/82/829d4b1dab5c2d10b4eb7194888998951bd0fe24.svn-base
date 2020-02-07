@@ -1,0 +1,101 @@
+<html>
+<head>
+    <title>Inactive Vehicle Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type='text/css'>
+        body{
+          font-family:Arial;
+          font-size: 11pt;
+        }
+        table{
+          text-align: center;
+          border-right:1px solid black;
+          border-bottom:1px solid black;
+          border-collapse:collapse;
+          font-family:Arial;
+          font-size: 10pt;
+          width: 60%;
+        }
+        td, th{
+          border-left:1px solid black;
+          border-top:1px solid black;
+        }
+        .colHeading{
+          background-color: #D6D8EC;
+        }
+        span{
+          font-weight:bold;
+        }
+    </style>
+</head>
+<body>Dear {{REALNAME}},
+    <br/><br/>
+    Greetings from Elixia Tech!<br/><br/>
+    Customer No: <b>{{CUSTOMER}}</b><br/>
+    Please find the auto-generated Inactive Vehicle Report for all your vehicles.<br/><br/>
+    <table border='1' {{veh_class}}>
+     <tr><th colspan="20">Vehicle Details</th></tr>
+
+        <tr><td colspan='20' class='colHeading'>Inactive Vehicle Report For {{REPORT_DATE}}</td></tr>
+        <tr>
+            <th class='colHeading'>Sr. No.</th>
+            <th class='colHeading'>Vehicle No.</th>
+            <th class='colHeading'>Group Name</th>
+            <th class='colHeading'>Region Name</th>
+            <th class='colHeading'>Zone Name</th>
+            <th class='colHeading'>Unit No.</th>
+            <th class='colHeading'>Simcard No.</th>
+            <th class='colHeading'>Last Updated</th>
+            <th class='colHeading'>Inactive Days</th>
+            <th class='colHeading'>Bucket</th>
+            <th class='colHeading'>Status</th>
+            <th class='colHeading'>Branch User</th>
+            <th class='colHeading'>SAP Code</th>
+            <th class='colHeading'>Mobile</th>
+
+            <th class='colHeading'>Regional User</th>
+            <th class='colHeading'>SAP Code</th>
+            <th class='colHeading'>Mobile</th>
+
+            <th class='colHeading'>Zonal User</th>
+            <th class='colHeading'>SAP Code</th>
+            <th class='colHeading'>Mobile</th>
+
+        </tr>
+        {{DATA_ROWS}}
+    </table>
+    <br/>
+        <table border='1' {{wh_class}}>
+     <tr><th colspan="11">{{vehiclecaption}} Details</th></tr>
+
+        <tr><td colspan='11' class='colHeading'>Inactive {{vehiclecaption}} Report For {{REPORT_DATE}}</td></tr>
+        <tr>
+            <th class='colHeading'>Sr. No.</th>
+            <th class='colHeading'>{{vehiclecaption}} No.</th>
+            <th class='colHeading'>Group Name</th>
+            <th class='colHeading'>Unit No.</th>
+            <th class='colHeading'>Simcard No.</th>
+            <th class='colHeading'>Last Updated</th>
+            <th class='colHeading'>Inactive Days</th>
+            <th class='colHeading'>Bucket</th>
+            <th class='colHeading'>Status</th>
+            <th class='colHeading'>Reginal SAP Code</th>
+            <th class='colHeading'>Zonal SAP Code</th>
+        </tr>
+        {{DATA_WAREHOUSE_ROWS}}
+    </table>
+    <br>
+    <p>Please feel free to contact us on <strong>022-2513-7471</strong> or email us at <strong>support@elixiatech.com</strong>
+    in case you have any queries regarding using the system. </p>
+    <br/>
+    <br/><font size="smaller">To unsubscribe, please uncheck your alerts <a href="http://www.speed.elixiatech.com/modules/api/?action=login_userkey_unsub&key={{ENCODEKEY}}">here</a></font>
+    <br/><br/><br/>
+    Warm Regards, <br/>
+    Support Team,<br/>
+    Elixia Speed<br/>
+    Elixia Tech Solutions Ltd.<br/><br/>
+    <img style="width: 240px;" src = "http://speed.elixiatech.com/images/elixia_logo_75.png" alt = "Elixia Speed logo" />
+    <br/>
+</body>
+</html>

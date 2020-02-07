@@ -1,0 +1,13 @@
+ALTER TABLE `servicecall` CHANGE `timeslot` `timeslot_start` DATETIME NOT NULL ;
+
+ALTER TABLE `servicecall` ADD `timeslot_end` TIMESTAMP NOT NULL AFTER `timeslot_start` ;
+
+
+
+
+
+INSERT INTO `dbpatches` (`patchid`, `patchdate`, `appliedby`, `patchdesc`) VALUES
+(36, '2012-05-24 11:40:19', 'visahwanath ', 'timeslot changed in servicecall');
+ALTER TABLE `servicemanage` ADD `iseditedby` INT NOT NULL AFTER `userid` ;
+
+ALTER TABLE `servicemanage` ADD `userid` INT NOT NULL AFTER `trackeeid`; 

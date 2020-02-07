@@ -1,0 +1,89 @@
+<?php
+include_once("session.php");
+include_once("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/components/gui/datagrid.php");
+include_once("../../lib/system/DatabaseManager.php");
+include_once("../../lib/system/Sanitise.php");
+
+class testing{
+    
+}
+
+if(isset($_POST['uteamid']))
+{
+    $teamid = GetSafeValueString($_POST['uteamid'],"string");
+    $db = new DatabaseManager();
+
+    $status.="<select name='uallotted' id='uallotted' onChange='pullsimcard_from_unit();'><option value='0'>No Unit</option>";
+    $SQL = sprintf("SELECT unit.unitno, unit.uid,trans_status.status FROM unit INNER JOIN trans_status ON trans_status.id = unit.trans_statusid WHERE trans_statusid IN (18) AND unit.teamid=".$teamid);
+    $db->executeQuery($SQL);
+    $units = Array();
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $status.= "<option value='".$row["uid"]."'>".$row["unitno"]."[ ".$row["status"]." ]</option>";            
+        }    
+    }
+    $status.="</select>( Allotted Device List with selected Elixir)";
+    echo $status;
+}
+
+if(isset($_POST['steamid']))
+{
+    $teamid = GetSafeValueString($_POST['steamid'],"string");
+    $db = new DatabaseManager();
+
+    $status.="<select name='simallotted'><option value='0'>No Simcard</option>";
+    $SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno,trans_status.status FROM simcard INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE trans_statusid IN (19) AND simcard.teamid=".$teamid);
+    $db->executeQuery($SQL);
+    $units = Array();
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $status.= "<option value='".$row["simid"]."'>".$row["simcardno"]."[ ".$row["status"]." ]</option>";            
+        }    
+    }
+    $status.="</select>( Allotted Simcard List with selected Elixir)";
+    echo $status;
+}
+
+if(isset($_POST['uallotted']) && isset($_POST['simteamid']))
+{
+    $unitid = GetSafeValueString($_POST['uallotted'],"string");
+    $teamid = GetSafeValueString($_POST['simteamid'],"string");
+    $simcardid_compare = 0;
+    $db = new DatabaseManager();
+
+    $status="<select name='simallotted'>";
+        
+    $SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno,trans_status.status FROM devices INNER JOIN simcard ON simcard.id = devices.simcardid INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE devices.simcardid <> 0 AND devices.uid = ".$unitid." LIMIT 1");
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $simcardid_compare = $row["simid"];
+            $status.= "<option value='".$row["simid"]."'>".$row["simcardno"]."[ ".$row["status"]." ]</option>";            
+            
+        }    
+    }
+    
+    $status.="<option value='0'>No Simcard</option>";
+    $SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno,trans_status.status FROM simcard INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE trans_statusid IN (19) AND simcard.teamid=".$teamid);
+    $db->executeQuery($SQL);
+    $units = Array();
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            if($row["simid"] != $simcardid_compare)
+            {
+                $status.= "<option value='".$row["simid"]."'>".$row["simcardno"]."[ ".$row["status"]." ]</option>";            
+            }
+        }    
+    }
+    $status.="</select>( Allotted Simcard List with selected Elixir)";
+    echo $status;
+}
+
+?>

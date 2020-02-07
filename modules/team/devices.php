@@ -1,0 +1,347 @@
+<?php
+include_once("session.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/components/gui/objectdatagrid.php");
+include_once("../../lib/system/DatabaseManager.php");
+
+class unit{
+    
+}
+//Datagtrid
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT * FROM ".DB_PARENT.".trans_status WHERE type = 0");
+$db->executeQuery($SQL);
+$unitstatus = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new unit();
+        $unit->status = $row["status"];
+        $unit->id = $row["id"];        
+        $unitstatus[] = $unit;        
+    }    
+}
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT * FROM vendor");
+$db->executeQuery($SQL);
+$vendors = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $vendor = new unit();
+        $vendor->vendorname = $row["vendorname"];
+        $vendor->id = $row["id"];        
+        $vendors[] = $vendor;        
+    }    
+}
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT * FROM ".DB_PARENT.".trans_status WHERE type = 1");
+$db->executeQuery($SQL);
+$simcardstatus = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new unit();
+        $unit->status = $row["status"];
+        $unit->id = $row["id"];        
+        $simcardstatus[] = $unit;        
+    }    
+}
+
+
+if(isset($_POST["dsearch"]))
+{    
+    $unitno = GetSafeValueString($_POST["unitno"], "string");     
+    $customerno = GetSafeValueString($_POST["dcustomerno"], "string");     
+    $status = GetSafeValueString($_POST["unitstatus"], "string");   
+    $dinvoice =  GetSafeValueString($_POST["dinvoice"], "string");   
+    $count = 0;
+    
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT team.name, d.installdate,d.invoiceno, d.lastupdated, s.simcardno, d.expirydate, d.invoiceno, u.uid, u.unitno, t.status, u.customerno, u.uid FROM unit u INNER JOIN ".DB_PARENT.".trans_status t ON t.id = u.trans_statusid LEFT OUTER JOIN devices d ON d.uid = u.uid LEFT OUTER JOIN simcard s ON s.id = d.simcardid LEFT OUTER JOIN ".DB_PARENT.".team ON team.teamid = u.teamid WHERE t.type=0");
+    if(isset($dinvoice) && $dinvoice != "")
+    {
+        $SQL.= sprintf(" AND d.invoiceno ='".$dinvoice."'");
+    }
+    if(isset($unitno) && $unitno != "")
+    {
+        $SQL.= sprintf(" AND u.unitno LIKE '%s'",$unitno);
+    }
+    
+    if(isset($customerno) && $customerno != "")
+    {
+        $SQL.= " AND u.customerno LIKE $customerno ";
+    }
+    
+    if(isset($status) && $status != "-1")
+    {
+        $SQL.= " AND u.trans_statusid LIKE $status ";
+    }
+    
+$SQL.=" ORDER BY u.customerno ASC;";
+$db->executeQuery($SQL);
+$devices = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $count++;
+        $device = new unit();
+        $device->count = $count;
+        $device->uid = $row["uid"];        
+        $device->unitno = $row["unitno"];
+        if($row["name"] == null)
+        {
+            $device->status = $row["status"];
+        }
+        else
+        {
+            $device->status = $row["status"]."( ".$row["name"]." )";            
+        }
+        $device->customerno = $row["customerno"];
+        $device->lastupdated = date("Y-m-d H:i:s", strtotime($row["lastupdated"]));        
+        if($row["installdate"] == "0000-00-00")
+        {
+            $device->installdate = "";            
+        }
+        else
+        {
+            $device->installdate = $row["installdate"];            
+        }
+        if($row["expirydate"] == "0000-00-00")
+        {
+            $device->expirydate = "";            
+        }
+        else
+        {
+            $device->expirydate = $row["expirydate"];            
+        }
+        $device->simcardno = $row["simcardno"];
+        $device->invoiceno = $row["invoiceno"];        
+        $devices[] = $device;        
+    }    
+}
+
+$dg = new objectdatagrid( $devices );
+$dg->AddAction("View", "../../images/history.png", "history.php?id=%d");
+$dg->AddColumn("Sr no.","count");
+$dg->AddColumn("Customer #", "customerno");
+$dg->AddColumn("Unit #", "unitno");
+$dg->AddColumn("Status", "status");
+$dg->AddColumn("Last Updated", "lastupdated");
+$dg->AddColumn("Installed on", "installdate");
+$dg->AddColumn("Expiry Date", "expirydate");
+$dg->AddColumn("Invoice #", "invoiceno");
+$dg->AddColumn("Simcard #", "simcardno");
+$dg->SetNoDataMessage("No Units");
+$dg->AddIdColumn("uid");
+}
+
+if(isset($_POST["ssearch"]))
+{    
+    $ssimcardno = GetSafeValueString($_POST["simcardno"], "string");     
+    $scustomerno = GetSafeValueString($_POST["scustomerno"], "string");     
+    $sstatus = GetSafeValueString($_POST["simcardstatus"], "string");     
+    $svendor = GetSafeValueString($_POST["vendor"], "string");  
+    //$sinvoice = GetSafeValueString($_POST["sinvoice"], "string");  
+    $count = 0;
+    
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT unit.unitno, s.simcardno, t.status,devices.invoiceno, s.customerno, s.id, v.vendorname FROM simcard s INNER JOIN ".DB_PARENT.".trans_status t ON t.id = s.trans_statusid INNER JOIN ".DB_PARENT.".vendor v ON v.id = s.vendorid LEFT OUTER JOIN devices ON devices.simcardid = s.id LEFT OUTER JOIN unit ON devices.uid = unit.uid
+    WHERE t.type=1");
+//     if(isset($sinvoice) && $sinvoice != "")
+//    {
+//        $SQL.= sprintf(" AND devices.invoiceno ='".$sinvoice."'");
+//    }
+    if(isset($ssimcardno) && $ssimcardno != "")
+    {
+        $SQL .= " AND s.simcardno LIKE '%".$ssimcardno."%'";
+    }
+    
+    if(isset($scustomerno) && $scustomerno != "")
+    {
+        $SQL .= " AND s.customerno LIKE '$scustomerno' ";
+    }
+    
+    if(isset($sstatus) && $sstatus != "-1")
+    {
+        $SQL .= " AND s.trans_statusid LIKE '$sstatus' ";
+    }
+
+    if(isset($svendor) && $svendor != "-1")
+    {
+        $SQL .= " AND s.vendorid LIKE '$svendor' ";
+    }
+    
+$SQL .= " ORDER BY s.customerno ASC;";
+
+$db->executeQuery($SQL);
+$devices = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $count++;
+        $device = new unit();
+        $device->count = $count;
+        $device->id = $row["id"];                
+        $device->simcardno = $row["simcardno"];
+        $device->vendorname = $row["vendorname"];        
+        $device->status = $row["status"];
+        $device->customerno = $row["customerno"];
+        $device->unitno = $row["unitno"];        
+        $devices[] = $device;        
+    }    
+}
+
+$dg = new objectdatagrid( $devices );
+$dg->AddAction("View", "../../images/history.png", "historysim.php?id=%d");
+$dg->AddColumn("Sr no.", "count");
+$dg->AddColumn("Customer #", "customerno");
+$dg->AddColumn("Simcard #", "simcardno");
+$dg->AddColumn("Unit #", "unitno");
+$dg->AddColumn("Status", "status");
+$dg->AddColumn("Vendor", "vendorname");
+$dg->SetNoDataMessage("No Simcards");
+$dg->AddIdColumn("id");
+}
+
+
+$_scripts[] = "../../scripts/trash/prototype.js";
+ 
+include("header.php");
+
+?>
+<div class="panel">
+    <div class="paneltitle" align="center">Search a Device / Simcard</div>
+<div class="panelcontents">    
+<form method="post" action="devices.php"  enctype="multipart/form-data">
+    <table width="50%" align="center">
+        <tr>
+            <td colspan="10" align="center">
+                <h3> Device </h3>
+            </td>
+        </tr>
+        <tr>
+        <td>Unit no </td>
+        <td> <input name="unitno" id="unitno" type="text" value="<?php if(isset($unitno)) echo($unitno); ?>"/>
+        </td>
+        <td>Customer no </td>
+        <td> <input name="dcustomerno" id="dcustomerno" type="text" value="<?php if(isset($customerno)) echo($customerno); ?>"/>
+        </td>
+        <td>Status</td>
+        <td><select name="unitstatus">
+                <option value="-1">Select Status</option>
+                <?php
+                foreach($unitstatus as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->id); ?>"><?php echo($thisunit->status); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        <td>Invoice</td>
+        <td>
+            <input type="text" name="dinvoice" id="dinvoice" value="<?php if(isset($dinvoice)) echo($dinvoice); ?>"/>
+        </td>
+        </tr>            
+        </table>
+<div align="center"><input type="submit" name="dsearch" value="Search Device" /></div>
+</form>
+    <hr/>
+<form method="post" action="devices.php"  enctype="multipart/form-data">
+    <table width="50%" align="center">
+        <tr>
+            <td colspan="6" align="center">
+                <h3> Sim Card </h3>
+            </td>
+        </tr>
+        <tr>
+        <td>Simcard No </td>
+        <td> <input name="simcardno" id="simcardno" type="text" value="<?php if(isset($ssimcardno)) echo($ssimcardno); ?>"/>
+        </td>
+        <td>Customer no </td>
+        <td> <input name="scustomerno" id="scustomerno" type="text" value="<?php if(isset($scustomerno)) echo($scustomerno); ?>"/>
+        </td>
+        <td>Status</td>
+        <td><select name="simcardstatus">                
+                <option value="-1">Select Status</option>                
+                <?php
+                foreach($simcardstatus as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->id); ?>"><?php echo($thisunit->status); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>        
+        <td>Vendor</td>
+        <td><select name="vendor">
+                <option value="-1">Select Vendor</option>                
+                <?php
+                foreach($vendors as $thisvendor)
+                {
+                ?>
+                <option value="<?php echo($thisvendor->id); ?>"><?php echo($thisvendor->vendorname); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>     
+<!--         <td>Invoice</td>
+        <td>
+            <input type="text" name="sinvoice" id="sinvoice" value="<?php if(isset($sinvoice)) echo($sinvoice); ?>"/>
+        </td>-->
+        </tr>            
+        
+    </table>
+    
+<div align="center"><input type="submit" name="ssearch" value="Search SIM" /></div>
+</form>
+    
+</div>
+</div>    
+
+<?php
+if(isset($_POST["dsearch"]))
+{
+?>    
+<br/>
+<div class="panel">
+<div class="paneltitle" align="center">Device List</div>
+<div class="panelcontents">
+<?php $dg->Render(); ?>
+</div>
+
+</div>
+<?php
+}
+?>
+
+<?php
+if(isset($_POST["ssearch"]))
+{
+?>    
+<br/>
+<div class="panel">
+<div class="paneltitle" align="center">Simcard List</div>
+<div class="panelcontents">
+<?php $dg->Render(); ?>
+</div>
+
+</div>
+<?php
+}
+?>
+
+<br/>
+
+<?php
+include("footer.php");
+?>

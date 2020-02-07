@@ -1,0 +1,6 @@
+{
+	"autoload":
+	{
+		"classmap": ["phpdial_gauge_elixia.php"]
+	}
+}

@@ -1,0 +1,39 @@
+/*
+    Name			-	check_vehicle_user_mapping
+    Description 	-	To check the user is mapped to any vehicle
+    Parameters		-	useridparam, OUT groupidparam,  OUT isUserMappedToVehicle
+    Module			-	Vehicle Tracking System
+    Sub-Modules 	- 	Driver Mapping APP
+    Sample Call		-	CALL check_vehicle_user_mapping('1515',@groupidparam,@isUserMappedToVehicle);
+						SELECT @groupidparam,@isUserMappedToVehicle;
+    Created by		-	Mrudang
+    Created on		- 	6 Nov, 2015
+    Change details 	-	
+    1) 	Updated by	- 	Mrudang
+		Updated	on	- 	2 Jan, 2016
+        Reason		-	groupidparam not checked for -1.
+*/
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS check_vehicle_user_mapping$$
+CREATE PROCEDURE `check_vehicle_user_mapping`(
+	IN useridparam INT
+    , OUT groupidparam INT
+    , OUT isUserMappedToVehicle TINYINT(1)
+)
+BEGIN
+			SET isUserMappedToVehicle = 0;
+            SET groupidparam = -1;
+            
+			/* Check whether any existing user has the group */
+            SELECT	groupid
+            INTO	groupidparam
+			FROM	groupman
+			WHERE 	userid = useridparam
+			AND 	isdeleted = 0;
+            
+            IF (groupidparam IS NOT NULL AND groupidparam != -1) THEN
+				SET isUserMappedToVehicle = 1;
+			END IF;
+END$$
+DELIMITER ;

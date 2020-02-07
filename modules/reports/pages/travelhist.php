@@ -1,0 +1,197 @@
+
+<?php 
+$getvehicleid1="";
+if (isset($_GET['vehicleno']) && $_GET['vehicleno']) {
+    $vehicleid = $_GET['vehicleno'];
+    /*Get vehicle number*/
+    $vehicleNo = getVehicleNumberFromId($vehicleid);
+    $vehicleDet = getVehicleDetailsByVehicleNo($vehicleid);
+    if (isset($vehicleDet[0]->vehicleid) && !empty($vehicleDet[0]->vehicleid)) {
+        $getvehicleid1 = $vehicleDet[0]->vehicleid;
+    }
+    $deviceNo = getDeviceNumberFromVehicle($vehicleid);
+}
+?>
+<script>
+$(function() {
+    $("#vehicleno").autoSuggest({
+        ajaxFilePath : "autocomplete.php",
+	ajaxParams : "dummydata=dummyData",
+	autoFill : false,
+	iwidth : "auto",
+	opacity : "0.9",
+	ilimit : "10",
+	idHolder : "id-holder",
+	match : "contains"
+    });
+    var hidVehId = jQuery('#vehicleid').val();
+    if ((hidVehId !== undefined || hidVehId !== '') && (userkey == '' && typeof userkey === "undefined")) {
+        getTravelHistReport();
+    }
+    var userkey = GetParameterValues('userkey');
+    if (userkey != '' && typeof userkey !== "undefined") {
+        $('#divheader').hide();
+        $("#footer").hide();
+    }
+    var SDate = GetParameterValues('sdate');
+    var STime = GetParameterValues('stime');
+    if (STime == undefined) {
+        STime = "00:00";
+    }
+    var EDate = GetParameterValues('edate');
+    var ETime = GetParameterValues('etime');
+    if(ETime == undefined){
+          ETime = "23:59";
+    }
+//    var interval = GetParameterValues('interval');
+    var vehicleno = $("#hiddenvehicleno").val();
+    var deviceid  = $("#hiddendeviceno").val();
+    if (SDate != undefined) {
+        jQuery('#SDate').val(SDate);
+        jQuery('#STime').val(STime);
+        jQuery('#EDate').val(EDate);
+        jQuery('#ETime').val(ETime);
+        jQuery('#vehicleid').val(<?php echo $getvehicleid1; ?>);
+//        jQuery('#interval').val(interval);
+        jQuery('#vehicleno').val(vehicleno);
+        jQuery('#deviceid').val(deviceid);
+        jQuery('#geocode').val(1);
+    //        jQuery('#tempsel').val(temp);
+    //        jQuery('#tripmin').val(tripmin);
+    //        jQuery('#tripmax').val(tripmax);
+    //        jQuery('#customMinTemp').val(customMinTemp);
+    //        jQuery('#customMaxTemp').val(customMaxTemp);
+        getTravelHistReport();
+    }
+});
+function fill(Value, strparam){
+    jQuery('#vehicleno').val(strparam);
+    jQuery('#vehicleid').val(Value);
+    jQuery('#display').hide();
+}
+function getTravelHistReport(){
+    jQuery('#centerDiv').html('');
+    jQuery('#pageloaddiv').show();
+    var data = jQuery("#travelHistreportForm").serialize();
+    jQuery.ajax({
+        url:"travelhist_ajax.php",
+        type: 'POST',
+        data: data,
+        success:function(result){
+            jQuery("#centerDiv").html(result);
+        },
+        complete: function(){
+            jQuery('#pageloaddiv').hide();
+        }
+    });
+}
+</script>
+
+<?php
+if($_SESSION['customerno'] == speedConstants::CUSTNO_SAFEANDSECURE && $_SESSION['role_modal']=='Custom'){
+    $SDate = "id='sdate' readonly" ;
+    $EDate = "id='edate' readonly" ;
+    $STime = "id='stime' readonly value='00:00'" ;
+    $ETime = "id='etime' readonly value='23:59'" ;
+    $vehicleno = "id='vehicleno' readonly" ;
+}else{
+    $SDate = "id='SDate'" ;
+    $EDate = "id='EDate'" ;
+    $STime = "id='STime'" ;
+    $ETime = "id='ETime'" ;
+    $vehicleno = "id='vehicleno'" ;
+}
+
+ ?>
+
+<form action="reports.php?id=2" method="POST" onsubmit="getTravelHistReport();return false;" id="travelHistreportForm">
+<?php
+$today = date('d-m-Y');
+$title = "Travel History";
+include 'panels/travelhist.php';
+$getvehicleid1="";
+$getvehicleno = "";
+if (isset($_REQUEST['vehicleid'])) { 
+    $getvehicleid1 = $_REQUEST['vehicleid'];
+    $vehicleDetails = getvehicle_byID($getvehicleid1);
+    $getvehicleno = $vehicleDetails->vehicleno;
+}
+if(isset($_SESSION['ecodeid'])){
+?>
+<input type="hidden" name="s_start" id="s_start" value="<?php echo $_SESSION['startdate'];?>" />
+<input type="hidden" name="e_end" id="e_end" value="<?php echo $_SESSION['enddate'];?>" />
+<input type="hidden" name="days" id="days" value="<?php echo $_SESSION['days'];?>" />
+<input type="hidden" name="calculateddate" id="calculateddate" value="<?php echo date('d-m-Y',strtotime($_SESSION['codecalculateddate']));?>" />
+<?php
+}
+?>
+    <tr>
+	<td>Vehicle</td>
+        <td>Start Date</td>
+        <td>Start Hour</td>
+        <td>End Date</td>
+        <td>End Hour</td>
+        <td></td>
+    </tr>
+
+    <tr>
+       <!--  <td>
+            <input  type="text" name="vehicleno" id="vehicleno" size="20" value="<?php echo $getvehicleno; ?>" autocomplete="off" placeholder="Enter Vehicle No" required>
+            <input type="hidden" name="vehicleid" id="vehicleid" size="20" value="<?php echo $getvehicleid1; ?>"/>
+            <div id="display" class="listvehicle"></div>
+        </td>
+        <td><input id="SDate" name="SDate" type="text" value="<?php echo $today; ?>" required/></td>
+        <td><input id="STime" name="STime" type="text" class="input-mini"  data-date="00:00"  /></td>
+        <td><input id="EDate" name="EDate" type="text" value="<?php echo $today; ?>" required/></td>
+        <td><input id="ETime" name="ETime" type="text" class="input-mini" data-date2="23:59" /></td> -->
+
+
+        <td>
+            <input  type="text" name="vehicleno" <?php echo $vehicleno; ?> size="20" value="<?php echo $getvehicleno; ?>" autocomplete="off" placeholder="Enter Vehicle No" required>
+            <input type="hidden" name="vehicleid" id="vehicleid" size="20" value="<?php echo $getvehicleid1; ?>"/>
+            <?php
+            if(isset($vehicleNo) && $vehicleNo != '') {
+            ?>
+                <input type="hidden" id="hiddenvehicleno" name="hiddenvehicleno" value="<?php echo $vehicleNo; ?>" />
+            <?php
+            } 
+            if(isset($deviceNo) && $deviceNo != '') {
+            ?>
+            <input type="hidden" id="hiddendeviceno" name="hiddendeviceno" value="<?php echo $deviceNo; ?>" />
+            <?php } ?>
+            <div id="display" class="listvehicle"></div>
+        </td>
+
+        <td><input <?php echo $SDate; ?> name="SDate" type="text" value="<?php echo $today; ?>"/></td>
+        <td><input <?php echo $STime; ?> name="STime" type="text" class="input-mini" data-date="00:00" /></td>
+        <td><input <?php echo $EDate; ?> name="EDate" type="text" value="<?php echo $today; ?>" required/></td>
+        <td><input <?php echo $ETime; ?> name="ETime" type="text" class="input-mini" data-date="23:59" /></td>
+
+        <td>
+            <?php
+            if(isset($_SESSION['Session_UserRole']) && $_SESSION['Session_UserRole']=="elixir"){
+            ?>
+            <div style="float:left;">
+            Geo Location
+            <select name="geocode" id="geocode">
+                <option value="1">Database</option>
+		        <option value="2">Google</option>
+            </select>&nbsp;
+            </div>
+            <?php } ?>
+            <input type="submit"  class="g-button g-button-submit" value="Get Report" name="GetReport">
+            <a href='javascript:void(0)' onclick="get_pdfreport();"><img src="../../images/pdf_icon.png" alt="Export to PDF" class='exportIcons' title="Export to PDF" /></a>
+            <a href='javascript:void(0)' onclick="html2xls(<?php  echo $_SESSION['customerno']; ?>);return false;"><img src="../../images/xls.gif" alt="Export to Excel" class='exportIcons' title="Export to Excel" /></a>
+            <a href='javascript:void(0)' onclick="get_stoppage_print('<?php  echo $title; ?>');"><img src="../../images/print.png" alt="Print Report" class='exportIcons' title="Print Report" /></a>
+            <a href='#mail_pop' data-toggle="modal" onclick='jQuery("#mailStatus").html("");'><img src="../../images/email_icon.png" alt="Email Report" class='exportIcons' title="Email Report" /></a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</form>
+<br><br>
+<center id='centerDiv'></center>
+<?php
+$mail_function = "send_travelHist_mail(".$_SESSION['customerno'].");";
+include_once "mail_pop_up.php";
+?>

@@ -1,0 +1,23 @@
+<?php
+error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+include 'ecode_functions.php';
+
+if(isset($_GET['update']))
+{
+   updateecode($_POST);
+}
+else if(isset($_GET['ecodeid']))
+{
+    $delete = deleteecode($_GET['ecodeid']);
+    if($delete)
+    {
+        header("Location:ecode.php?id=2");
+    }
+}
+else if(isset($_POST))
+{
+    generateecode($_POST);
+}
+?>

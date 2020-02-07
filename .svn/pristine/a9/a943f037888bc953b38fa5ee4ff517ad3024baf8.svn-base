@@ -1,0 +1,87 @@
+
+legend{
+  padding:50px 0 0 10px !important;
+  margin-bottom: 0 !important;
+  border-bottom:0px !important;
+}
+p{
+    width: auto !important;
+}
+textarea{
+    resize: none;
+    height: 40px;
+    width:200px;
+    margin: 0 1% 3% 1% !important;
+
+}
+/*select{
+     margin:0 10px 0 0 !important;
+}*/
+input[type="button"]:active {
+transform: translateY(4px);
+}
+label{
+  height:auto !important;
+  width:auto !important;
+  font-weight: 600;
+  display: inline !important;
+  padding-left: 10px;
+}
+
+input[type="text"] {
+margin: 3% 1% 3% 1% !important;
+box-shadow:2px 2px 2px #666;   
+}
+
+select{
+ margin: 3% 1% 3% 1% !important; 
+}
+
+input[type="button"] {
+  background-color: #3b5998;
+  border: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+}
+input[type="submit"] {
+  background-color: #3b5998;
+  border: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  transform: translateY(4px);
+}
+
+select {
+box-shadow:2px 2px 2px #666; 
+max-width: 200px !important;
+}
+
+.panel{
+  width:1224px !important;
+  overflow-x: scroll;
+}
+.paneltitle{
+   width:1208px !important;
+}
+.rows:after {
+    content: "";
+    display: table;
+    clear: both;
+    width: 1224px; 
+    }
+.column {
+    border-left : 1px;
+    padding-left: 10px;
+    float: left;
+    width: 45%;     
+    height: auto; /* Should be removed. Only for demonstration */
+    }
+table{
+  box-shadow: 2px 2px 2px #666;
+  margin-bottom: 10px;
+}
+h4{
+  display: inline !important;
+}

@@ -1,0 +1,87 @@
+    .item_master_class input[type="text"] {
+        margin: 5% 5% 5% 5%;
+        overflow-x: scroll;
+    }
+    .item_master_table{
+        padding-left: 10px;
+        vertical-align: middle;
+    }
+    .titleClass{
+        font-size:16px;
+        font-weight:600;
+        margin:2% 0 2% 0;
+    }
+    .capital{
+        text-transform: capitalize;
+    }
+
+    .recipientbox {
+        border: 1px solid #999999;
+        float: left;
+        font-weight: 700;
+        padding: 4px 27px;
+        /*    width: 100px;*/
+
+        float:left;
+        -webkit-transition:all 0.218s;
+        -webkit-user-select:none;
+        background-color:#000;
+        /*background-image:-webkit-linear-gradient(top, #4D90FE, #4787ED);*/
+        border:1px solid #3079ED;
+        color:#FFFFFF;
+        text-shadow:rgba(0, 0, 0, 0.0980392) 0 1px;
+        border:1px solid #DCDCDC;
+        border-bottom-left-radius:2px;
+        border-bottom-right-radius:2px;
+        border-top-left-radius:2px;
+        border-top-right-radius:2px;
+
+        cursor:default;
+        display:inline-block;
+        font-size:11px;
+        font-weight:bold;
+        height:27px;
+        line-height:27px;
+        min-width:46px;
+        padding:0 8px;
+        text-align:center;
+
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color:#fff !important;
+        font-size: 11px;
+        font: bold 11px/27px Arial,sans-serif !important;
+        vertical-align: top;
+        margin-left:5px;
+        margin-top:5px;
+        text-align:left;
+    }
+    .recipientbox img {
+        float:right;
+        padding-top:5px;
+    }
+    .labelwidth{
+        width:200px;
+    }
+    .additionalPersonTable td{
+        padding-left: 5px;
+        vertical-align: middle !important;
+    }
+    .userTable td{
+        padding-left: 5px;
+        vertical-align: middle !important;
+    }
+    .customerTable td{
+        padding-left: 5px;
+        vertical-align: middle !important;
+    }
+    .poTable td{
+         padding-left: 5px;
+        vertical-align: middle !important;
+    }
+    .ledgerTable td{
+        padding-left: 5px;
+        vertical-align: middle !important;
+    }
+    .searchArea{
+        background: #fff url('../images/search.png') no-repeat right;
+    }

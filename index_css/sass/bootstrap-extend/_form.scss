@@ -1,0 +1,29 @@
+//form
+.form-control {
+    border-color: $clr-grey;
+    border-radius: 8px;
+    box-shadow: none;
+    height: 50px;
+    resize: none;
+    font-size: 16px;
+    line-height: 18px;
+    padding: 10px 24px;
+    @include placeholder {
+        text-transform: uppercase;
+        color: $clr-text;
+    }
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .form-group {
+        margin-bottom: 15px;
+    }
+}

@@ -1,0 +1,45 @@
+ <html>
+	<head>
+<style>
+			table{
+                                text-align: left;
+                                border-collapse:collapse;
+                                font-family:Arial;
+                                font-size: 10pt;
+                                width: 60%;
+                            }
+                            th{
+                                text-align: center;
+                                font-size: 11pt;
+                                padding: 10px;
+                            }
+</style>
+	</head>
+	<body>
+	Dear {{CREATORNAME}},<br/><br/>
+	Greetings from Elixia Tech!<br/>
+	Please find the transaction details below:<br/><br/>
+
+	<table border=1>
+		<tr><th colspan='2'>Vehicle Management System (VMS) </th></tr>
+		<tr><td>Request Type </td><td>{{REQUEST_TYPE}}</td></tr>
+		<tr><td>Requisition Number  </td><td>{{TRANSID}}</td></tr>
+		<tr><td>Delegate For   </td><td>{{DELEGATE_FOR}} </td></tr>
+		<tr><td>Delegate For Name   </td><td>{{DELEGATE_FOR_NAME}}</td></tr>
+		<tr><td>Requestor Employee Code</td><td>{{REQUEST_EMP_CODE}} </td></tr>
+		<tr><td>Requestor Name    </td><td>{{CREATORNAME}}</td></tr>
+		<tr><td>Branch Name    </td><td>{{GROUPNAME}} </td></tr>
+		<tr><td>Branch Address    </td><td>{{BRANCH_ADDRESS}}</td></tr>
+		<tr><td>User Mobile Number    </td><td>{{USERMOBILENO}}</td></tr>
+		<tr><td>Department Name    </td><td>{{DEPTNAME}} </td></tr>
+		<tr><td>User Comments    </td><td>{{USER_COMMENT}}</td></tr>
+		<tr><td>Requested Date </td><td>{{REQUESTDATE}}</td></tr>
+		<tr><td>First Level Approver Name  </td><td>{{APPROVER_NAME}}</td></tr>
+		<tr><td>Second Level Approver Name   </td><td>{{SECOND_APPROVER}} </td></tr>
+		<tr><td>Approval Pending   </td><td>{{APPROVALPENDING}} </td></tr>
+		<tr><td>Status   </td><td>{{STATUS}} </td></tr>
+		<tr><td>Action   </td><td>{{ACTION}}</td></tr>
+	</table>
+	<br/><br/>In case of any queries, you may contact us at 25137470 / 71. Thank you for choosing Elixia Tech!
+	</body>
+</html>

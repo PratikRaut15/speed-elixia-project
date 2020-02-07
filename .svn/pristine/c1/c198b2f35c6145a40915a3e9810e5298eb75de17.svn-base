@@ -1,0 +1,111 @@
+//bs-tab
+.bs-tab {
+    .nav-tabs {
+        text-align: center;
+        border: none;
+        margin-bottom: 35px;
+        >li {
+            float: none;
+            display: inline-block;
+            >a {
+                font-size: 16px;
+                line-height: 18px;
+                color: $clr-primary;
+                border-radius: 50px;
+                font-weight: $fnt-regular;
+                background: transparent;
+                padding: 12px 20px;
+                text-transform: uppercase;
+                @include transition(all, 0.5s, ease);
+                &:hover {
+                    background: $clr-primary;
+                    color: $clr-root;
+                }
+            }
+            &.active {
+                >a,
+                >a:focus,
+                >a:hover {
+                    background: $clr-primary;
+                    color: $clr-root;
+                    // font-weight: $fnt-bold;
+                    border: none;
+                }
+            }
+        }
+    }
+    &.typ2 {
+        .nav-tabs {
+            li {
+                margin-right: 0;
+                border-bottom: 2px solid $clr-grey;
+                border-right: 1px solid $clr-grey;
+                height: 58px;
+                @include transition (all, 0.5s, ease);
+                >a {
+                    color: $clr-secondary;
+                    font-weight: $fnt-bold;
+                    padding: 20px;
+                    background: transparent;
+                    border: none;
+                    display: block;
+                    text-transform: uppercase;
+                    margin-top: 3px;
+                    &:hover {
+                        border: none;
+                    }
+                }
+                &.active {
+                    border-bottom: 2px solid $clr-primary;
+                    background: #e2e2e2;
+                    >a,
+                    >a:focus,
+                    >a:hover {
+                        background: transparent;
+                        color: $clr-secondary;
+                    }
+                }
+                &:last-child {
+                    border-right: none;
+                }
+                &:hover {
+                    border-right-color: $clr-grey;
+                    border-bottom-color: $clr-primary;
+                    background: #e2e2e2;
+                }
+            }
+        }
+    }
+    .tab-desc {
+        width: 600px;
+        margin: 0 auto;
+        text-align: center;
+        p {
+            font-weight: $fnt-thin;
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .bs-tab {
+        .nav-tabs {
+            margin-bottom: 20px;
+            >li {
+                >a {
+                    font-size: 14px;
+                    line-height: 16px;
+                }
+            }
+        }
+        .tab-desc {
+            width: auto;
+            p {
+                font-size: 12px;
+                line-height: 14px;
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}

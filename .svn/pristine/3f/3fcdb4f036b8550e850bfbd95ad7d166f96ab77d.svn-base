@@ -1,0 +1,72 @@
+<?php
+$title = ' Vehicle Distance Analysis Report';
+$subTitle = array(
+    "Start Date: $STdate",
+    "End Date: $EDdate",
+    "Unit: Kilometers ",
+    "Vehicle No: $vehicleno"
+);
+/*print("<pre>");
+print_r($subTitle);
+die;*/
+echo table_header($title, $subTitle);
+?>
+
+<?php
+$SDate = $STdate;
+$STdate = date('d-m-Y', strtotime($STdate));
+$t_columns = '';
+$colspan = 0;
+/*while(strtotime($STdate)<=strtotime($EDdate)){
+    $t_columns .= "<td>".substr($STdate, 0,5)."</td>";
+    $STdate = date("d-m-Y",strtotime('+1 day', strtotime($STdate)));
+    $colspan++;
+}*/
+if($colspan>15){
+    echo "<style>.newTable th, .newTable td{padding:3px;}</style>";
+    echo '<div class="container-fluid" >'; //style="overflow:scroll;overflow-y:hidden;"
+}
+else{
+    echo '<div class="container">';
+}
+?>
+
+<div style='float:right;min-height: 30px;'>
+    <span style='background:green;color:#FFF;padding:3px;'>Highest Distance</span>
+    <span style='background:#D26717;color:#FFF;padding:3px;'>Weekend Travel Data</span>
+</div>
+<!-- <table id='search_table_2' class="table newTable" >
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Vehicle No</th>
+        <th colspan="<?php echo $colspan;?>">Date[DD-MM]</th>
+        <th>Total</th>
+    </tr>
+    <tr class='tableSub' >
+        <td></td>
+        <td></td>
+        <?php echo $t_columns; ?>
+        <td></td>
+    </tr>
+    </thead>
+ -->
+
+ <table id='search_table_2' class="table newTable">
+    <thead>
+        <tr><th colspan="5"> Vehicle No. <?php echo "<b>".$vehicleno."</b>" ?></th></tr>
+    <tr>
+        <th>Serial No</th>
+
+        <th colspan="<?php echo $colspan;?>">Date</th>
+        <th>Distance in km.</th>
+
+    </tr>
+    <tr class='tableSub' >
+
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <?php echo $t_columns;?>
+    </thead>

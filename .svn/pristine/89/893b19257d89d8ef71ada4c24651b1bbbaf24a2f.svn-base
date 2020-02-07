@@ -1,0 +1,13 @@
+<table  id="tableTemp">
+    <tr>
+        <th class="colHeading">{{WAREHOSUE}}
+        {{STATUS}}</th>
+    </tr>
+    <tr>
+        <th class="tempRangeFont">{{TEMPNAME}}</th>
+    </tr>
+    <tr><td class="{{TEMPSTATUS}} temperatureFont">{{TEMP}}</td></tr>
+    <tr><td class="tempRangeFont">{{TEMPRANGE}}</td></tr>
+    <tr><td class="tempRangeFont">{{LASTUPDATED}}</td></tr>
+
+</table>

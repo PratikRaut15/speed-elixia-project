@@ -1,0 +1,77 @@
+<?php
+/*
+ * This include file should be modified for each install.
+ * Set the login name and password for the database as well as the database name
+ * The subdir variable is to allow multiple installs on a single server.
+ */
+$subdir = "/speed";
+$subdirinurl = "";
+$db_hostname = "localhost";
+$db_loginname = "root";
+$db_loginpassword = "";
+$db_databasename = "speed";
+$itemsperpage = 20;
+$IsDebugServer = true; // false or ommitted if live.
+$site_url = "";
+$use_ssl = false;
+//$numerexserveraddress="http://localhost/sqbx/servers/ubiquiatrack";
+define('DB_PORT', '3306');
+define('DB_HOST', $db_hostname);
+define('DB_LOGIN', $db_loginname);
+define('DB_PWD', $db_loginpassword);
+define('SPEEDDB', $db_databasename);
+define('DB_PARENT', "speed");
+define('WOWDB', 'wowexpress');
+define("DB_PICKUP", "speed_pickup");
+define("DB_DELIVERY", "speed_delivery");
+define("DB_TMS", "speed_tms"); //speed_tms
+define("DB_Service", "speed_mobility");
+define("DB_Secsales", "speed_sales");
+define("DB_Service_user", "UserSpeed");
+define("DB_Salesengage", "speed_salesengage");
+define("DB_SALESENGAGE_NEW", "salesengage");
+define("DB_Service_pass", "el!365x!@");
+define("DB_Trace", "trace");
+define('DB_ELIXIATECH', 'elixiatech');
+//Other Constants
+define('WOW_API_KEY', 'AIzaSyD01V5BkjhRv2SfgktQd_CKyfBkAJ75GLo');
+//$SMS_URL = "http://pacems.asia:8080/bulksms/bulksms?username=xzt-elixia&password=elixia&type=0&dlr=1&destination={{PHONENO}}&source=ELIXIA&message={{MESSAGETEXT}}";
+//$SMS_URL = "http://54.254.130.116/api/sendhttp.php?authkey=4635ACKLp3tDu582ab9ae&mobiles={{PHONENO}}&message={{MESSAGETEXT}}&sender=ELIXIA&route=4&country=91";
+$SMS_URL = "http: //smpp.keepintouch.co.in/vendorsms/pushsms.aspx?user=elixia_speed&password=elixia@123&msisdn={{PHONENO}}&sid=ELIXIA&msg={{MESSAGETEXT}}&fl=0&gwid=2";
+$SMS_URL_VARDA = "http://54.254.130.116/api/sendhttp.php?authkey=4086A6PzwhzL4vQ055e59487&mobiles={{PHONENO}}&message={{MESSAGETEXT}}&sender=VARDAA&route=4&country=91";
+$SMS_URL_WOW = "http://54.254.130.116/api/sendhttp.php?authkey=4086ABz1cFoj5674edee&mobiles={{PHONENO}}&message={{MESSAGETEXT}}&sender=WOWNOW&route=1&country=91";
+$TELEPHONIC_URL = "http://voice.bulksmsglobal.in/MOBILE_APPS_API/voicebroadcast_api.php?type=broadcast&user=elixiatech&pass=1234567&recorded_file={{FILEID}}&to_numbers={{PHONE}}";
+if ($IsDebugServer) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    //debug_print_backtrace();
+    $SMS_URL = '';
+    $SMS_URL_VARDA = '';
+    $SMS_URL_WOW = '';
+    $TELEPHONIC_URL = '';
+}
+define('SMS_URL', $SMS_URL);
+define('TELEPHONIC_URL', $TELEPHONIC_URL);
+define('SMS_URL_VARDA', $SMS_URL_VARDA);
+define('SMS_URL_WOW', $SMS_URL_WOW);
+/* Note For Distane Calculation */
+$distance_constraint_note = 'Distance calculated by the GPS is usually 7-12 % less than distance calculated by the odometer of the vehicle';
+define('DISTANCE_CONSTRAINT_NOTE', $distance_constraint_note);
+define('Location_Wrap', 30);
+define("NORMAL_MAX_TEMP", "100");
+define("NORMAL_MIN_TEMP", "-50");
+define("GOOGLE_API_KEY", "AIzaSyCL_-ci9j-xk3LM_9aWLjFWLNLywc_CkC0"); // Place your Google API Key for notifications
+define('GOOGLE_API_KEY_GCM', 'AIzaSyCL_-ci9j-xk3LM_9aWLjFWLNLywc_CkC0'); // Place your Google API Key for notifications
+define('GOOGLE_API_KEY_FCM', 'AIzaSyDwZYUxmVNEJEIMfVh4bw08VQTjhLG-OKA'); // Place your Google API Key for notifications
+define('API_ERP_BOOKING', 'http://erp.elixiatech.com/api/driverApp/insertConsignorNote');
+define('API_ERP_UPDATE_CN', 'http://erp.elixiatech.com/api/driverApp/updateConsignorNote');
+define('API_ERP_CONSIGNEE_AND_CLIENT', 'http://erp.elixiatech.com/api/driverApp/insertConsigneeAndClient');
+define('API_BOOKS', 'http://localhost/books/api/controlTowerApi');
+date_default_timezone_set("Asia/Calcutta");
+if (!isset($RELATIVE_PATH_DOTS) || trim($RELATIVE_PATH_DOTS) == "") {
+    $RELATIVE_PATH_DOTS = "../../";
+}
+
+define('BASE_PATH', 'http://speed.elixiatech.com');
+?>

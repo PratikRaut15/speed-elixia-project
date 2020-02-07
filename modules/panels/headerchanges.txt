@@ -1,0 +1,103 @@
+<?php 
+//if (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) ob_start("ob_gzhandler"); else ob_start();
+session_start();
+
+ob_start("ob_gzhandler");
+$page = basename($_SERVER['PHP_SELF']);
+if(!isset($_SESSION['username']) && ($page !='index.php')){
+    if(!isset($_SESSION['ecodeid'])){
+     header("location: ../../index.php");
+    }   
+}
+    
+
+$_SESSION['subdir'] = "/elixiaspeed";
+if(isset($_SESSION['Session_User']))
+{
+    $session_variable = $_SESSION['Session_User'];
+}
+//echo $_SESSION['Session_UserRole'].'<b>Session_UserRole</b><br />';
+//echo $_SESSION["realname"].'<b>realname</b><br />';
+//echo $_SESSION["customerno"].'<b>customerno</b><br />';
+//echo $_SESSION["customercompany"].'<b>customercompany</b><br />';
+//echo $_SESSION["userid"].'<b>userid</b><br />';
+//echo $_SESSION["visits_modal"].'<b>visits_modal</b><br />';
+//echo $_SESSION["role_modal"].'<b>role_modal</b><br />';
+//echo $_SESSION["username"].'<b>username</b><br />';
+////echo $_SESSION["Session_User"].'<b>Session_User</b><br />';
+//echo $_SESSION["sessionauth"].'<b>sessionauth</b><br />';
+//echo $_SESSION["groupid"].'<b>groupid</b><br />';
+?>
+<!DOCTYPE html>
+<head>
+<link rel="shortcut icon" href="<?php echo $_SESSION['subdir'];?>/images/favicon.ico" type="image/x-icon" />
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Elixia Speed ? | Answers for Where, When and How </title>
+<link href="<?php echo $_SESSION['subdir'];?>/style/style.css" rel="stylesheet" type="text/css" media="screen" />
+<link href="<?php echo $_SESSION['subdir'];?>/style/maps.css" rel="stylesheet" type="text/css" media="screen" />
+<?php include'forcss.php';
+if($page == 'reports.php'){
+$jquery ="<script type='text/javascript' src='". $_SESSION['subdir']."/bootstrap/js/jquery.min.js'></script>";
+$chartapi = "<script type='text/javascript' src='https://www.google.com/jsapi'></script>";
+		echo $chartapi;
+                echo $jquery;
+               
+}
+else if($page == 'checkpoint.php' || $page == 'fencing.php' || $page == 'enh_checkpoint.php' || $page == 'route.php' || $page == 'enh_route.php' || $page == 'transaction.php')
+{
+    $jquery ="<script type='text/javascript' src='". $_SESSION['subdir']."/bootstrap/js/jquery.min.js'></script>";
+    echo $jquery;
+}
+?>
+
+</head>
+<body>
+<?php 
+if($page == 'transaction.php' || $page == 'dealer.php' || $page == "parts.php" || $page == 'task.php' || $page == 'accessories.php' || $page == 'approvals.php' || $page == 'modifytransaction.php' ){
+    include 'menubar_maintenance.php';
+}else if( $_SESSION['use_maintenance'] == '1' && $page == 'vehicle.php' || $_SESSION['use_maintenance'] == '1' && $page == 'support.php' ){
+    include 'menubar_maintenance.php';
+}else{
+    include 'menubar.php';
+}
+?>
+<?php
+if($page=='realtimedata.php')
+    {
+	if($_SESSION['visits_modal'] == '0')
+	  {
+            $jquery ="<script type='text/javascript'src='". $_SESSION['subdir']."/bootstrap/js/jquery.min.js'></script>";
+            echo $jquery;
+		include_once 'panel_functions.php';
+		  include_once '../../modules/realtimedata/pages/bootstrap_modal.php';
+	  }
+    }
+$page = basename($_SERVER['PHP_SELF']);
+if($page == 'index.php' || $page == 'elixiacode.php'){   ?>
+<div id="header-wrapper">
+		<div id="header">
+				<div id="logo">
+						<div style="float:left;  padding-bottom:15px;"" >
+							<h1><a href="#">Elixia <span>Speed </span><sup class='off'>BETA</sup></a></h1><p id="p-bold">Answers for Where, When and How </p>
+						</div>
+				</div>
+		</div> 
+	 
+	<div style=" clear:both;"></div>
+		<?php   }
+		//$page = basename($_SERVER['PHP_SELF']);
+		 include 'sidebar.php';    ?>
+</div>
+
+
+  
+<!--<div id="banner"><img src="images/img04.jpg" width="1000" height="350" alt="" /></div>-->
+<div id="wrapper">
+	<!-- end #header -->
+    <div id="page">
+        <div id="page-bgtop">
+            <div id="page-bgbtm">
+                <div id="content">
+                    <div class="post">

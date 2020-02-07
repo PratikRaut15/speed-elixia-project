@@ -1,0 +1,10 @@
+    <tr style="height: 40px;">
+        <th class="colText">{{WAREHOSUE}}</th>
+        <th class="colText">Checkpoint</th>
+        <th class="colText">{{ETA}}</th>
+        <th class="colText">{{LOCATION}}</th>
+        <th class="colText">{{ARRIVES}}</th>
+        <th class="colText">{{STATUS}}</th>
+    </tr>
+
+

@@ -1,0 +1,586 @@
+<?php
+
+class Object {
+    
+}
+
+;
+?>
+<div class='container' >
+    <div>
+        <form method="post" action="tms.php?pg=view-indents1">
+            <label>Enter the date</label>
+            <input type="text" name="date_required" id="SDate" value="" required maxlength="25">
+            <input type="submit" value="Calculate" name="indentcal" />
+        </form>
+    </div>
+
+    <center>
+
+        <?php
+
+        function sort_vehicles_by_weight($veh1, $veh2) {
+            if ($veh1->weight == $veh2->weight) {
+                return 0;
+            }
+            return ($veh1->weight > $veh2->weight) ? -1 : 1;
+        }
+
+        if (isset($_POST['indentcal'])) {
+            ?>
+
+            <!--   1.) SKU Weight for date required for each SKU id <br/>-->
+            <?php
+            echo "<pre>";
+            //print_r($weight);
+            //echo "<hr/>";
+            $date = date('Y-m-d', strtotime($_POST['date_required']));
+
+            //echo "1.) SKU Weight for date required for each Factory and Depot <br/><br/>";
+            $objFactDepot = new Object();
+            $objFactDepot->customerno = $_SESSION['customerno'];
+            $objFactDepot->daterequired = $date;
+            $factorydepotwise_records = get_skuweight_factorydepot($objFactDepot);
+
+            $factorywiseResult = array();
+            $skuwiseResult = array();
+            $transwise_weights = array();
+            foreach ($factorydepotwise_records as $fact) {
+                $objResult = new Object();
+
+                /* Get particular depot details */
+                $objDepot = new Depot();
+                $objDepot->depotid = $fact['depotid'];
+                $currentDepotDetail = get_depots($objDepot);
+
+                /* Get particular factory details */
+                $objFactory = new Factory();
+                $objFactory->factoryid = $fact['factoryid'];
+                $currentFactoryDetail = get_factory($objFactory);
+
+                /* Get transporters by factory and zone */
+                $objTransporterShare = new TransporterShare();
+                $objTransporterShare->factoryid = $fact['factoryid'];
+                $objTransporterShare->zoneid = $currentDepotDetail[0]['zoneid'];
+                $transportersListWithShare = get_transportershare($objTransporterShare);
+
+                $transporterlist = array();
+                foreach ($transportersListWithShare as $trans) {
+                    $transporter = new Object();
+                    $transporter->factoryid = $fact['factoryid'];
+                    $transporter->depotid = $fact['depotid'];
+                    $transporter->depotname = $currentDepotDetail[0]['depotname'];
+                    $transporter->factoryname = $currentFactoryDetail[0]['factoryname'];
+                    $transporter->percentshare = $trans['sharepercent'];
+                    $weight_share = $trans['sharepercent'] / 100 * $fact['weight'];
+                    $transporter->transporterid = $trans['transporterid'];
+                    $transporter->transportername = $trans['transportername'];
+                    $transporter->share_skuTotalWeight = $weight_share;
+
+                    /* Get Actual share percent for transporter */
+                    $objTransporterActualShare = new TransporterShare();
+                    $objTransporterActualShare->transporterid = $trans['transporterid'];
+                    $objTransporterActualShare->factoryid = $fact['factoryid'];
+                    $objTransporterActualShare->zoneid = $currentDepotDetail[0]['zoneid'];
+                    $arrTransporterActualShare = get_transporteractualshare($objTransporterActualShare);
+
+                    /*  Assign Actual Percent */
+                    $transporter->actualpercent = $arrTransporterActualShare[0]['actualpercent'];
+
+
+                    /* Calculate Deviation Percent */
+                    if ($transporter->actualpercent > $transporter->percentshare) {
+                        $transporter->deviationPercent = $transporter->percentshare - ($transporter->actualpercent - $transporter->percentshare);
+                    } else {
+                        $transporter->deviationPercent = $transporter->percentshare + ($transporter->percentshare - $transporter->actualpercent);
+                    }
+
+
+                    /* Get vehicle types for the transporter */
+                    $vehicletypelist = array();
+                    $objVehTypeTransMapping = new Object();
+                    $objVehTypeTransMapping->customerno = $_SESSION['customerno'];
+                    $objVehTypeTransMapping->transporterid = $trans['transporterid'];
+                    $vehicletypes = get_vehtypetransporter_mapping($objVehTypeTransMapping);
+
+                    foreach ($vehicletypes as $vehtype) {
+                        $obj = new Object();
+                        $obj->transporterid = $vehtype['transporterid'];
+                        $obj->vehicletypeid = $vehtype['vehicletypeid'];
+                        $obj->vehiclecode = $vehtype['vehiclecode'];
+                        $obj->weight = $vehtype['weight'];
+                        $obj->volume = $vehtype['volume'];
+                        $vehicletypelist[] = $obj;
+                    }
+                    usort($vehicletypelist, "sort_vehicles_by_weight");
+
+                    $transporter->vehtypes = $vehicletypelist;
+                    $transporterlist[] = $transporter;
+                }
+                $objResult->date_required = $fact['date_required'];
+                $objResult->totalweight_from_factory_to_depot = $fact['weight'];
+                $objResult->depotid = $fact['depotid'];
+                $objResult->depotname = $currentDepotDetail[0]['depotname'];
+                $objResult->factoryid = $fact['factoryid'];
+                $objResult->factoryname = $currentFactoryDetail[0]['factoryname'];
+                $objResult->zoneid = $currentDepotDetail[0]['zoneid'];
+                $objResult->transporters = $transporterlist;
+
+                $factorywiseResult[] = $objResult;
+            }
+            //print_r($factorywiseResult);
+            //die();
+            $arrProposedIndents = array();
+            $arrLeftOver = array();
+            foreach ($factorywiseResult as $factRecord) {
+                $objProposedIndentDetail = new Object();
+
+                echo $factRecord->factoryid . " to " . $factRecord->depotid . "<br/>";
+                $objSkuWeight = new Object();
+                $objSkuWeight->customerno = $_SESSION['customerno'];
+                $objSkuWeight->factoryid = $factRecord->factoryid;
+                $objSkuWeight->depotid = $factRecord->depotid;
+                $objSkuWeight->daterequired = $factRecord->date_required;
+                $skuwise_records = get_skuweight($objSkuWeight);
+
+                $skuDetails = array();
+                $totalVolFromFactToDepot = 0;
+                $isRefVehicle = 0;
+                foreach ($skuwise_records as $skuwtrecord) {
+                    $skudet = new Object();
+                    $skudet->skuid = $skuwtrecord['skuid'];
+                    $skudet->skucode = $skuwtrecord['skucode'];
+                    $skudet->skudescription = $skuwtrecord['sku_description'];
+                    $skudet->totalWeight = $skuwtrecord['skuweight'];
+                    $skudet->unitWeight = $skuwtrecord['unitweight'];
+                    $skudet->unitVolume = $skuwtrecord['unitvolume'];
+                    $skudet->noOfUnits = $skudet->totalWeight / $skudet->unitWeight;
+                    $skudet->totalVolume = $skudet->noOfUnits * $skuwtrecord['unitvolume'];
+                    $skudet->skuTypeId = $skuwtrecord['skutypeid'];
+                    if ($skudet->skuTypeId == 1) {
+                        $isRefVehicle = 1;
+                    }
+                    $totalVolFromFactToDepot += $skudet->totalVolume;
+                    $skuDetails[] = $skudet;
+                    /* Prepare factory delivery details */
+                    $objFactDelivery = new Object();
+                    $objFactDelivery->customerno = $_SESSION['customerno'];
+                    $objFactDelivery->factoryid = $factRecord->factoryid;
+                    $objFactDelivery->depotid = $factRecord->depotid;
+                    $objFactDelivery->daterequired = $factRecord->date_required;
+                    $objFactDelivery->factoryname = $factRecord->factoryname;
+                    $objFactDelivery->depotname = $factRecord->depotname;
+                    $objFactDelivery->skucode = $skuwtrecord['skucode'];
+                    $objFactDelivery->skudescription = $skuwtrecord['sku_description'];
+                    $objFactDelivery->weight = $skuwtrecord['skuweight'];
+                    $skuwiseResult[] = $objFactDelivery;
+                }
+
+                /* Get vehicle types in descending order of their weight */
+                $objVehType = new VehicleType();
+                $objVehType->customerno = $_SESSION['customerno'];
+                //TODO: Get sku type from DB as of hardcoded to REF
+                if ($isRefVehicle == 1) {
+                    $objVehType->skuTypeId = 1;
+                }
+                $vehTypeList = get_vehicletypes($objVehType);
+
+                $arrVehTypeInfo = array();
+                $totalWeightFromFactToDepot = $factRecord->totalweight_from_factory_to_depot;
+
+                $tempWeight = $totalWeightFromFactToDepot;
+                $tempVolume = $totalVolFromFactToDepot;
+                /**
+                  echo "Total Weight:" . $tempWeight . "<br/>";
+                  echo "Total Volume:" . $tempVolume . "<br/>";
+                 * 
+                 */
+                $arrLeftOverSku = array();
+                foreach ($vehTypeList as $vehType) {
+                    $vehTypeDetail = new Object();
+                    $vehTypeDetail->vehTypeId = $vehType['vehicletypeid'];
+                    $vehTypeDetail->vehCode = $vehType['vehiclecode'];
+                    $vehTypeDetail->vehWeight = $vehType['weight'];
+                    $vehTypeDetail->vehVolume = $vehType['volume'];
+                    /**
+                      echo ("vehicledetails:");
+                      print_r($vehTypeDetail);
+                      echo "<br/>";
+                     * 
+                     */
+                    //echo "Vehicle By Weight:" ;
+                    $tempVehTypeCountByWeight = $tempWeight / $vehTypeDetail->vehWeight;
+                    //echo "<br/>";
+                    //echo "Vehicle By Vol:" ;
+                    $tempVehTypeCountByVolume = $tempVolume / $vehTypeDetail->vehVolume;
+                    //echo "<br/>";
+
+                    $vehicleCount;
+                    if ($tempVehTypeCountByWeight > $tempVehTypeCountByVolume) {
+                        $vehicleCount = $tempVehTypeCountByWeight;
+                    } else if ($tempVehTypeCountByVolume > $tempVehTypeCountByWeight) {
+                        $vehicleCount = $tempVehTypeCountByVolume;
+                    } else {
+                        $vehicleCount = $tempVehTypeCountByWeight;
+                    }
+                    $vehicleCount = floor($vehicleCount);
+                    /*
+                      echo "Vehicle Code:" . $vehTypeDetail->vehCode . "<br/>";
+                      echo "Vehicle Count: " . $vehicleCount = floor($vehicleCount);
+                      echo "<br/>";
+                     * 
+                     */
+
+
+                    $totalWeightPerVehicle = 0;
+                    $totalVolumePerVehicle = 0;
+                    if ($vehicleCount >= 1) {
+                        /* If anything exists in SKU left over array , we need to clear it */
+                        unset($arrLeftOverSku);
+                        /* Divide the vehicles to transporters in that zone as per share */
+                        $vehicleCountPerTransporter = 0;
+                        $transporterCount = count($factRecord->transporters);
+                        $tempVehCountPerTransporter = 0;
+                        foreach ($factRecord->transporters as $transporter) {
+                            $objProposedIndentDetail->vehicletypeid = $vehTypeDetail->vehTypeId;
+                            $objProposedIndentDetail->transporterid = $transporter->transporterid;
+                            /*
+                              If transporter count is greater than 1,
+                              divide the vehicles between them
+                              Else
+                              assign all the vehicles to single transporter
+                             */
+                            if ($transporterCount > 1) {
+                                /* Round up the vehicle count */
+                                $vehicleCountPerTransporter = ceil($vehicleCount * $transporter->deviationPercent / 100);
+                                /* Add the vehicles to be alloted to temp counter */
+                                $tempVehCountPerTransporter += $vehicleCountPerTransporter;
+                                /* Calculate difference between actual and temp vehicle count */
+                                $diff = $vehicleCount - $tempVehCountPerTransporter;
+                                /* If difference is negative, we have to add that negative 
+                                 * diff to get the actual available vehicle count */
+                                if ($diff < 0) {
+                                    $vehicleCountPerTransporter = $vehicleCountPerTransporter + $diff;
+                                }
+                            } else {
+                                $vehicleCountPerTransporter = $vehicleCount;
+                            }
+
+                            $arrSkuDetails = array();
+                            foreach ($skuDetails as $skuDetail) {
+                                $objSkuDetail = new Object();
+                                $objSkuDetail->SkuId = $skuDetail->skuid;
+                                $objSkuDetail->Skucode = $skuDetail->skucode;
+                                $objSkuDetail->Skudescription = $skuDetail->skudescription;
+                                $objSkuDetail->SkuCountPerVehicle = floor($skuDetail->noOfUnits / $vehicleCount);
+                                $objSkuDetail->SkuWeightPerVehicle = $objSkuDetail->SkuCountPerVehicle * $skuDetail->unitWeight;
+                                $objSkuDetail->SkuVolumePerVehicle = $objSkuDetail->SkuCountPerVehicle * $skuDetail->unitVolume;
+
+                                $tempWeight = $tempWeight - ($vehicleCountPerTransporter * $objSkuDetail->SkuWeightPerVehicle);
+                                $tempVolume = $tempVolume - ($vehicleCountPerTransporter * $objSkuDetail->SkuVolumePerVehicle);
+                                $arrSkuDetails[] = $objSkuDetail;
+
+                                $totalWeightPerVehicle += $objSkuDetail->SkuWeightPerVehicle;
+                                $totalVolumePerVehicle += $objSkuDetail->SkuVolumePerVehicle;
+
+                                $objLeftSkuDetail = new Object();
+                                $objLeftSkuDetail->SkuId = $skuDetail->skuid;
+                                $objLeftSkuDetail->Skucode = $skuDetail->skucode;
+                                $objLeftSkuDetail->Skudescription = $skuDetail->skudescription;
+                                $objLeftSkuDetail->SkuUnitsLeft = $skuDetail->noOfUnits - ($vehicleCountPerTransporter * $objSkuDetail->SkuCountPerVehicle);
+                                $arrLeftOverSku[] = $objLeftSkuDetail;
+                            }
+                            $objProposedIndentDetail->factoryid = $factRecord->factoryid;
+                            $objProposedIndentDetail->factoryname = $factRecord->factoryname;
+                            $objProposedIndentDetail->depotid = $factRecord->depotid;
+                            $objProposedIndentDetail->depotname = $factRecord->depotname;
+                            $objProposedIndentDetail->vehcode = $vehTypeDetail->vehCode;
+                            $objProposedIndentDetail->total_weight = $totalWeightPerVehicle;
+                            $objProposedIndentDetail->total_volume = $totalVolumePerVehicle;
+                            $objProposedIndentDetail->skudetails = $arrSkuDetails;
+                            $objProposedIndentDetail->factoryrequireddate = $date;
+
+                            for ($i = 0; $i < $vehicleCountPerTransporter; $i++) {
+                                $objProposedIndent = new ProposedIndent();
+                                $objProposedIndent->factoryid = $objProposedIndentDetail->factoryid;
+                                $objProposedIndent->depotid = $objProposedIndentDetail->depotid;
+                                $objProposedIndent->total_weight = $objProposedIndentDetail->total_weight;
+                                $objProposedIndent->total_volume = $objProposedIndentDetail->total_volume;
+                                $objProposedIndent->date_required = $objProposedIndentDetail->factoryrequireddate;
+                                $objProposedIndent->customerno = $_SESSION['customerno'];
+
+                                $objPITMapping = new ProposedIndentTransporterMapping();
+                                $objPITMapping->proposed_transporterid = $objProposedIndentDetail->transporterid;
+                                $objPITMapping->proposed_vehicletypeid = $objProposedIndentDetail->vehicletypeid;
+                                $objPITMapping->customerno = $_SESSION['customerno'];
+
+                                $arrPISMapping = array();
+                                foreach ($objProposedIndentDetail->skudetails as $PISMapdetail) {
+                                    $objSKUMapping = new ProposedIndentSkuMapping();
+                                    $objSKUMapping->skuid = $objProposedIndentDetail->transporterid;
+                                    $objSKUMapping->no_of_units = $objSkuDetail->SkuCountPerVehicle;
+                                    $objSKUMapping->weight = $objSkuDetail->SkuWeightPerVehicle;
+                                    $objSKUMapping->volume = $objSkuDetail->SkuVolumePerVehicle;
+                                    $objSKUMapping->customerno = $_SESSION['customerno'];
+                                    $arrPISMapping[] = $objSKUMapping;
+                                }
+                                $proposedindentid = insert_proposed_indent($objProposedIndent, $objPITMapping, $arrPISMapping);
+                            }
+                        }
+                        //echo "SKU detail per vehicle: <br/>";
+                        //print_r($arrSkuDetails);
+                        //echo "Remaining Weight:" . $tempWeight . "<br/>";
+                        //echo "Remaining Volume:" . $tempVolume . "<br/>";
+                    } else {
+                        //echo "Leftover Weight:" . $tempWeight . "<br/>";
+                        //echo "Leftover Volume:" . $tempVolume . "<br/>";
+
+                        $leftover = new Object();
+                        $leftover->factoryid = $factRecord->factoryid;
+                        $leftover->factoryname = $factRecord->factoryname;
+                        $leftover->depotid = $factRecord->depotid;
+                        $leftover->depotname = $factRecord->depotname;
+                        $leftover->weight = $tempWeight;
+                        $leftover->volume = $tempVolume;
+                        $leftover->date = $date;
+                        $leftover->leftOverSku = $arrLeftOverSku;
+                        $arrLeftOver[] = $leftover;
+                        break;
+                    }
+                }
+
+
+
+            }
+            //print_r($arrProposedIndents);
+            //print_r($arrLeftOver);
+
+
+
+            /*
+
+
+              $arrTransporterWiseVehicleList = array();
+              foreach ($transwise_weights as $key => $val) {
+              $vehicletypelist = array();
+              $objVehTypeTransMapping = new Object();
+              $objVehTypeTransMapping->customerno = $_SESSION['customerno'];
+              $objVehTypeTransMapping->transporterid = $key;
+              $vehicletypes = get_vehtypetransporter_mapping($objVehTypeTransMapping);
+
+
+              foreach ($vehicletypes as $vehtype) {
+              if ($key == $vehtype['transporterid']) {
+              $obj = new Object();
+              $obj->transporterid = $vehtype['transporterid'];
+              $obj->vehicletypeid = $vehtype['vehicletypeid'];
+              $obj->vehiclecode = $vehtype['vehiclecode'];
+              $obj->weight = $vehtype['weight'];
+              $obj->volume = $vehtype['volume'];
+              $obj->count = $vehtype['vehiclecount'];
+              $vehicletypelist[] = $obj;
+              }
+              }
+              usort($vehicletypelist, "sort_vehicles_by_weight");
+
+              $arrTransporterWiseVehicleList[$key] = $vehicletypelist;
+              }
+
+
+              //print_r($arrTransporterWiseVehicleList);
+
+
+
+              $weight = 0;
+              $arrIndent = array();
+              $arrLeftOver = array();
+              foreach ($transporterlist as $transporter) {
+              //if ($transporter->id == 2) {
+              $load_weight = $transporter->share_skuTotalWeight;
+              $load_volume = $transporter->share_skuTotalVolume;
+              $load_units = $transporter->share_skuTotalUnits;
+
+              $weight = $transporter->share_skuTotalWeight;
+              $unit = $load_units;
+              ///* Get SKU details for this delivery
+              $objSku = new Sku();
+              $objSku->customerno = $_SESSION['customerno'];
+              $objSku->skuid = $transporter->skuid;
+              $skudetail = get_sku($objSku);
+              $perunitweight = $skudetail[0]['weight'];
+              $i = 1;
+              foreach ($arrTransporterWiseVehicleList[$transporter->id] as $vehlist) {
+              $weight_left = 0;
+              $unit_left = 0;
+              if ($weight >= $vehlist->weight) {
+              //echo $weight;
+              //echo "<br>";
+              $weight_left = $weight - $vehlist->weight;
+              $arrTemp["id"] = $i++;
+              $arrTemp["units"] = floor($vehlist->weight / $perunitweight);
+              $arrTemp["transporterid"] = $transporter->id;
+              $arrTemp["transportername"] = $transporter->name;
+              $arrTemp["vehicletypeid"] = $vehlist->vehiclecode;
+              $arrTemp["weight"] = $vehlist->weight;
+              $arrTemp["factoryid"] = $transporter->factoryid;
+              $arrTemp["factoryname"] = $transporter->factoryname;
+              $arrTemp["depotid"] = $transporter->depotid;
+              $arrTemp["depotname"] = $transporter->depotname;
+              $arrTemp["skuname"] = $transporter->sku_description;
+              $arrIndent[] = $arrTemp;
+              $unit_left = $unit - $arrTemp["units"];
+              } else {
+              $weight_left = $weight;
+              $unit_left = $unit;
+              }
+              $weight = $weight_left;
+              $unit = $unit_left;
+              }
+              if ($weight != 0 && $unit != 0) {
+              $arrTempLO = array();
+              $arrTempLO["transporterid"] = $transporter->id;
+              $arrTempLO["transportername"] = $transporter->name;
+              $arrTempLO["weight"] = $weight;
+              $arrTempLO["factoryid"] = $transporter->factoryid;
+              $arrTempLO["factoryname"] = $transporter->factoryname;
+              $arrTempLO["depotname"] = $transporter->depotname;
+              $arrTempLO["skuname"] = $transporter->sku_description;
+              $arrTempLO["units"] = floor($weight / $perunitweight);
+              $arrLeftOver[] = $arrTempLO;
+              }
+              // }
+              }
+              //print_r($arrIndent);
+              //print_r($arrLeftOver);
+
+             */
+        }
+        ?>
+
+        <?php
+        if (isset($skuwiseResult)) {
+            ?>
+            <h2>Factory Delivery Details</h2>
+            <table>
+                <tr>
+                    <td>Factory ID</td>
+                    <td>Depot ID</td>
+                    <td>Sku ID</td>
+                    <td>Weight(Tons) </td>
+                    <td>Date </td>
+                </tr>
+                <?php
+                foreach ($skuwiseResult as $record) {
+                    ?>
+                    <tr>
+                        <td><?php echo $record->factoryname ?></td>
+                        <td><?php echo $record->depotname ?></td>
+                        <td><?php echo $record->skudescription ?></td>
+                        <td><?php echo $record->weight ?></td>
+                        <td><?php echo date('d-m-Y', strtotime($record->daterequired)) ?></td>
+                    </tr>
+                    <?php
+                }
+                ?>
+            </table>
+            <?php
+        }
+        ?>
+        <br/>
+        <br/>    
+
+        <?php
+        if (isset($arrProposedIndents)) {
+            ?>
+            <h2>Proposed Indent Details</h2>
+            <table>
+                <tr>
+                    <th>Proposed Indent ID</th>
+                    <th>Factory</th>
+                    <th>Depot</th>
+                    <th>Transporter</th>
+                    <th>Vehicle Type</th>
+                    <th>Total Weight</th>
+                    <th>Total Volume</th>
+                    <th>Date</th>
+                </tr>
+                <?php
+                $i = 1;
+                foreach ($arrProposedIndents as $row) {
+                    ?>
+                    <tr>
+                        <td><?php echo $i++; ?></td>
+                        <td><?php echo $row->factoryname; ?></td>
+                        <td><?php echo $row->depotname; ?></td>
+                        <td><?php echo $row->transporterid; ?></td>
+                        <td><?php echo $row->vehcode; ?></td>
+                        <td><?php echo $row->total_weight; ?></td>
+                        <td><?php echo $row->total_volume; ?></td>
+                        <td><?php echo $row->date; ?></td>
+
+                    </tr>
+
+                    <tr>
+                        <td colspan="100%" >
+                            <table>
+                                <tr>
+                                    <td>Sku ID</td>
+                                    <td>Sku Code</td>
+                                    <td>Sku Description</td>
+                                    <td>No Of Unit</td>
+                                    <td>Weight In Tons</td>
+                                    <td>Volume In M3</td>
+                                </tr>
+                                <?php
+                                foreach ($row->skudetails as $row1) {
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $row1->SkuId; ?></td>
+                                        <td><?php echo $row1->Skucode; ?></td>
+                                        <td><?php echo $row1->Skudescription; ?></td>
+                                        <td><?php echo $row1->SkuCountPerVehicle; ?></td>
+                                        <td><?php echo $row1->SkuWeightPerVehicle; ?></td>
+                                        <td><?php echo $row1->SkuVolumePerVehicle; ?></td>
+
+                                    </tr>
+
+                                    <?php
+                                }
+                                ?>
+                            </table>
+                            <br/>
+                            <br/>
+                        </td>
+                    </tr>
+
+                    <?php
+                }
+                ?>
+            </table> 
+            <?php
+        }
+        ?>
+
+
+
+
+
+
+
+    </center>     
+</div>     
+
+
+<!-- For Date Selection -->        
+
+<script type='text/javascript'>
+    var data = <?php echo json_encode($zones); ?>;
+    var tableId = 'zonemaster';
+    var tableCols = [
+        {"mData": "zonename"}
+        , {"mData": "edit"}
+        , {"mData": "delete"}
+
+
+    ];
+</script>

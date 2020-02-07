@@ -1,0 +1,30 @@
+<?php
+
+if (!isset($_SESSION)) {
+	session_start();
+}
+include 'map_functions.php';
+if (isset($_REQUEST['vehicleids'])) {
+	getvehicle($_REQUEST['vehicleids']);
+}
+if (isset($_REQUEST['all'])) {
+	if (isset($_REQUEST['getvehicleid'])) {
+		getvehicle($_REQUEST['getvehicleid']);
+	} else {
+		if ($_SESSION['switch_to'] == '3') {
+			getvehicles_wh();
+		} else {
+			getvehicles();
+		}
+	}
+} elseif (isset($_REQUEST['monitor'])) {
+	if ($_SESSION['switch_to'] == '3') {
+		getWarehouseMonitorDetails();
+	}
+} elseif (isset($_REQUEST['radar'])) {
+
+	//echo $_REQUEST['vehicleId'];
+	getRadarDetails($_REQUEST['vehicleId']);
+
+}
+?>

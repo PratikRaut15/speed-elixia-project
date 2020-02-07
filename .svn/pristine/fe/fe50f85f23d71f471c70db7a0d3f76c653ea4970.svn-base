@@ -1,0 +1,177 @@
+<?php
+set_time_limit(0);
+date_default_timezone_set("Asia/Calcutta");
+$q = isset($_GET['q']) ? trim($_GET['q']) : exit('No inputs provided');
+$params = explode('-', $q);
+
+$report = isset($params[0]) ? trim($params[0]) : exit('Report not mentioned');
+$type = isset($params[1]) ? $params[1] : 'pdf';
+$customer_id = isset($params[2]) ? (int) $params[2] : exit('Customer id not found');
+if ($customer_id == 0) {
+    exit('Customer id is Invalid');
+}
+$user_key = isset($params[3]) ? (int) $params[3] : exit('User key not found');
+if ($user_key == 0) {
+    exit('User key is Invalid');
+}
+include_once '../../lib/system/utilities.php';
+include_once '../../lib/autoload.php';
+
+$umanager = new UserManager();
+$user_id = $umanager->get_userid_bykey($user_key, $customer_id);
+
+if ($user_id == null) {
+    exit('User data not found');
+}
+$gdate = isset($params[4]) ? trim($params[4]) : exit('Date not mentioned');
+
+$forHour = isset($_GET['forHour']) ? (int) $_GET['forHour'] : 0;
+if($forHour > 0) {
+    $report_date = date('Y-m-d H:i:s',$gdate);
+} else {
+    $report_date = date('Y-m-d',$gdate);
+}
+$date = date('d-m-Y', $gdate);
+//$groupid = isset($params[5]) ? trim($params[5]) : exit('groupid not mentioned');
+$groupid = isset($params[5]) ? trim($params[5]) : 0;
+/* Report generation starts here */
+$view_data = array(
+    'cust_id' => $customer_id,
+    'userid' => $user_id,
+    'vehicleid' => null,
+    'report_date' => $report_date,
+    'report_name' => $report,
+    'file_type' => $type,
+    'groupid' => $groupid,
+);
+
+if ($report == 'summary') {
+    ob_start();
+    require_once 'summary.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'genset') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'genset.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'travel') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'travel.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'temperature') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'temperature.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'wh_temperature') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    $switchto = 3;
+    require_once 'temperature.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'wh_temperaturehumidity') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    $switchto = 3;
+    require_once 'temperatureHumidity.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'overspeed') {
+    //$veh_id = isset($_GET['v']) ? (int)$_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'overspeed.php';
+    //$view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'routeSummary') {
+    //$veh_id = isset($_GET['v']) ? (int)$_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'route_summary.php';
+    //$view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'fuel') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'fuel.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'exception') {
+    ob_start();
+    require_once 'exception.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'stoppage') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    require_once 'stoppage.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'routesummary') {
+    $group_id = isset($_GET['g']) ? (int) $_GET['g'] : exit('groupid not found');
+    require_once 'routesummary.php';
+    $view_data['vehicleid'] = $veh_id;
+    $umanager->insert_viewed_report($view_data);
+}
+//elseif ($report == 'routesummary') {
+//    $group_id = isset($_GET['g']) ? (int) $_GET['g'] : exit('groupid not found');
+//    $gname = isset($_GET['gname']) ? (int) $_GET['gname'] : '';
+//    $gname = trim($gname);
+//    require_once 'routesummary.php';
+//    $view_data['vehicleid'] = $veh_id;
+//    $umanager->insert_viewed_report($view_data);
+//} 
+elseif ($report == 'realtimedata') {
+    ob_start();
+    require_once 'realtimedata.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'checkpointOwnerLog') {
+    ob_start();
+    require_once 'checkpointOwnerLog.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'smsconsume') {
+    ob_start();
+    require_once 'smsconsume.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'annexure') {
+    ob_start();
+    require_once 'annexure.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'temperatureMinMaxSummary') {
+    ob_start();
+    require_once 'temperatureMinMaxSummary.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'secsummary') {  //firstcall last call data
+    ob_start();
+    require_once 'secondarySummary.php';
+    $umanager->insert_viewed_report($view_data);
+}   elseif ($report == 'proforma') {
+    ob_start();
+    require_once 'proforma.php';
+} elseif ($report == 'invoice') {
+    ob_start();
+    require_once 'invoice.php';
+} elseif ($report == 'dailycompliance') {
+    $veh_id = isset($_GET['v']) ? (int) $_GET['v'] : exit('Vehicle id not found');
+    ob_start();
+    require_once 'dailycompliancereport.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'weeklycompliance') {
+    ob_start();
+    require_once 'weeklycompliancereport.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'tripSummary') {
+    ob_start();
+    require_once 'tripSummary.php';
+    $umanager->insert_viewed_report($view_data);
+} elseif ($report == 'nightTravel'){
+    ob_start();
+    require_once 'nightTravelData.php';
+    $umanager->insert_viewed_report($view_data);
+} else {
+    exit('Report name does not exists');
+}
+
+/* Report generation ends */
+?>

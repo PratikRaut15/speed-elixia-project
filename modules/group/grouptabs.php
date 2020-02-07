@@ -1,0 +1,84 @@
+<?php
+//print_r($pageAcessDetail);
+$addpermission = isset($pageAcessDetail['add_permission']) ? $pageAcessDetail['add_permission'] : 0;
+$edit_permission = isset($pageAcessDetail['edit_permission']) ? $pageAcessDetail['edit_permission'] : 0;
+$delete_permission = isset($pageAcessDetail['delete_permission']) ? $pageAcessDetail['delete_permission'] : 0;
+?>
+<ul id="tabnav">
+    <?php
+    if ($_SESSION['switch_to'] == 1) {
+        if($addpermission == 1 || $_SESSION['role_modal'] == 'elixir'){
+            if (isset($_GET['id']) && $_GET['id'] == 1) {
+                echo "<li><a href='group.php?id=1'>Add " . $_SESSION['group'] . "</a></li>";
+            } else {
+                echo "<li><a  href='group.php?id=1'>Add " . $_SESSION['group'] . "</a></li>";
+            }
+        }
+        
+        if (isset($_GET['id']) && $_GET['id'] == 4 && $edit_permission == 1 && isset($_GET['did']) && $_GET['did'] != '' || $_SESSION['role_modal'] == 'elixir') {
+            $did = isset($_GET['did']) ? $_GET['did'] : '';
+            echo"<li><a class='selected' href='group.php?id=4&did=$did'>Edit " . $_SESSION['group'] . "</a></li>";
+        }
+
+        if (isset($_GET['id']) && $_GET['id'] == 2) {
+            echo "<li><a class='selected' href='group.php?id=2'>View " . $_SESSION['group'] . "</a></li>";
+        } else {
+            echo "<li><a  class='selected' href='group.php?id=2'>View " . $_SESSION['group'] . "</a></li>";
+        }
+
+        if($_GET['id'] == 5 && $edit_permission == 1 || $_SESSION['role_modal'] == 'elixir'){
+            echo "<li><a href='group.php?id=5'>Branch Audit Trail</a></li>";
+        }
+    } else {
+        if (isset($_GET['id'])) {
+            if ($_GET['id'] == 1)
+                echo "<li><a class='selected' href='group.php?id=1'>Add " . $_SESSION['group'] . "</a></li>";
+            else
+                echo "<li><a href='group.php?id=1'>Add " . $_SESSION['group'] . "</a></li>";
+            if ($_GET['id'] == 2){
+                echo "<li><a class='selected' href='group.php?id=2'>View " . $_SESSION['group'] . "</a></li>";
+            }   
+            else
+                echo "<li><a href='group.php?id=2'>View " . $_SESSION['group'] . "</a></li>";
+            if ($_GET['id'] == 4)
+                echo"<li><a class='selected' href='group.php?id=4&did=$_GET[did]'>Edit " . $_SESSION['group'] . "</a></li>";
+            if ($_GET['id'] == 5){
+                echo "<li><a  class='selected' href='group.php?id=5'>Branch Audit Trail</a></li>"; 
+            }
+            /*** Added By : Pratik Raut */
+            echo "<li><a class='selected' href='group.php?id=8'>Sequence " . $_SESSION['group'] . "</a></li>";
+            /*** Added By : Pratik Raut */
+        }
+        else {
+            echo "<li><a  href='group.php?id=1'>Add " . $_SESSION['group'] . "</a></li>";
+            echo "<li><a class='selected' href='group.php?id=2'>View " . $_SESSION['group'] . "</a></li>";
+             /*** Added By : Pratik Raut */
+            echo "<li><a class='selected' href='group.php?id=8'>Sequence " . $_SESSION['group'] . "</a></li>";
+             /*** Added By : Pratik Raut */
+            // echo "<li><a href='group.php?id=5'>Branch Audit Trail</a></li>";        /* echo "<li><a href='route.php?id=4'>Edit route</a></li>"; */
+        }
+    }
+    ?>
+</ul>
+<?php
+include 'group_functions.php';
+if (!isset($_GET['id']) || $_GET['id'] == 2) {
+    include 'pages/viewgroups.php';
+} else if ($_GET['id'] == 1) {
+    include 'vehicle_group_functions.php';
+    include 'pages/addgroup.php';
+
+} else if ($_GET['id'] == 4) {
+    include 'vehicle_group_functions.php';
+    include 'pages/editgroup.php';
+}
+else if ($_GET['id'] == 5) {
+    include 'vehicle_group_functions.php';
+    include 'pages/group_history.php';
+}
+
+else if ($_GET['id'] == 8) {
+    include 'vehicle_group_functions.php';
+    include 'pages/group_sequence.php';
+}
+?>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Create Customer</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: center;
+                border-right:1px solid black;
+                border-bottom:1px solid black;
+
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 60%;
+            }
+
+            td, th{
+                border-left:1px solid black;
+                border-top:1px solid black;
+            }
+
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+
+            span{
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="color: #000000">
+            <h4>Dear {{CUSTOMERNAME}},</h4>
+            <p>Greetings from Elixia Tech Solutions Ltd!!!</p>
+            <p>Thanks a lot for choosing Elixia Speed to manage your fleet.
+                You can now track your vehicles by following two ways:</p>
+            <h4>WEB:</h4>
+            <p>1.Visit <a href="http://www.speed.elixiatech.com/">http://www.speed.elixiatech.com/</a></p>
+            <p>2.Login using the credentials mentioned below.</p>
+            <p>3.Contact us so that we can explain how to make the best use of the system</p>
+
+            <h4>ANDROID AND IPHONE APP:</h4>
+            <p>Lets you track your vehicles right from your phone.</p>
+            <span style="font-weight: bold">The apps are free of cost for all our customers.</span>
+            <p>You may download the app by searching for "Elixia Speed" on
+                Play Store (for Android users) and App Store (for iphone users).</p>
+            <p>Your confidential credentials are as follows:</p>
+            <br>
+            <p><span style="font-weight: bold;color: #592726">Username: </span>{{USERNAME}}</p>
+            <p><span style="font-weight: bold;color: #592726">Password: </span>{{PASSWORD}}</p>
+            <p><span style="font-weight: bold;">Please change the password as soon as you login.</span>
+                You may go to &#60Username&#62 -> My Account -> Change Password to do the same.</p>
+            <p>You may add more users from the interface provided by going to Masters -> Users -> Add Users</p>
+            <p>Also, you may update the email and telephone number to receive requested alerts by going to &#60Username&#62 -> My Account</p>
+            <p>Please find below a brief about the system:</p>
+            <br>
+            <p>The following tabs will be of most importance to you:</p>
+            <br>
+            <p>1. <span style="font-weight: bold">Dashboard:</span> This gives you the pie charts with vehicles distributed according to their statuses.</p>
+            <p>In addition, you have one more pie chart which distributes vehicles according to checkpoints.</p>
+            <p>This helps you to understand if your vehicles are in warehouse/parking/client site etc. at one go, provided you have created checkpoints for such locations.</p>
+            <p>2. <span style="font-weight: bold">Map:</span> By clicking on map, you will be able to see the real-time location of your vehicle.</p>
+            <p>By hovering on the vehicles icon, you will be able to see the current speed and driver details.</p>
+            <p>The vehicle icon changes colour depending on the current status of the vehicle.</p>
+            <blockquote>
+                <p><span style="color: #FF0000">&#9899 Red colour indicates over speeding vehicles</span></p>
+                <p><span style="color: #009900">&#9899 Green colour indicates vehicles running at normal speed</span></p>
+                <p><span style="color: #0000ff">&#9899 Blue colour indicates vehicles with ignition on, but standing idle at the same location</span></p>
+                <p><span style="color: #C64E00 ">&#9899 Orange colour indicates that the vehicle has ignition turned off</span></p>
+                <p><span style="color: #2F4F4F">&#9899 Grey colour indicates the vehicles that are not sending data, which may be due to low network/power cut</span></p>
+            </blockquote>
+            <p>You may contact an Elixir to get more details for these vehicles.</p>
+            <p>3. <span style="font-weight: bold">Real-Time Data:</span> Vehicle & Device tab shows the real-time location, current speed, distance travelled during the day, external battery status,</p>
+            <p>driver details, network strength, device tamper status, power status and several similar details.</p>
+            <p>4. <span style="font-weight: bold">Masters->Fences:</span> Fencing tab will enable you to create fences which will give alerts in case the fence is breached.</p>
+            <p>5. <span style="font-weight: bold">Masters->Checkpoints:</span> Checkpoints will enable you to place holders on map to get alerts where the fleet has reached.</p>
+            <p>6. <span style="font-weight: bold">Reports:</span> Vehicle history will show the route on map which the vehicle had taken on a particular date. Daily travel history will show the same information in a table format.</p>
+            <p>Several more reports are available which you may explore for better utilization of your account</p>
+            <blockquote>
+                <p>&#9899 <span style="font-weight: bold">Location Report</span> gives you the location update for every vehicle for the selected time period.</p>
+                <p>You may select whether you want the update every defined distance, or for every defined time period (i.e every 5 kms or every 10 minutes).</p>
+                <p>&#9899 <span style="font-weight: bold">Stoppage Report</span> specifies where all the vehicle was standing idle for more than the specified time period, so that you can check unscheduled stoppages and control them.</p>
+                <p>&#9899 <span style="font-weight: bold">Over speed Report</span> helps you understand the different locations where the driver over speed the vehicle, along with the over speeding duration and top speed.</p>
+            </blockquote>
+            <p>7. <span style="font-weight: bold">Alerts:</span> Unnecessary idling needs to be checked and hence, we have a new alert for you. You can define the maximum time a vehicle can remain idle,</p>
+            <p>if within a checkpoint and if in transit and you will receive an alert every time the maximum duration is breached.</p>
+            <br>
+            <p>We hope the above changes will help you better manage your fleet. In case of any queries or feedback, please feel free to write back to us.</p>
+            <p>More updates and more exciting news are coming your way!! So enjoy tracking while we bring more features to your Elixia Speed account.</p>
+            <br>
+            <p>Please feel free to contact us on <strong>022-2513-7471</strong> or email us at <strong>support@elixiatech.com</strong> in case you have any queries regarding using the system. </p>
+            <br>
+            <br/>Warm Regards, <br/>
+            Support Team,<br/>
+            Elixia Speed<br/>
+            Elixia Tech Solutions Ltd.
+            <br/><br/>
+
+            <img style="width: 240px;" src = "http://speed.elixiatech.com/images/elixia_logo_75.png" alt = "Elixia Speed logo" />
+        </div>
+
+    </body>
+</html>

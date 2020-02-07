@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+		<style type='text/css'>
+			table, td { border: solid 1px; padding:10px;   }
+			hr.style-six { border: 0; height: 0; border-top: 1px solid rgba(0, 0, 0, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+		</style>
+    </head>
+    <body>
+		<div style='width:1050px; alignment-adjust: central;'>
+			<table style='width: 100%; border:none;'>
+				<tr>
+                                    <td style='width:10%; border:none;'></td>
+                                    <td style='width:70%; border:none;'>
+                                        <h3 style='text-align:center; text-transform:uppercase;'>Weekly Temperature Compliance Report </h3>
+                                        <h3 style='text-align:center;'> {{REPORT_DATE}}</h3>
+                                        <br/> </td>
+                                    <td style='width:20%; border:none;'><img src='../../images/elixia_monitor_logo.png'  /></td>
+				</tr>
+			</table>
+                    <br>
+                    {{TABLEDATA}}
+		</div>
+    </body>
+</html>

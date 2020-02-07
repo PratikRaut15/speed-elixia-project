@@ -1,0 +1,34 @@
+//lyt-login
+.lyt-login {
+    width: 350px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+    height: auto;
+    .bs-form {
+        .form-foot {
+            .btn {
+                display: block;
+                margin: 0 auto;
+                margin-bottom: 20px;
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+    .bs-tab {
+        .nav-tabs {
+            margin-bottom: 15px;
+            .row {
+                margin: 0;
+                .item {
+                    padding: 0;
+                }
+            }
+        }
+        .tab-content {
+            padding: 10px 20px 20px;
+        }
+    }
+}

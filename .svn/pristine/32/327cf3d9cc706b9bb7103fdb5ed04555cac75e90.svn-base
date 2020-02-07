@@ -1,0 +1,1525 @@
+<?php
+
+require_once '../../lib/system/DatabaseTMSManager.php';
+require_once 'model/Depot.php';
+
+/**
+ * class of TMS-module
+ */
+class TMS extends DatabaseTMSManager {
+
+    public function __construct($customerno, $userid) {
+        parent::__construct($customerno, $userid);
+        $this->customerno = $customerno;
+        $this->userid = $userid;
+        $this->todaysdate = date("Y-m-d H:i:s");
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="DEPOT Functions">
+    public function insert_depot(Depot $objDepot) {
+        $currentdepotid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objDepot->depotcode . "'"
+                    . ",'" . $objDepot->depotname . "'"
+                    . "," . $objDepot->zoneid . ""
+                    . "," . $objDepot->locationid . ""
+                    . "," . $objDepot->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . ",'" . $this->userid . "'"
+                    . "," . "@currentdepotid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_DEPOT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentdepotid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentdepotid = $result["@currentdepotid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentdepotid;
+    }
+
+    public function update_depot(Depot $objDepot) {
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objDepot->depotcode . "'"
+                    . "'" . $objDepot->depotname . "'"
+                    . "," . $objDepot->zoneid . ""
+                    . "," . $objDepot->locationid . ""
+                    . "," . $objDepot->depotid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_DEPOT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    public function delete_depot(Depot $objDepot) {
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objDepot->depotid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_DEPOT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    public function get_depots(Depot $objDepot) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objDepot->customerno . "'"
+                    . ",'" . $objDepot->locationid . "'"
+                    . ",'" . $objDepot->zoneid . "'"
+                    . ",'" . $objDepot->zoneid . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, ($ex), $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    public function get_depots_test(Depot $objDepot) {
+        $recordset = array();
+        $join = '';
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objDepot->customerno . "'"
+                    . ",'" . $objDepot->locationid . "'"
+                    . ",'" . $objDepot->zoneid . "'";
+
+
+            //$query = $this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params);
+            $join .= " left join location on depot.locationid=location.locationid";
+            $join .= " left join zone on depot.zoneid=zone.zoneid";
+            $query = "select *, depot.zoneid as zoneid from depot " . $join . " where depot.customerno=%d";
+            if ($objDepot->locationid != '') {
+                $query .= " and locationid=$objDepot->locationid";
+            }
+            if ($objDepot->zoneid != '') {
+
+                $query .= " and zoneid=$objDepot->zoneid";
+            }
+
+            $query .=" order by depotid DESC ";
+            $sql = sprintf($query, $objDepot->customerno);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+            print_r($recordset);
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, "get_depots_test");
+        }
+        return $recordset;
+    }
+
+    public function get_depots_filter(Depot $objDepot) {
+        $recordset = array();
+        $join = '';
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objDepot->customerno . "'"
+                    . ",'" . $objDepot->locationid . "'"
+                    . ",'" . $objDepot->zoneid . "'";
+
+
+            //$query = $this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params);
+            $join .= " left join location on depot.locationid=location.locationid";
+            $join .= " left join zone on depot.zoneid=zone.zoneid";
+            $query = "select *, depot.zoneid as zoneid from depot " . $join . " where depot.customerno=%d and depotname LIKE '%s'";
+            if ($objDepot->locationid != '') {
+                $query .= " and locationid=$objDepot->locationid";
+            }
+            if ($objDepot->zoneid != '') {
+
+                $query .= " and zoneid=$objDepot->zoneid";
+            }
+
+            $query .=" order by depotid DESC ";
+            $sql = sprintf($query, $objDepot->customerno, $objDepot->depotname);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+            //print_r($recordset);
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, "get_depots_test");
+        }
+        return $recordset;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="FACTORY / PLANT Functions">
+    public function insert_factory(Factory $objFactory) {
+        $currentfactoryid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objFactory->factoryname . "'"
+                    . ",'" . $objFactory->locationid . "'"
+                    . "," . $objFactory->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentfactoryid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_FACTORY, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentfactoryid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentfactoryid = $result["@currentfactoryid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentfactoryid;
+    }
+
+    public function update_factory(Factory $objFactory) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objFactory->factoryname . ""
+                    . "," . $objFactory->locationid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_FACTORY, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_factory(Factory $objFactory) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objFactory->factoryid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_FACTORY, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_factories(Factory $objFactory) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objFactory->customerno . "'"
+                    . ",'" . $objFactory->factoryid . "'"
+                    . ",'" . $objFactory->locationid . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_FACTORIES, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="DELIVERY DETAILS UPDATED BY FACTORY Functions">
+    public function insert_factory_delivery(FactoryDeliveryDetails $objFactoryDeliveryDetails) {
+        $currentfactorydeliveryid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objFactoryDeliveryDetails->factoryid . "'"
+                    . ",'" . $objFactoryDeliveryDetails->skuid . "'"
+                    . ",'" . $objFactoryDeliveryDetails->depotid . "'"
+                    . ",'" . $objFactoryDeliveryDetails->date_required . "'"
+                    . ",'" . $objFactoryDeliveryDetails->weight . "'"
+                    . "," . $objFactoryDeliveryDetails->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentfactorydeliveryid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_FACTORY_DELIVERY, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentfactorydeliveryid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentfactorydeliveryid = $result["@currentfactorydeliveryid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentfactorydeliveryid;
+    }
+
+    public function update_factory_delivery(FactoryDeliveryDetails $objFactoryDeliveryDetails) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objFactoryDeliveryDetails->fdid . ""
+                    . "," . $objFactoryDeliveryDetails->factoryid . ""
+                    . "," . $objFactoryDeliveryDetails->skuid . ""
+                    . "," . $objFactoryDeliveryDetails->depotid . ""
+                    . ",'" . $objFactoryDeliveryDetails->date_required . "'"
+                    . "," . $objFactoryDeliveryDetails->weight . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_FACTORY_DELIVERY, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_factory_delivery(FactoryDeliveryDetails $objFactoryDeliveryDetails) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objFactoryDeliveryDetails->fdid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_FACTORY_DELIVERY, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_factory_delivery(FactoryDeliveryDetails $objFactoryDeliveryDetails) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objFactoryDeliveryDetails->customerno . "'";
+
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_FACTORY_DELIVERY, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="PRODUCTION DETAILS UPDATED BY SALES Functions">
+    public function insert_factory_production(FactoryProductionDetails $objFactoryProductionDetails) {
+        $currentfpid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objFactoryProductionDetails->factoryid . "'"
+                    . "'" . $objFactoryProductionDetails->skuid . "'"
+                    . "'" . $objFactoryProductionDetails->weight . "'"
+                    . "," . $objFactoryProductionDetails->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentfpid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_FACTORY_PRODUCTION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentfpid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentfpid = $result["@currentfpid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentfpid;
+    }
+
+    public function update_factory_production(FactoryProductionDetails $objFactoryProductionDetails) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objFactoryProductionDetails->fpid . ""
+                    . "," . $objFactoryProductionDetails->factoryid . ""
+                    . "," . $objFactoryProductionDetails->skuid . ""
+                    . "," . $objFactoryProductionDetails->weight . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_FACTORY_PRODUCTION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_factory_production(FactoryProductionDetails $objFactoryProductionDetails) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objFactoryProductionDetails->fpid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_FACTORY_PRODUCTION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_factory_production(FactoryProductionDetails $objFactoryProductionDetails) {
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objFactoryProductionDetails->customerno . "'";
+
+            echo $query = $this->PrepareSP(constants::SP_GET_FACTORY_PRODUCTION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="INDENT Functions">
+    public function insert_indent(Indent $objIndent) {
+        $currentindentid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objIndent->transporterid . "'"
+                    . "'" . $objIndent->vehicleid . "'"
+                    . "'" . $objIndent->proposedindentid . "'"
+                    . "'" . $objIndent->indent_sku_mappingid . "'"
+                    . "'" . $objIndent->shipmentno . "'"
+                    . "'" . $objIndent->totalweight . "'"
+                    . "'" . $objIndent->totalvolume . "'"
+                    . "'" . $objIndent->isdelivered . "'"
+                    . "," . $objIndent->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentindentid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentindentid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentindentid = $result["@currentindentid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentindentid;
+    }
+
+    public function update_indent(Indent $objIndent) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objIndent->indentid . ""
+                    . "," . $objIndent->transporterid . ""
+                    . "," . $objIndent->vehicleid . ""
+                    . "," . $objIndent->proposedindentid . ""
+                    . "," . $objIndent->indent_sku_mappingid . ""
+                    . "," . $objIndent->vehicleid . ""
+                    . ",'" . $objIndent->shipmentno . "'"
+                    . ",'" . $objIndent->totalweight . "'"
+                    . ",'" . $objIndent->totalvolume . "'"
+                    . ",'" . $objIndent->isdelivered . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_indent(Indent $objIndent) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objIndent->indentid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_indent(Indent $objIndent) {
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objIndent->customerno . "'";
+
+            echo $query = $this->PrepareSP(constants::SP_GET_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="INDENT SKU MAPPING Functions">
+    public function insert_indent_sku_mapping(IndentSkuMapping $objIndentSkuMapping) {
+        $current_indent_sku_mappingid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objIndentSkuMapping->indentid . "'"
+                    . "'" . $objIndentSkuMapping->skuid . "'"
+                    . "'" . $objIndentSkuMapping->no_of_units . "'"
+                    . "," . $objIndentSkuMapping->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@current_indent_sku_mappingid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_INDENT_SKU_MAPPING, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @current_indent_sku_mappingid');
+            $result = mysql_fetch_assoc($outputVars);
+            $current_indent_sku_mappingid = $result["@current_indent_sku_mappingid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $current_indent_sku_mappingid;
+    }
+
+    public function update_indent_sku_mapping(IndentSkuMapping $objIndentSkuMapping) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objIndentSkuMapping->indent_sku_mappingid . ""
+                    . "," . $objIndentSkuMapping->indentid . ""
+                    . "," . $objIndentSkuMapping->skuid . ""
+                    . "," . $objIndentSkuMapping->no_of_units . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_INDENT_SKU_MAPPING, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_indent_sku_mapping(IndentSkuMapping $objIndentSkuMapping) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objIndentSkuMapping->indent_sku_mappingid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_INDENT_SKU_MAPPING, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="MASTER LOCATION Functions">
+    public function insert_location(Location $objLocation) {
+        $currentlocationid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objLocation->locationname . "'"
+                    . "," . $objLocation->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentlocationid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_LOCATION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentlocationid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentlocationid = $result["@currentlocationid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentlocationid;
+    }
+
+    public function update_location(Location $objLocation) {
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objLocation->locationname . "'"
+                    . "'" . $objLocation->locationid . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_LOCATION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    public function delete_location(Location $objLocation) {
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objLocation->locationid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_LOCATION, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    public function get_locations(Location $objLocation) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objLocation->customerno . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, ($ex), $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    public function get_locations_test(Location $objLocation) {
+        $recordset = array();
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objLocation->customerno . "'"
+                    . ",'" . $objLocation->locationid . "'";
+
+            //$query = $this->PrepareSP(constants::SP_GET_ZONES, $sp_params);
+            $query = "select * from location where location.customerno=%d";
+            if ($objLocation->locationid != '') {
+                $query .=" and location.locationid=$objLocation->locationid";
+            }
+            $query .=" order by locationid DESC ";
+            $sql = sprintf($query, $objLocation->customerno);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, "get_locations_test");
+        }
+        return $recordset;
+    }
+
+    public function get_location_filter(Location $objLocation) {
+        $recordset = array();
+        $join = '';
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objLocation->customerno . "'"
+                    . ",'" . $objLocation->locationid . "'";
+
+
+            //$query = $this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params);
+            $query = "select * from location " . $join . " where location.customerno=%d and locationname LIKE '%s'";
+            $query .=" order by locationid DESC ";
+            $sql = sprintf($query, $objLocation->customerno, $objLocation->locationname);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+            //print_r($recordset);
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, "get_depots_test");
+        }
+        return $recordset;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="PROPOSED INDENT Functions">
+    public function insert_proposed_indent(ProposedIndent $objProposedIndent) {
+        $currentproposedindentid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objProposedIndent->factoryid . "'"
+                    . "'" . $objProposedIndent->pitmappingid . "'"
+                    . "'" . $objProposedIndent->indent_sku_mappingid . "'"
+                    . "'" . $objProposedIndent->total_weight . "'"
+                    . "'" . $objProposedIndent->total_volume . "'"
+                    . "," . $objProposedIndent->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentproposedindentid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_PROPOSED_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentproposedindentid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentproposedindentid = $result["@currentproposedindentid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentproposedindentid;
+    }
+
+    public function update_proposed_indent(ProposedIndent $objProposedIndent) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objProposedIndent->proposedindentid . ""
+                    . "," . $objProposedIndent->factoryid . ""
+                    . "," . $objProposedIndent->pitmappingid . ""
+                    . "," . $objProposedIndent->indent_sku_mappingid . ""
+                    . ",'" . $objProposedIndent->total_weight . "'"
+                    . ",'" . $objProposedIndent->total_volume . "'"
+                    . ",'" . $objProposedIndent->isApproved . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_PROPOSED_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_proposed_indent(ProposedIndent $objProposedIndent) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objProposedIndent->proposedindentid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_INDENT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_proposed_indent(ProposedIndent $objProposedIndent) {
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objProposedIndent->customerno . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_PROPOSED_INDENT, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="CHECKPOINTS IN ROUTE Functions">
+    public function insert_routecheckpoint(RouteCheckpoint $objRouteCheckpoint) {
+        $currentroutecheckpointid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objRouteCheckpoint->fromlocationid . "'"
+                    . "'" . $objRouteCheckpoint->tolocationid . "'"
+                    . "'" . $objRouteCheckpoint->distance . "'"
+                    . "," . $objRouteCheckpoint->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentroutecheckpointid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_ROUTECHECKPOINT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentroutecheckpointid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentroutecheckpointid = $result["@currentroutecheckpointid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentroutecheckpointid;
+    }
+
+    public function update_routecheckpoint(RouteCheckpoint $objRouteCheckpoint) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objRouteCheckpoint->routecheckpointid . ""
+                    . "," . $objRouteCheckpoint->routemasterid . ""
+                    . "," . $objRouteCheckpoint->fromlocationid . ""
+                    . ",'" . $objRouteCheckpoint->tolocationid . "'"
+                    . ",'" . $objRouteCheckpoint->distance . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_ROUTECHECKPOINT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_routecheckpoint(RouteCheckpoint $objRouteCheckpoint) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objRouteCheckpoint->routecheckpointid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_ROUTECHECKPOINT, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_routecheckpoint(RouteCheckpoint $objRouteCheckpoint) {
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objRouteCheckpoint->customerno . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_ROUTECHECKPOINT, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="ROUTEMASTER Functions">
+    public function insert_routemaster(RouteMaster $objRouteMaster) {
+        $currentroutemasterid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objRouteMaster->routename . "'"
+                    . "'" . $objRouteMaster->fromlocationid . "'"
+                    . "'" . $objRouteMaster->tolocationid . "'"
+                    . "'" . $objRouteMaster->distance . "'"
+                    . "'" . $objRouteMaster->travellingtime . "'"
+                    . "," . $objRouteMaster->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentroutemasterid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_ROUTEMASTER, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentroutemasterid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentroutemasterid = $result["@currentroutemasterid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentroutemasterid;
+    }
+
+    public function update_routemaster(RouteMaster $objRouteMaster) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objRouteMaster->routemasterid . ""
+                    . "," . $objRouteMaster->routename . ""
+                    . "," . $objRouteMaster->fromlocationid . ""
+                    . ",'" . $objRouteMaster->tolocationid . "'"
+                    . ",'" . $objRouteMaster->distance . "'"
+                    . ",'" . $objRouteMaster->travellingtime . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_ROUTEMASTER, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_routemaster(RouteMaster $objRouteMaster) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objRouteMaster->routemasterid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_ROUTEMASTER, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_routemaster(RouteMaster $objRouteMaster) {
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objRouteMaster->customerno . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_ROUTEMASTER, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="SKU Functions">
+    public function insert_sku(Sku $objSku) {
+        $currentskuid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objSku->skucode . "'"
+                    . "'" . $objSku->sku_description . "'"
+                    . "'" . $objSku->volume . "'"
+                    . "'" . $objSku->weight . "'"
+                    . "," . $objSku->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentskuid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_SKU, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentskuid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentskuid = $result["@currentskuid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentskuid;
+    }
+
+    public function update_sku(Sku $objSku) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objSku->skuid . ""
+                    . "," . $objSku->skucode . ""
+                    . "," . $objSku->sku_description . ""
+                    . ",'" . $objSku->volume . "'"
+                    . ",'" . $objSku->weight . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_SKU, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_sku(Sku $objSku) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objSku->skuid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_SKU, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_sku(Sku $objSku) {
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objSku->customerno . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_SKU, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="TRANSPORTER Functions">
+    public function insert_transporter(Transporter $objTransporter) {
+        $currenttransporterid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objTransporter->transportercode . "'"
+                    . ",'" . $objTransporter->transportername . "'"
+                    . ",'" . $objTransporter->transportermail . "'"
+                    . ",'" . $objTransporter->transportermobileno . "'"
+                    . "," . $objTransporter->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currenttransporterid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_TRANSPORTER, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currenttransporterid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currenttransporterid = $result["@currenttransporterid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currenttransporterid;
+    }
+
+    public function update_transporter(Transporter $objTransporter) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objTransporter->transportercode . "'"
+                    . ",'" . $objTransporter->transportername . "'"
+                    . ",'" . $objTransporter->transportermail . "'"
+                    . ",'" . $objTransporter->transportermobileno . "'"
+                    . ",'" . $objTransporter->transporterid . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_TRANSPORTER, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_transporter(Transporter $objTransporter) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objTransporter->transporterid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_TRANSPORTER, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_transporter(Transporter $objTransporter) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objTransporter->customerno . "'"
+                    . ",'" . $objTransporter->transporterid . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_TRANSPORTERS, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+            //print_r($arrResult);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    public function get_transporter_filter(Transporter $objTransporter) {
+        $recordset = array();
+        $join = '';
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objTransporter->customerno . "'"
+                    . ",'" . $objTransporter->transportername . "'";
+
+
+            //$query = $this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params);
+            $query = "select * from transporter " . $join . " where transporter.customerno=%d and transportername LIKE '%s'";
+            $query .=" order by transporterid DESC ";
+            $sql = sprintf($query, $objTransporter->customerno, $objTransporter->transportername);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+            //print_r($recordset);
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $recordset;
+    }
+    
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="TRANSPORTER SHARE IN EACH ZONE Functions">
+    public function insert_transportershare(TransporterShare $objTransporterShare) {
+        $currenttransportershareid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objTransporterShare->transporterid . "'"
+                    . ",'" . $objTransporterShare->zoneid . "'"
+                    . ",'" . $objTransporterShare->sharepercent . "'"
+                    . "," . $objTransporterShare->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currenttransportershareid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_TRANSPORTERSHARE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currenttransportershareid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currenttransportershareid = $result["@currenttransportershareid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currenttransportershareid;
+    }
+
+    public function update_transportershare(TransporterShare $objTransporterShare) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objTransporterShare->transportershareid . ""
+                    . "," . $objTransporterShare->transporterid . ""
+                    . "," . $objTransporterShare->zoneid . ""
+                    . ",'" . $objTransporterShare->sharepercent . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_TRANSPORTERSHARE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_transportershare(TransporterShare $objTransporterShare) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objTransporterShare->transportershareid . ""
+                    /* Transporter id would be blank here as we don't want 
+                     * all the records for this transporter to be deleted */
+                    . ",''"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_TRANSPORTERSHARE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_transportershare(TransporterShare $objTransporterShare) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objTransporterShare->customerno . "'"
+                    . ",'" . $objTransporterShare->transporterid . "'"
+                    . "," . $objTransporterShare->zoneid . "";
+
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_TRANSPORTERSHARE, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+            //print_r($arrResult);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="VEHICLE Functions">
+    public function insert_vehicle(Vehicle $objVehicle) {
+        $currentvehicleid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objVehicle->transporterid . "'"
+                    . ",'" . $objVehicle->vehicletypeid . "'"
+                    . ",'" . $objVehicle->vehicleno . "'"
+                    . "," . $objVehicle->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentvehicleid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_VEHICLE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentvehicleid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentvehicleid = $result["@currentvehicleid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentvehicleid;
+    }
+
+    public function update_vehicle(Vehicle $objVehicle) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objVehicle->vehicleid . "'"
+                    . ",'" . $objVehicle->vehicleno . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_VEHICLE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_vehicle(Vehicle $objVehicle) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objVehicle->vehicleid . ""
+                    . ",'" . $objVehicle->transporterid . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_VEHICLE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_vehicles(Vehicle $objVehicle) {
+        //print_r($objVehicle);
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objVehicle->customerno . "'"
+                    . ",'" . $objVehicle->transporterid . "'"
+                    . ",'" . $objVehicle->vehicleid . "'";
+            
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_VEHICLES, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="VEHICLE TYPE Functions">
+    public function insert_vehicletype(VehicleType $objVehicleType) {
+        $currentvehicletypeid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objVehicleType->vehiclecode . "'"
+                    . ",'" . $objVehicleType->vehicledescription . "'"
+                    . "," . $objVehicleType->volumecapacity . ""
+                    . "," . $objVehicleType->weightcapacity . ""
+                    . "," . $objVehicleType->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentvehicletypeid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_VEHICLETYPE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentvehicletypeid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentvehicletypeid = $result["@currentvehicletypeid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentvehicletypeid;
+    }
+
+    public function update_vehicletype(VehicleType $objVehicleType) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objVehicleType->vehiclecode . "'"
+                    . ",'" . $objVehicleType->vehicledescription . "'"
+                    . ",'" . $objVehicleType->volumecapacity . "'"
+                    . ",'" . $objVehicleType->weightcapacity . "'"
+                    . ",'" . $objVehicleType->vehicletypeid . "'"
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_VEHICLETYPE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function delete_vehicletype(VehicleType $objVehicleType) {
+        $noOfRowsAffected = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objVehicleType->vehicletypeid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_VEHICLETYPE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $noOfRowsAffected = $this->get_affectedRows();
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $noOfRowsAffected;
+    }
+
+    public function get_vehicletypes(VehicleType $objVehicleType) {
+        //print_r($objVehicle);
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objVehicleType->customerno . "'"
+                    . ",'" . $objVehicleType->vehicletypeid . "'";
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_VEHICLETYPES, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    public function get_vehicletype_filter(VehicleType $objVehicleType) {
+        $recordset = array();
+        $join = '';
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objVehicleType->customerno . "'"
+                    . ",'" . $objVehicleType->vehiclecode . "'";
+
+
+            //$query = $this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params);
+            $query = "select * from vehicletype " . $join . " where vehicletype.customerno=%d and vehiclecode LIKE '%s'";
+            $query .=" order by vehicletypeid DESC ";
+            $sql = sprintf($query, $objVehicleType->customerno, $objVehicleType->vehiclecode);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+            //print_r($recordset);
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, "get_depots_test");
+        }
+        return $recordset;
+    }
+    
+    // </editor-fold>
+    // 
+    // <editor-fold defaultstate="collapsed" desc="ZONE Functions">
+    public function insert_zone(Zone $objZone) {
+        $currentzoneid = 0;
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objZone->zonename . "'"
+                    . "," . $objZone->customerno . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . ""
+                    . "," . "@currentzoneid";
+
+            $query = $this->PrepareSP(constants::SP_INSERT_ZONE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+            $outputVars = $this->executeQuery('SELECT @currentzoneid');
+            $result = mysql_fetch_assoc($outputVars);
+            $currentzoneid = $result["@currentzoneid"];
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $currentzoneid;
+    }
+
+    public function update_zone(Depot $objZone) {
+        try {
+            //Prepare parameters
+            $sp_params = "," . $objZone->zoneid . ""
+                    . "," . $objZone->zonename . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_UPDATE_ZONE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    public function delete_zone(Depot $objZone) {
+        try {
+            //Prepare parameters
+            $sp_params = "" . $objZone->zoneid . ""
+                    . ",'" . $this->todaysdate . "'"
+                    . "," . $this->userid . "";
+
+            $query = $this->PrepareSP(constants::SP_DELETE_ZONE, $sp_params);
+            $queryResult = $this->executeQuery($query);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+    }
+
+    public function get_zones(Zone $objZone) {
+        $arrResult = null;
+        try {
+            $pdo = $this->CreatePDOConn();
+            //Prepare parameters
+            $sp_params = "'" . $objZone->customerno . "'"
+                    . ",'" . $objZone->zoneid . "'";
+
+            $arrResult = $pdo->query($this->PrepareSP(constants::SP_GET_ZONES, $sp_params))->fetchAll(PDO::FETCH_ASSOC);
+            $this->ClosePDOConn($pdo);
+        } catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $arrResult;
+    }
+
+    public function get_zones_test(Zone $objZone) {
+        $recordset = array();
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objZone->customerno . "'"
+                    . ",'" . $objZone->zoneid . "'";
+
+            //$query = $this->PrepareSP(constants::SP_GET_ZONES, $sp_params);
+            $query = "select * from zone where zone.customerno=%d";
+            $query .=" order by zoneid DESC ";
+            $sql = sprintf($query, $objZone->customerno);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, __FUNCTION__);
+        }
+        return $recordset;
+    }
+
+    public function get_zone_filter(Zone $objZone) {
+        $recordset = array();
+        $join = '';
+        try {
+            //Prepare parameters
+            $sp_params = "'" . $objZone->customerno . "'"
+                    . ",'" . $objZone->zoneid . "'";
+
+
+            //$query = $this->PrepareSP(constants::SP_GET_DEPOTS, $sp_params);
+            $query = "select * from zone " . $join . " where zone.customerno=%d and zonename LIKE '%s'";
+            $query .=" order by zoneid DESC ";
+            $sql = sprintf($query, $objZone->customerno, $objZone->zonename);
+            $queryResult = $this->executeQuery($sql);
+            $recordset = $this->get_recordSet();
+            //print_r($recordset);
+        } catch (Exception $ex) {
+            //Log
+            $log = new Log();
+            $log->createlog($this->customerno, $ex, $this->userid, constants::TMS, "get_depots_test");
+        }
+        return $recordset;
+    }
+
+    // </editor-fold>
+}
+
+?>

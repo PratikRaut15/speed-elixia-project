@@ -1,0 +1,131 @@
+//swiper
+.swiper-container {
+    position: relative;
+    overflow: hidden;
+    &#videoslider {
+        &.swiper-container-horizontal {
+            .swiper-pagination-bullets {
+                bottom: 0;
+            }
+        }
+    }
+}
+
+.swiper-pagination-bullet-active {
+    background: $clr-secondary;
+}
+
+.swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+}
+
+.tab-pane {
+    position: relative;
+}
+
+.swiper-button-prev {
+    position: absolute;
+    background-image: none;
+    left: -45px;
+    transform: translateY(-50%);
+    &:hover {
+        .icon {
+            color: $clr-primary;
+        }
+    }
+    .icon {
+        font-size: 30px;
+        line-height: 30px;
+        color: #555;
+        transition: all 0.3s ease-in;
+    }
+    &.testibutton {
+        left: 20px;
+    }
+    &.video-btn {
+        width: 40px;
+        height: 40px;
+        background: #333;
+        left: 15px;
+        top: 60%;
+        .icon {
+            color: $clr-root;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 22px;
+        }
+    }
+}
+
+.swiper-button-next {
+    position: absolute;
+    background-image: none;
+    right: -45px;
+    transform: translateY(-50%);
+    &:hover {
+        .icon {
+            color: $clr-primary;
+        }
+    }
+    .icon {
+        font-size: 30px;
+        line-height: 30px;
+        color: #555;
+        transition: all 0.3s ease-in;
+    }
+    &.testibutton {
+        right: 20px;
+    }
+    &.video-btn {
+        width: 40px;
+        height: 40px;
+        background: #333;
+        right: 15px;
+        top: 60%;
+        .icon {
+            color: $clr-root;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 22px;
+        }
+    }
+}
+
+@media only screen and (max-width:$mobile-breakpoint) {
+    .swiper-button-prev {
+        top: auto;
+        left: 30%;
+        transform: translateX(-30%);
+        .icon {
+            font-size: 30px;
+            line-height: 30px;
+            color: #555;
+        }
+        &.testibutton {
+            left: 30%;
+            bottom: 10px;
+        }
+    }
+    .swiper-button-next {
+        top: auto;
+        right: 30%;
+        transform: translateX(-30%);
+        .icon {
+            font-size: 30px;
+            line-height: 30px;
+            color: #555;
+        }
+        &.testibutton {
+            right: 30%;
+            bottom: 10px;
+        }
+        &.video-btn {
+            right: -10px;
+        }
+    }
+}

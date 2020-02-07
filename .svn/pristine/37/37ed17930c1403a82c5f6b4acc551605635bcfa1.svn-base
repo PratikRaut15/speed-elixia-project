@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <title>Temperature Conflict</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>PEHS Refrigerator Temperature monitoring system<br/>{{MESSAGE}}<br/>
+            Message sent at {{HOURMIN}}<br/>
+            Location: {{LOCATION}}<br/>
+            Local Contact : IT Support – India, (044-66886320 and 9176616862)<br/>
+            Powered by Elixia Tech.<br/><br/><br/>
+            <font size='smaller'>To unsubscribe, please uncheck your alerts <a href='http://www.speed.elixiatech.com/modules/api/?action=login_userkey_unsub&key={{ENCODEKEY}}'>here</a> or call us on 25137470 / 71.</font>";</div>
+    </body>
+</html>

@@ -1,0 +1,171 @@
+ /*
+ * Facebook Style Add Friends Script
+ * http://www.scriptandcodes.wordpress.com/
+ *
+ * @version
+ * 1.0 (May 20 2010)
+ * 
+ * @copyright
+ * Copyright (C) 2010-2011 
+ *
+ * @Auther
+ * Amit Patil (amitpatil321@gmail.com)
+ * Maharashtra (India) 
+ *
+ * @license
+ * This file is part of Facebook Style Add Friends.
+ * 
+ * Facebook Style Add Friends Script is freeware script. you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Facebook Style Add Friends Script is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this script.  If not, see <http://www.gnu.org/copyleft/lesser.html>.
+ */
+.main{
+	margin : 20px;
+}
+
+.listshow{
+	margin:0px;
+	padding:0px;
+	width : 100%;
+	list-style-type: none; 
+	padding: 0;
+	background : #EEEEEE;
+}
+.listshow li{
+	list-style : none;
+	width : 100%;
+	border-color:#CCCCCC;
+	border-style:solid;
+	border-width:0px 1px 1px 0px;
+	text-align:left;
+	font-size:12px;
+}
+.listshow a{
+	display : block;
+	color:#000;
+	text-decoration : none;
+	padding : 5px;
+	cursor : pointer;
+}
+.listshow .selected{
+	background : #678FD6;
+	border : 1px solid #678FD6;
+	color: white;
+}
+.listshow .selected a{
+	color : #fff;
+}
+.selected span{
+	background : #678FD6;
+	color: white;
+}
+#loading{
+	visibility:hidden;
+	padding-left:5px;
+}
+.ajax_response, .ajax_response_2, .ajax_response_3,.ajax_response_4,.ajax_response_5,.ajax_response_6,.ajax_response_7,
+.ajax_response_8,.ajax_response_9{
+	position:absolute;
+	top:auto;
+}
+.matched{
+	font-weight:bold;
+	color: #000000;
+	background : #D8D8D8;
+}
+.ajax_response_3{
+        /*margin:5px 0 0 260px;*/
+    	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.ajax_response, .ajax_response_2{
+	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.ajax_response_4{
+       /*margin:5px 0 0 520px;*/
+    	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.ajax_response_5{
+       /*margin:5px 0 0 520px;*/
+    	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.ajax_response_6{
+       /*margin:5px 0 0 520px;*/
+    	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.ajax_response_7{
+       /*margin:5px 0 0 520px;*/
+    	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.ajax_response_8,.ajax_response_9{
+       /*margin:5px 0 0 520px;*/
+    	border-color : #CCCCCC;
+	border-style:solid;
+	border-width : 0px 1px 0px 1px;
+	background : #E0E0E0;
+	display:none;
+	/*padding:2px 2px;*/
+	
+	overflow: hidden;
+	z-index:9999;
+}
+.highlighted{
+    background : #CCCCCC;
+	font-weight : bold;
+}

@@ -1,0 +1,112 @@
+<?php
+include_once("session.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/components/gui/datagrid.php");
+include_once("../../lib/system/DatabaseManager.php");
+
+
+//Datagtrid
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT c.totalsms, c.customerno, c.customername, c.customeremail, c.customerphone, c.smsleft, c.customercompany FROM customer c");
+$db->executeQuery($SQL);
+
+$dg = new datagrid( $db->getQueryResult() );
+$dg->AddAction("View/Edit", "../../images/edit.png", "modifycustomer.php?cid=%d");
+$dg->AddColumn("Customer #", "customerno");
+$dg->AddColumn("Name", "customername");
+$dg->AddColumn("Company", "customercompany");
+$dg->AddColumn("Phone", "customerphone");
+$dg->AddColumn("Email", "customeremail");
+$dg->AddColumn("SMS Left", "smsleft");
+$dg->AddColumn("Total SMS", "totalsms");
+$dg->AddRightAction("View", "../../images/history.png", "historycust.php?cid=%d");
+$dg->SetNoDataMessage("No Customer");
+$dg->AddIdColumn("customerno");
+
+$_scripts[] = "../../scripts/trash/prototype.js";
+ 
+include("header.php");
+
+if(IsHead())
+{
+?>
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        New Customer</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="createcustomer.php" enctype="multipart/form-data">
+    <table width="100%" align="center">
+        <tr>
+        <td>Name</td><td><input name = "cname" id="cname" type="text"></td>            
+        <td>Company</td><td><input name = "ccompany" id="ccompany" type="text"></td>
+        <td>Phone Number</td><td><input name = "cphone" type="text"></td>
+        <td>Email</td><td><input name = "cemail" type="text"></td>
+        </tr>
+    </table>
+
+<br/>        
+<div class="paneltitlemid" align="center">Credentials</div>
+    <table width="80%" align="center">
+        <tr>
+        <td>Real Name<input id="cprimaryname" name="cprimaryname" type="text"/><td>
+    Username:<input id="cprimaryusername" name="cprimaryusername" type="text"/></td><td> Password:
+    <input id="cprimarypassword" name="cprimarypassword" type="password"/></td>
+        <td></td>
+        <td></td>        
+        </tr>
+    </table>
+
+
+<br/>        
+<div class="paneltitlemid" align="center">Miscellaneous</div>
+    <table width="50%" align="center">
+        <tr>
+            <td>SMS Package</td><td><input name = "csmspack" type="text"></td>
+        </tr>
+        <tr>
+            <td>Load Sensor</td>
+            <td><input name="cloading" id="cloading" type="checkbox" /><br/>(Note: Point all the devices using this feature to 9990)</td>             
+        </tr>        
+        <tr>
+            <td>Reverse Geo-Location</td>
+            <td><input name="cgeolocation" id="cgeolocation" type="checkbox" /><br/>(Note: Location will be pulled from Google Maps API)</td>             
+        </tr>        
+        <tr>
+            <td>Maintenance Module</td>
+            <td><input name="cmaintenance" id="cmaintenance" type="checkbox" /></td>             
+        </tr>        
+        <tr>
+            <td>Portable Module</td>
+            <td><input name="cportable" id="cportable" type="checkbox" /></td>             
+        </tr>                
+        <tr>
+            <td>Temperature Sensors</td>
+            <td><input type="radio" name="ctempsensor" value="0" checked>0 <input type="radio" name="ctempsensor" value="1">1 <input type="radio" name="ctempsensor" value="2">2</td>
+        </tr>
+    </table>
+
+        
+    <hr/> 
+    <div align="center"><input type="submit" id="submit" name="submit" value="Create new Customer"/></div
+    </form>
+    </div>
+    </div>
+<?php
+}
+?>
+
+<br/>
+<div class="panel">
+<div class="paneltitle" align="center">Customer List</div>
+<div class="panelcontents">
+<?php $dg->Render(); ?>
+</div>
+
+</div>
+<br/>
+
+<?php
+include("footer.php");
+?>

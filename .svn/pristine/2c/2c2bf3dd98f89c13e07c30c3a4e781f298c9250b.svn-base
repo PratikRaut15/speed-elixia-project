@@ -1,0 +1,38 @@
+//mod-list
+.mod-list {
+    .list {
+        .item {
+            font-size: 21px;
+            line-height: 26px;
+            font-weight: $fnt-thin;
+            position: relative;
+            color: $clr-root;
+            padding: 0 30px;
+            margin-bottom: 5px;
+            &:before {
+                content: '';
+                position: absolute;
+                width: 10px;
+                height: 1px;
+                top: 12px;
+                left: 5px;
+                background: $clr-root;
+            }
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .mod-list {
+        .list {
+            .item {
+                font-size: 16px;
+                line-height: 18px;
+                margin-bottom: 10px;
+                &:before {
+                    top: 8px;
+                }
+            }
+        }
+    }
+}

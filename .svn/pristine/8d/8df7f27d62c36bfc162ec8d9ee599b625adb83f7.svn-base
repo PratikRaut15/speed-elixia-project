@@ -1,0 +1,36 @@
+//mod-contact
+.mod-contact {
+    text-align: center;
+    .icon-wrap {
+        .icon {
+            // width: 50px;
+            // height: 50px;
+            margin: 0px auto 10px;
+            display: block;
+            font-size: 50px;
+            line-height: 50px;
+            color: $clr-root;
+        }
+    }
+    .contact-info {
+        .title {
+            font-size: 24px;
+            line-height: 26px;
+            color: $clr-root;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .desc {
+            p {
+                margin: 0px;
+                color: $clr-root;
+            }
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .mod-contact {
+        margin: 40px 32px;
+    }
+}

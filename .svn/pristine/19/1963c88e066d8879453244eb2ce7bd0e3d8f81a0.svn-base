@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Register Device</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: center;
+                border-right:1px solid #ccc;
+                border-bottom:1px solid #ccc;
+
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 60%;
+            }
+            td, th{
+                border-left:1px solid #ccc;
+                border-top:1px solid #ccc;
+                padding:5px;
+            }
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+
+            span{
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="color: #000000">
+            <h4>Dear {{REALNAME}},</h4>
+            <br>
+           <h4> Weekly Compliance Report - {{REPORT_DATE}} </h4>
+
+            {{DOWNLOADLINK}}
+            <br>
+<br><br>
+
+            <p>If this email was in your spam folder, kindly select this email and mark it as not spam for future convenience. </p>
+
+            <p>Please note that this is a system generated email so do not reply to this email. Kindly get in touch with our support team for any further communication.</p>
+
+            </br><br>
+            <br/>Thanks and Regards, <br/>
+            Team Elixia,<br/>
+            Elixia Tech Solutions Ltd.<br/>
+            Website: <a href="">www.elixiatech.com</a> <br>
+            Address: 715, Neelkanth Corporate Park,<br>
+            Vidyavihar West, Mumbai-86.<br>
+            Office Phone: 02225137470/71<br/>
+
+            <img style="width: 240px;" src = "http://speed.elixiatech.com/images/elixia_monitor_logo.png" alt = "Elixia Monitor logo" />
+        </div>
+
+    </body>
+</html>

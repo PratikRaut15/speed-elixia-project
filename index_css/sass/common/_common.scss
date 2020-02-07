@@ -1,0 +1,86 @@
+//common
+.cm-not-in-page {
+    position: absolute;
+    left: -99999px;
+    top: -99999px;
+}
+
+.cm-line-break {
+    display: block;
+}
+
+.cm-font-thin {
+    font-weight: $fnt-thin;
+}
+
+.cm-font-light {
+    font-weight: $fnt-light;
+}
+
+.cm-font-regular {
+    font-weight: $fnt-regular;
+}
+
+.cm-font-medium {
+    font-weight: $fnt-medium;
+}
+
+.cm-font-bold {
+    font-weight: $fnt-bold;
+}
+
+.cm-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: $clr-secondary;
+    opacity: 0.7;
+}
+
+.cm-video {
+    background: rgba(0, 0, 0, 0.9);
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 100%;
+    display: inline-block;
+    -webkit-box-shadow: 0px 0px 8px -2px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 0px 0px 8px -2px rgba(0, 0, 0, 0.75);
+    box-shadow: 0px 0px 8px -2px rgba(0, 0, 0, 0.75);
+    .video-action {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-38%, -50%);
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 12px 0 12px 20.8px;
+        border-color: transparent transparent transparent #ffffff;
+        line-height: 0px;
+        _border-color: #000000 #000000 #000000 #ffffff;
+        _filter: "progid:DXImageTransform.Microsoft.Chroma(color='#000000')";
+    }
+}
+
+.cm-act-wrap {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.cm-nullify {
+    margin-bottom: 0px;
+}
+
+.cm-container {
+    width: 1366px;
+    margin: 0 auto;
+}
+
+@media only screen and (max-width: $mobile-breakpoint) {
+    .cm-container {
+        width: 100%;
+    }
+}

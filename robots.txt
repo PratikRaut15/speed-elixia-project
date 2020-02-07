@@ -1,0 +1,2 @@
+User-agent: *
+Disallow: /index_secret.php # Block the index secret page

@@ -1,0 +1,159 @@
+<li>
+    <?php
+include_once "../../lib/bo/DeviceManager.php";
+include_once "../../lib/bo/CheckpointManager.php";
+include_once "../../lib/bo/GeofenceManager.php";
+$devicemanager = new DeviceManager($_SESSION['customerno']);
+$devices1 = $devicemanager->deviceformappings();
+$devices2 = $devicemanager->deviceformappings_wh();
+
+$chkptmanager = new CheckpointManager($_SESSION['customerno']);
+$checkpoints = $chkptmanager->getallcheckpoints();
+$checkPointTypes = $chkptmanager->getallcheckpointTypes();
+
+$geomanager = new GeofenceManager($_SESSION['customerno']);
+$fences = $geomanager->getfences();
+if (isset($devices1) && $_SESSION['switch_to'] != 3) {
+    ?>
+        <ul>
+            <div class="scrollheader">
+                <span class="tw_b">Vehicles
+                </span>
+                <div class="scroll_head_container" >
+                    <label class="all_select scroll_lable tc_blue " data-type="vehicles" title="Click here to show all" >All </label>
+                    <label class="scroll_lable">|</label>
+                    <label class="all_clear scroll_lable tc_blue " data-type="vehicles" title="Click here to clear all" >Clear</label>
+                </div>
+                <br/>
+                <input id="txtVehicleNo" class="scroll_lable" style="cursor:auto;" placeholder="Search Vehicle" type="text" />
+                <br />
+            </div>
+            <div class="scrollablediv">
+                <table>
+                    <?php foreach ($devices1 as $thisdevice) {
+        if ($thisdevice->devicelat != '0.000000' && $thisdevice->devicelong != '0.000000') {
+            ?>
+                        <tr class="searchVehicles">
+                            <td><input type="checkbox" class="veh_all" data-status="<?php echo $thisdevice->deviceStatus ?>" id ="veh_<?php echo $thisdevice->vehicleid; ?>" onclick="vehplot(<?php echo $thisdevice->vehicleid; ?>);" value="<?php echo $thisdevice->vehicleno; ?>" checked/></td>
+                            <td><?php echo $thisdevice->vehicleno; ?></td>
+                            <td><a href="javascript:void(0);" onclick="routehistopen(<?php echo $thisdevice->vehicleid; ?>);"><img alt="Route History" title="Route History" src="../../images/play_round.png" style="height:20px;width:20px;"></a></td>
+                        </tr>
+                    <?php
+}
+    }
+    ?>
+                </table>
+            </div>
+        </ul>
+        <?php
+}
+if (isset($checkpoints)) {
+    ?>
+            <ul>
+                <div class="scrollheader">
+                    <span class="tw_b">Checkpoints
+                    </span>
+                    <div class="scroll_head_container" >
+                        <label class="all_select scroll_lable tc_blue" data-type="checkpoints" title="Click here to show all">All</label>
+                        <label class="scroll_lable">|</label>
+                        <label class="all_clear scroll_lable tc_blue" data-type="checkpoints" title="Click here to clear all" >Clear</label>
+                    </div>
+                    <br/>
+                    <input id="txtCheckpoint" class="scroll_lable" style="cursor:auto;" placeholder="Search Checkpoint" type="text" />
+                    <br />
+                </div>
+                <div class="scrollablediv">
+                    <?php
+if (isset($_SESSION['ecodeid']) && !empty($_SESSION['ecodeid']) && $_SESSION['ecodeid'] != 0) {
+        ?>
+                    <input type='hidden' id="hddn_ecode" value="<?php echo $_SESSION['ecodeid']; ?>" />
+  <?php }
+    foreach ($checkpoints as $thischkpt) {?>
+                         <div class="searchChkpts" style="">
+                            <input type="checkbox" class="chk_all" id ="chk_<?php echo $thischkpt->checkpointid; ?>"
+                                   onclick="chkplot(<?php echo $thischkpt->checkpointid; ?>);"
+                                   value="<?php echo $thischkpt->cname; ?>"/>
+                                   <?php echo $thischkpt->cname; ?>
+                            <br/>
+                        </div>
+                    <?php }?>
+                </div>
+            </ul>
+            <?php
+}
+?>
+        <?php
+if ($_SESSION['use_warehouse'] == 1) {
+    if (isset($devices2) && $_SESSION['switch_to'] == 3) {
+        if (isset($_SESSION['Warehouse'])) {
+            $custom = $_SESSION['Warehouse'];
+        } else {
+            $custom = "Warehouse";
+        }
+        ?>
+            <ul>
+                <div class="scrollheader">
+                    <span class="tw_b"><?php echo $custom . 's'; ?>
+                    </span>
+                    <div class="scroll_head_container" >
+                        <label class="all_select scroll_lable tc_blue " data-type="warehouse" title="Click here to show all" >All </label>
+                        <label  class="scroll_lable  ">|</label>
+                        <label class="all_clear scroll_lable tc_blue " data-type="warehouse" title="Click here to clear all" >Clear</label>
+                    </div>
+                </div>
+                <div class="scrollablediv">
+                    <?php foreach ($devices2 as $thisdevice) {?>
+                        <input type="checkbox" data-status="<?php echo $thisdevice->deviceStatus ?>" class="wh_all" id ="wh_<?php echo $thisdevice->vehicleid; ?>" onclick="whplot(<?php echo $thisdevice->vehicleid; ?>);" checked/><?php echo $thisdevice->vehicleno; ?><br/>
+                    <?php }?>
+                </div>
+            </ul>
+            <?php
+}
+}
+if (!isset($_SESSION['ecodeid'])) {
+    if (isset($fences)) {
+        ?>
+            <ul>
+                <div class="scrollheader">
+                    <span class="tw_b">Fences
+                    </span>
+                    <div class="scroll_head_container" >
+                        <label class="all_select scroll_lable tc_blue" data-type="fences" title="Click here to show all">All</label>
+                        <label class="scroll_lable">|</label>
+                        <label class="all_clear scroll_lable tc_blue" data-type="fences" title="Click here to clear all" >Clear</label>
+                    </div>
+                    <br/>
+                    <input id="txtFence" class="scroll_lable" style="cursor:auto;" placeholder="Search Fence" type="text" />
+                    <br />
+                </div>
+                <div class="scrollablediv">
+                    <?php foreach ($fences as $thisfence) {?>
+                        <div class="searchFences">
+                            <input type="checkbox" class="fence_all" id ="fence_<?php echo $thisfence->fenceid; ?>" onclick="fenceplot(<?php echo $thisfence->fenceid; ?>);" value="<?php echo $thisfence->fencename; ?>"/>
+                            <?php echo $thisfence->fencename; ?><br/>
+                        </div>
+                    <?php }?>
+                </div>
+            </ul>
+            <?php
+}
+}
+?>
+</li>
+<div>
+<br />
+<label for="">Select Checkpoint type</label>
+   <select class="js-example-responsive" id="checkPointTypeSelect2" >
+       <option id='-1' value="-1">Please select the checkpoint type options</option>
+       <option id='0' value="0">Show all checkpoints </option>
+       <?php if (isset($checkPointTypes)) {
+    foreach ($checkPointTypes AS $data) {
+        ?>
+        <option id='<?php echo $data->checkPointTypeId; ?>' value='<?php echo $data->checkPointTypeId; ?>'> <?php echo $data->cname; ?> </option>
+       <?php }}?>
+   </select>
+   <br><br>
+<label > Select checkpoints </label>
+   <select class="js-example-responsive" id="checkPointsSelect2" name="checkPoints[]" multiple="multiple">
+                </select>
+</div>

@@ -1,0 +1,961 @@
+<?php
+if (!isset($RELATIVE_PATH_DOTS) || $RELATIVE_PATH_DOTS == "") {
+        $RELATIVE_PATH_DOTS = "../../";
+}
+require_once $RELATIVE_PATH_DOTS .'lib/system/Validator.php';
+require_once $RELATIVE_PATH_DOTS .'lib/system/VersionedManager.php';
+require_once $RELATIVE_PATH_DOTS .'lib/system/Sanitise.php';
+require_once $RELATIVE_PATH_DOTS .'lib/model/VODReport.php';
+require_once $RELATIVE_PATH_DOTS .'lib/system/Date.php';
+
+class DailyReportManager extends VersionedManager {
+
+    function __construct($customerno) {
+        // Constructor.
+        parent::__construct($customerno);
+    }
+
+    public function pulldevices_dailyreport() {
+        $devices = Array();
+        $query = 'SELECT
+   devices.customerno,
+   devices.devicelat,
+   devices.devicelong,
+   vehicle.fuel_balance,
+   vehicle.vehicleid,
+   vehicle.overspeed_limit
+   FROM devices
+   INNER JOIN unit ON unit.uid = devices.uid
+   INNER JOIN vehicle ON vehicle.uid = devices.uid
+   WHERE vehicle.isdeleted = 0';
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $report = new VODReport();
+                $report->customerno = $row["customerno"];
+                $report->overspeed_limit = $row["overspeed_limit"];
+                $report->vehicleid = $row["vehicleid"];
+                $report->devicelat = $row["devicelat"];
+                $report->devicelong = $row["devicelong"];
+                $report->fuel_balance = $row["fuel_balance"];
+                $devices[] = $report;
+            }
+            return $devices;
+        }
+        return NULL;
+    }
+
+    public function pulldevices_dailyreport_night(){
+        $devices = Array();
+         $query = 'SELECT devices.customerno, vehicle.vehicleid,devices.uid,unit.unitno
+                        FROM devices
+                        INNER JOIN unit ON unit.uid = devices.uid
+                        INNER JOIN vehicle ON vehicle.uid = devices.uid
+                        WHERE vehicle.isdeleted = 0';
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $report = new VODReport();
+                $report->customerno = $row["customerno"];
+                $report->vehicleid = $row["vehicleid"];
+                $report->uid = $row["uid"];
+                $report->unitno = $row["unitno"];
+                $devices[] = $report;
+            }
+            return $devices;
+        }
+        return NULL;
+    }
+
+    public function GetDevicesForReport($reporttype) {
+        $query = 'SELECT reportman.repid,reportman.uid,reportman.date,unit.unitno,unit.vehicleid,unit.customerno from reportman';
+        $query .= " INNER JOIN unit ON unit.uid = reportman.uid WHERE reportman.reptype='%s' AND unit.trans_statusid NOT IN (10,22)";
+        $reportQuery = sprintf($query, $reporttype);
+        $reports = Array();
+        $this->_databaseManager->executeQuery($reportQuery);
+
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $report = new VODReport();
+                $report->repid = $row['repid'];
+                $report->uid = $row['uid'];
+                $report->unitno = $row['unitno'];
+                $report->date = $row['date'];
+                $report->vehicleid = $row['vehicleid'];
+                $report->customerno = $row['customerno'];
+                $reports[] = $report;
+            }
+            return $reports;
+        }
+        return NULL;
+    }
+
+    public function GetDevicesForReport_by_limit($customerno) {
+
+        $today = date("Y-m-d");
+
+        $query = "SELECT
+          unit.uid,
+          unit.unitno,
+          unit.vehicleid,
+          vehicle.fuel_balance,
+          unit.customerno,
+          vehicle.overspeed_limit,
+          unit.acsensor,
+          unit.is_ac_opp,
+          unit.gensetsensor,
+          unit.is_genset_opp,
+          unit.tempsen1,
+          unit.tempsen2,
+          unit.tempsen3,
+          unit.tempsen4,
+          unit.humidity,
+          devices.devicelat,
+          devices.devicelong,
+          devices.installlat,
+          devices.installlng,
+          devices.installdate,
+          devices.deviceid
+          FROM unit
+          INNER JOIN devices ON unit.uid = devices.uid
+          INNER JOIN vehicle ON vehicle.uid = unit.uid
+          WHERE unit.customerno = %d AND unit.trans_statusid NOT IN (10,22) AND vehicle.isdeleted=0";
+        $reportQuery = sprintf($query, $customerno, $today);
+        $reports = Array();
+
+        $this->_databaseManager->executeQuery($reportQuery);
+
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $report = new VODReport();
+
+                $report->uid = $row['uid'];
+                $report->unitno = $row['unitno'];
+                $report->vehicleid = $row['vehicleid'];
+                $report->customerno = $row['customerno'];
+                $report->overspeed_limit = $row['overspeed_limit'];
+                $report->fuel_balance = $row['fuel_balance'];
+                $report->acsensor = $row['acsensor'];
+                $report->is_ac_opp = $row['is_ac_opp'];
+                $report->gensetsensor = $row['gensetsensor'];
+                $report->is_genset_opp = $row['is_genset_opp'];
+                $report->tempsen1 = $row['tempsen1'];
+                $report->tempsen2 = $row['tempsen2'];
+                $report->tempsen3 = $row['tempsen3'];
+                $report->tempsen4 = $row['tempsen4'];
+                $report->humidity = $row['humidity'];
+                $report->devicelat = $row['devicelat'];
+                $report->devicelong = $row['devicelong'];
+                $report->installlat = $row['installlat'];
+                $report->installlng = $row['installlng'];
+                $report->installdate = $row['installdate'];
+                $report->deviceid = $row['deviceid'];
+                $reports[] = $report;
+            }
+            return $reports;
+        }
+        return NULL;
+    }
+
+    public function DeleteRepMan($ids) {
+        $Query = 'DELETE from reportman where repid in (';
+        foreach ($ids as $id) {
+            $Query .= $id . ',';
+        }
+        $Query = rtrim($Query, ',');
+        $Query .= ')';
+        $this->_databaseManager->executeQuery($Query);
+    }
+
+    function get_daily_report_mysql($date, $customerno, $vehicleid, $fuelbalance, $devicelat, $devicelong) {
+        $i = 0;
+        $query = "SELECT uid
+                ,harsh_break
+                ,sudden_acc
+                ,towing,acusage
+                ,overspeed
+                ,fenceconflict
+                ,runningtime
+                ,vehicleid
+                ,first_lat
+                ,first_long
+                ,end_lat
+                ,end_long
+                ,max_odometer
+                ,last_odometer
+                ,first_odometer
+                ,average_distance
+                ,total_tracking_days
+                ,topspeed
+                ,topspeed_lat
+                ,topspeed_long
+                ,offline_data_time
+                ,topspeed_time
+                ,idleignitiontime
+                ,sms_count
+                ,email_count
+                ,trip_count
+                ,driverid
+                ,freezeIgnitionOnTime";
+        $query .= " from dailyreport ";
+        $query .= " where customerno=$customerno and vehicleid=$vehicleid and daily_date = '$date'";
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            $data = array();
+            $update = array();
+            $total_minutes = 1440;
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                /* dailyreport insert data */
+                $data[$i]['date'] = $date;
+                $data[$i]['fuel_balance'] = $fuelbalance;
+                $data[$i]['uid'] = $row['uid'];
+                $data[$i]['harsh_break'] = $row['harsh_break'];
+                $data[$i]['sudden_acc'] = $row['sudden_acc'];
+                $data[$i]['towing'] = $row['towing'];
+                $data[$i]['gensetusage'] = round($row['acusage'] / 60);
+                $data[$i]['overspeed'] = $row['overspeed'];
+                $data[$i]['offline_data_time'] = $row['offline_data_time'];
+                $data[$i]['fenceconflict'] = $row['fenceconflict'];
+                $data[$i]['runningtime'] = $row['runningtime'];
+                $data[$i]['freezeIgnitionOnTime'] = $row['freezeIgnitionOnTime'];
+                $data[$i]['vehicleid'] = $row['vehicleid'];
+                $data[$i]['driverid'] = isset($row['driverid'])?$row['driverid']:0;
+                $data[$i]['first_lat'] = $row['first_lat'];
+                $data[$i]['first_long'] = $row['first_long'];
+                $data[$i]['lat'] = $row['end_lat'];
+                $data[$i]['sms_count'] = $row['sms_count'];
+                $data[$i]['email_count'] = $row['email_count'];
+                $data[$i]['trip_count'] = $row['trip_count'];
+                $data[$i]['long'] = $row['end_long'];
+                $data[$i]['idletime'] = $total_minutes - $row['runningtime'];
+                $data[$i]['first_odometer'] = $row['first_odometer'];
+                $data[$i]['last_odometer'] = $row['last_odometer'];
+                $last_odometer = $row['last_odometer'];
+                $data[$i]['totaldistance'] = $last_odometer - $row['first_odometer'];
+                if ($data[$i]['totaldistance'] < 0) {
+                    $last_odometer = $row['max_odometer'] + $last_odometer;
+                    $data[$i]['totaldistance'] = abs($last_odometer - $row['first_odometer']);
+                }
+                if ($data[$i]['runningtime'] != 0) {
+                    $data[$i]['averagespeed'] = (int) ($data[$i]['totaldistance'] / ($data[$i]['runningtime'] / 60));
+                } else {
+                    $data[$i]['averagespeed'] = 0;
+                }
+                $data[$i]['topspeed'] = $row['topspeed'];
+                $data[$i]['topspeed_lat'] = $row['topspeed_lat'];
+                $data[$i]['topspeed_long'] = $row['topspeed_long'];
+                $data[$i]['topspeed_time'] = $row['topspeed_time'];
+                $data[$i]['idleignitiontime'] = $row['idleignitiontime'];
+                /**/
+
+                /* mysql update data */
+                $update[$i]['harsh_break'] = 0;
+                $update[$i]['sudden_acc'] = 0;
+                $update[$i]['towing'] = 0;
+                $update[$i]['flag_harsh_break'] = 0;
+                $update[$i]['flag_sudden_acc'] = 0;
+                $update[$i]['flag_towing'] = 0;
+                $update[$i]['offline_data_time'] = 0;
+                $update[$i]['first_odometer'] = $row['last_odometer'];
+                $update[$i]['last_odometer'] = $row['last_odometer'];
+//                $update[$i]['max_odometer'] = "0.00";
+                $update[$i]['overspeed'] = 0;
+                $update[$i]['fenceconflict'] = 0;
+                $update[$i]['acusage'] = 0;
+                $update[$i]['runningtime'] = 0;
+                $update[$i]['first_lat'] = $devicelat;
+                $update[$i]['first_long'] = $devicelong;
+//                $update[$i]['end_lat'] = 0;
+                //               $update[$i]['end_long'] = 0;
+                //                if($data[$i]['totaldistance'] != 0)
+                //               {
+                //                  $update[$i]['average_distance'] = ($data[$i]['totaldistance'] + ($row['average_distance'] * $row['total_tracking_days'])) / ($row['total_tracking_days'] + 1);
+                //                 $data[$i]['average_distance'] = $update[$i]['average_distance'];
+                //            }
+                //           else
+                //          {
+                $update[$i]['average_distance'] = 0;
+                $data[$i]['average_distance'] = 0;
+                //           }
+                //           $update[$i]['total_tracking_days'] = $row['total_tracking_days']+1;
+                $update[$i]['topspeed'] = 0;
+                $update[$i]['topspeed_lat'] = $devicelat;
+                $update[$i]['topspeed_long'] = $devicelong;
+                $update[$i]['topspeed_time'] = "'0000-00-00 00:00:00'";
+                $update[$i]['idleignitiontime'] = 0;
+                /**/
+                $i++;
+            }
+            return array('data' => $data, 'update' => $update);
+        } else {
+            return 0;
+        }
+    }
+
+    function getDailySMSDetails($customerno) {
+        $dailyData = array();
+        $query = "SELECT d.sms_count,c.totalsms,c.smsleft from dailyreport as d,customer as c";
+        $query .= " where d.customerno=" . $customerno . "  and DATE(d.daily_date) = CURDATE()-1 and c.customerno=" . $customerno;
+
+        $this->_databaseManager->executeQuery($query);
+
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $objData = new stdClass();
+                $objData->sms_count = $row['sms_count'];
+                $objData->totalsms = $row['totalsms'];
+                $objData->smsleft = $row['smsleft'];
+                $dailyData[] = $objData;
+            }
+        }
+        return $dailyData;
+    }
+
+    function getMessages($customerno) {
+        $dailyData = array();
+        $query = "SELECT vehicleid,timeadded,message from comqueue";
+        $query .= " where customerno=" . $customerno . "  and DATE(timeadded) = CURDATE()-1";
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $objData = new stdClass();
+                $objData->vehicleid = $row['vehicleid'];
+                $objData->timeadded = $row['timeadded'];
+                $objData->message = $row['message'];
+                $dailyData[] = $objData;
+            }
+        }
+        return $dailyData;
+    }
+
+    function getDailyReportDetails($objDailyReport) {
+        $i = 0;
+        $dailyData = array();
+        $query = "SELECT d.uid
+                ,d.vehicleid
+                ,harsh_break
+                ,sudden_acc
+                ,towing,acusage
+                ,overspeed
+                ,fenceconflict
+                ,runningtime
+                ,first_lat
+                ,first_long
+                ,end_lat
+                ,end_long
+                ,max_odometer
+                ,last_odometer
+                ,first_odometer
+                ,average_distance
+                ,total_tracking_days
+                ,topspeed
+                ,topspeed_lat
+                ,topspeed_long
+                ,offline_data_time
+                ,topspeed_time
+                ,idleignitiontime
+                ,v.vehicleno
+                ,v.overspeed_limit
+                ,v.lastupdated
+                ,v.stoppage_transit_time
+                ,`group`.groupname";
+        $query .= " from dailyreport as d
+                INNER JOIN vehicle as v on v.vehicleid = d.vehicleid
+                INNER JOIN unit as u on u.uid = d.uid
+                INNER JOIN devices  on devices.uid = d.uid
+                left join `group` on `group`.groupid=v.groupid";
+        $query .= " where d.customerno=" . $objDailyReport->customerno . " and v.kind <> 'Warehouse' and daily_date = '" . $objDailyReport->dailydate . "'";
+        if (isset($objDailyReport->groupIds) && $objDailyReport->groupIds[0] != 0) {
+            $group_in = implode(',', $objDailyReport->groupIds);
+            $query .= " AND v.groupid in (" . $group_in . ") ";
+        }
+        $query .= " Order By `group`.groupname ASC, d.topspeed DESC";
+
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            $data = array();
+            $update = array();
+            $total_minutes = 1440;
+
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $objData = new stdClass();
+
+                $objData->date = $objDailyReport->dailydate;
+
+                $objData->uid = $row['uid'];
+                $objData->vehicleid = $row['vehicleid'];
+                $objData->vehicleno = $row['vehicleno'];
+                $objData->overspeed_limit = $row['overspeed_limit'];
+                $objData->lastupdated = $row['lastupdated'];
+                $objData->stoppage_transit_time = $row['stoppage_transit_time'];
+                $objData->groupname = (isset($row['groupname']) && $row['groupname'] != '') ? $row['groupname'] : "Ungrouped";
+
+                $objData->harsh_break = $row['harsh_break'];
+                $objData->sudden_acc = $row['sudden_acc'];
+                $objData->towing = $row['towing'];
+                $objData->gensetusage = round($row['acusage'] / 60);
+                $objData->overspeed = $row['overspeed'];
+                $objData->offline_data_time = $row['offline_data_time'];
+                $objData->fenceconflict = $row['fenceconflict'];
+                $objData->runningtime = $row['runningtime'];
+
+                $objData->first_lat = $row['first_lat'];
+                $objData->first_long = $row['first_long'];
+                $objData->lat = $row['end_lat'];
+                $objData->long = $row['end_long'];
+                $objData->idletime = $total_minutes - $row['runningtime'];
+                $last_odometer = $row['last_odometer'];
+                $objData->totaldistance = $last_odometer - $row['first_odometer'];
+                if ($objData->totaldistance < 0) {
+                    $last_odometer = $row['max_odometer'] + $last_odometer;
+                    $objData->totaldistance = abs($last_odometer - $row['first_odometer']);
+                }
+                if ($objData->runningtime != 0) {
+                    $objData->averagespeed = (int) ($objData->totaldistance / ($objData->runningtime / 60));
+                } else {
+                    $objData->averagespeed = 0;
+                }
+                $objData->topspeed = $row['topspeed'];
+                $objData->topspeed_lat = $row['topspeed_lat'];
+                $objData->topspeed_long = $row['topspeed_long'];
+                $objData->topspeed_time = $row['topspeed_time'];
+                $objData->idleignitiontime = $row['idleignitiontime'];
+                $dailyData[] = $objData;
+            }
+        }
+        return $dailyData;
+    }
+
+    function get_daily_report_mysql_night($date, $customerno, $vehicleid) {
+        $i = 0;
+        $query = "SELECT uid, max_odometer, last_odometer, night_first_odometer, weekend_first_odometer";
+        $query .= " from dailyreport ";
+        $query .= " where customerno=$customerno and vehicleid=$vehicleid and daily_date = '$date'";
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            $data = array();
+            $update = array();
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                /* dailyreport insert data */
+                $data[$i]['date'] = $date;
+                $data[$i]['max_odometer'] = $row['max_odometer'];
+                $data[$i]['vehicleid'] = $vehicleid;
+                $data[$i]['last_odometer'] = $row['last_odometer'];
+                $data[$i]['night_first_odometer'] = $row['night_first_odometer'];
+                $data[$i]['weekend_first_odometer'] = $row['weekend_first_odometer'];
+
+                $last_odometer = $row['last_odometer'];
+                $data[$i]['night_totaldistance'] = $last_odometer - $row['night_first_odometer'];
+                if ($data[$i]['night_totaldistance'] < 0) {
+                    $last_odometer = $row['max_odometer'] + $last_odometer;
+                    $data[$i]['night_totaldistance'] = abs($last_odometer - $row['night_first_odometer']);
+                }
+
+                if ($data[$i]['night_totaldistance'] > 400) {
+                    $data[$i]['is_night_drive'] = 1;
+                } else {
+                    $data[$i]['is_night_drive'] = 0;
+                }
+
+                if (date('w', strtotime($date)) == 0) {
+                    $last_odometer = $row['last_odometer'];
+                    $data[$i]['weekend_totaldistance'] = $last_odometer - $row['weekend_first_odometer'];
+                    if ($data[$i]['weekend_totaldistance'] < 0) {
+                        $last_odometer = $row['max_odometer'] + $last_odometer;
+                        $data[$i]['weekend_totaldistance'] = abs($last_odometer - $row['weekend_first_odometer']);
+                    }
+
+                    if ($data[$i]['weekend_totaldistance'] > 400) {
+                        $data[$i]['is_weekend_drive'] = 1;
+                    } else {
+                        $data[$i]['is_weekend_drive'] = 0;
+                    }
+                } else {
+                    $data[$i]['is_weekend_drive'] = 0;
+                    $data[$i]['weekend_totaldistance'] = 0;
+                }
+
+                $update[$i]['night_first_odometer'] = 0;
+                if (date('w', strtotime($date)) != 0) {
+                    $update[$i]['weekend_first_odometer'] = 0;
+                }
+
+                $i++;
+            }
+            return array('data' => $data, 'update' => $update);
+        } else {
+            return 0;
+        }
+    }
+
+    function get_daily_report_mysql_night_firstodo($date, $customerno, $vehicleid) {
+        $i = 0;
+        $query = "SELECT last_odometer";
+        $query .= " from dailyreport ";
+        $query .= " where customerno=$customerno and vehicleid=$vehicleid and daily_date = '$date'";
+
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            $update = array();
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                /* dailyreport insert data */
+                $last_odometer = $row['last_odometer'];
+                $update[$i]['night_first_odometer'] = $last_odometer;
+                if(date('w', strtotime($date)) != 0) {
+                    $update[$i]['weekend_first_odometer'] = $last_odometer;
+                }
+                $i++;
+            }
+            return array('update' => $update);
+        } else {
+            return 0;
+        }
+    }
+
+    function set_daily_report_mysql_night_firstodo($data, $date){
+        foreach ($data as $customerno => $this_veh_details) {
+            foreach ($this_veh_details as $veh_id => $veh_details){
+                $update_query = "update dailyreport set ";
+                foreach($veh_details as $veh1_id => $c_data){
+                        $dats = array();
+                        foreach ($c_data as $c => $d) {
+                            $dats[] = $c . '=' . $d;
+                        }
+                }
+                $update_query .= implode(', ', $dats);
+                $update_query .= " where customerno=$customerno and vehicleid=$veh_id and daily_date = '$date'";
+                $this->_databaseManager->executeQuery($update_query);
+            }
+        }
+    }
+
+    function reset_dailyreport($data, $date) {
+        /*
+        foreach ($data as $customerno => $this_veh_details) {
+        foreach ($this_veh_details as $veh_id => $veh_details) {
+        $update_query = "update dailyreport set ";
+        foreach ($veh_details as $veh1_id => $c_data) {
+        $dats = array();
+        foreach ($c_data as $c => $d) {
+        $dats[] = $c . '=' . $d;
+        }
+        }
+        $update_query .= implode(', ', $dats);
+        $update_query .= " where customerno=$customerno and vehicleid=$veh_id";
+        $this->_databaseManager->executeQuery($update_query);
+        }
+        }
+         */
+        $delete_query = "delete from dailyreport where daily_date = '$date'";
+        $this->_databaseManager->executeQuery($delete_query);
+    }
+
+    function incre_fenceconflict($vehicleid, $customerno) {
+        $query = "update dailyreport set fenceconflict=fenceconflict+1 where vehicleid=$vehicleid and customerno=$customerno";
+        $this->_databaseManager->executeQuery($query);
+    }
+
+    function incre_running_time($vehicleid, $customerno, $val, $isfreeze=null) {
+        $freezeQuery = '';
+        $todaysDate = date('Y-m-d');
+        if(isset($isfreeze) && $isfreeze==1){
+            $freezeQuery .= ", freezeIgnitionOnTime = freezeIgnitionOnTime+$val";
+        }
+        $query = "update dailyreport set runningtime=runningtime+$val ".$freezeQuery." where vehicleid=$vehicleid and customerno=$customerno and daily_date='".$todaysDate."'";
+        $this->_databaseManager->executeQuery($query);
+    }
+
+    function incre_idleignition_time($vehicleid, $customerno, $val, $isfreeze=null) {
+
+        $freezeQuery = '';
+        $todaysDate = date('Y-m-d');
+        if(isset($isfreeze) && $isfreeze==1){
+            $freezeQuery .= ", freezeIgnitionOnTime = freezeIgnitionOnTime+$val";
+        }
+        $query = "update dailyreport set idleignitiontime=idleignitiontime+$val ".$freezeQuery." where vehicleid=$vehicleid and customerno=$customerno and daily_date='".$todaysDate."'";
+        $this->_databaseManager->executeQuery($query);
+    }
+
+    function update_previous_odometer($vehicleid, $customerno, $odometer, $lastupdated) {
+        $query = "update ignitionalert set
+                prev_odometer_reading='$odometer'
+                ,prev_odometer_time='$lastupdated'
+                where vehicleid=$vehicleid
+                and customerno=$customerno";
+        $this->_databaseManager->executeQuery($query);
+    }
+
+    public function getalldevicesforignition_byVehicleid($vehicleid) {
+        $devices = Array();
+        $time = date("Y-m-d H:i:s", strtotime("-60 seconds"));
+        //$time = "2013-12-30 18:10:00";
+        $Query = "select ia.ignchgtime, d.deviceid, d.devicelat, d.devicelong,
+            v.vehicleid, v.vehicleno,
+            ia.status AS email_status, d.status,
+            d.ignition, ia.count, ia.last_check, ia.last_status,
+            d.lastupdated, d.customerno, d.uid, ia.ignontime
+            FROM devices d
+            INNER JOIN unit u ON u.uid = d.uid
+            INNER JOIN vehicle v on v.vehicleid = u.vehicleid
+            INNER JOIN ignitionalert ia ON ia.vehicleid = v.vehicleid
+            where v.vehicleid =$vehicleid and u.trans_statusid NOT IN (10,22) AND d.lastupdated >= '$time'";
+        $devicesQuery = sprintf($Query);
+        $this->_databaseManager->executeQuery($devicesQuery);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                if ($row['uid'] > 0) {
+                    $device = new stdClass();
+                    $device->deviceid = $row['deviceid'];
+                    $device->devicelat = $row['devicelat'];
+                    $device->devicelong = $row['devicelong'];
+                    $device->vehicleid = $row['vehicleid'];
+                    $device->vehicleno = $row['vehicleno'];
+                    $device->ignition_status = $row['count'];
+                    $device->ignchgtime = $row['ignchgtime'];
+                    $device->lastupdated = $row['lastupdated'];
+                    $device->ignition_last_check = $row['last_check'];
+                    $device->ignition_last_status = $row['last_status'];
+                    $device->ignition = $row['ignition'];
+                    $device->ignition_email_status = $row['email_status'];
+                    $device->status = $row['status'];
+                    $device->customerno = $row['customerno'];
+                    $device->uid = $row['uid'];
+                    $device->ignontime = $row['ignontime'];
+                    return $device;
+                }
+            }
+        }
+        return NULL;
+    }
+
+    public function update_ignchgtime($chgigntime, $vehicleid, $customerno) {
+        $Query = "Update ignitionalert Set `ignchgtime` = '%s',`ignchgtime` = '%s'  WHERE vehicleid = %d AND customerno = %d";
+        $SQL = sprintf($Query, $chgigntime, $chgigntime, Sanitise::Long($vehicleid), Sanitise::Long($customerno));
+        $this->_databaseManager->executeQuery($SQL);
+    }
+
+    public function update_mysql_dailyreport($report) {
+        $tablename = new DateTime($report['date']);
+        //print_r($report);echo "<br/>";
+        //echo "INSERT INTO A" . $tablename->format('dmy') . "($columns) VALUES ($values);";
+        $Query = "Update dailyreport
+                SET harsh_break = " . $report['harsh_break'] . "
+                , sudden_acc = " . $report['sudden_acc'] . "
+                , towing = " . $report['towing'] . "
+                , first_odometer = " . $report['firstodometer'] . "
+                , topspeed = " . $report['topspeed'] . "
+                , topspeed_lat = " . $report['topspeed_lat'] . "
+                , topspeed_long = " . $report['topspeed_long'] . "
+                , topspeed_time = '" . $report['topspeed_time'] . "'
+                , fenceconflict = '" . $report['fenceconflict'] . "'
+                , acusage = " . $report['gensetusage'] . "
+                , runningtime = " . $report['runningtime'] . "
+                , first_lat = " . $report['first_lat'] . "
+                , first_long = " . $report['first_long'] . "
+                Where vehicleid = " . $report['vehicleid'] . "
+                AND uid = " . $report['uid'] . "
+                AND customerno = " . $report['customerno'] . "";
+        $this->_databaseManager->executeQuery($Query);
+    }
+
+    public function getDeviceWorkingStatus($objDevice, $location) {
+        /* Device Status */
+        $isDeviceStatus = 0;
+        $isTemperatureSensorStatus = 0;
+        $isAcStatus = 0;
+        $isGensetStatus = 0;
+        //$objDevice->isActive = $this->isDeviceWorking($location);
+        $PATH = "sqlite:$location";
+        $db = new PDO($PATH);
+
+        /* Check unit sqilte data for device is working or not */
+        $deviceStatusQuery = "SELECT *
+        FROM devicehistory
+        INNER JOIN unithistory ON unithistory.lastupdated = devicehistory.lastupdated
+        INNER JOIN vehiclehistory ON vehiclehistory.lastupdated = unithistory.lastupdated
+        LIMIT 1";
+        $deviceStatusQueryResult = $db->query($deviceStatusQuery);
+        if ($deviceStatusQueryResult !== false) {
+            $objDevice->isActive = 1;
+        }
+
+        if ($objDevice->isActive) {
+            /* Temperature / Humidity Sensor Working Status */
+            if ($objDevice->isTemperature == 0 || $objDevice->isHumidity == 0) {
+                $status = $this->getTemperatureSensorStatus($PATH, $db);
+                if ($objDevice->isTemperature == 0) {
+                    $objDevice->isTemperature = $status;
+                }
+                if ($objDevice->isHumidity == 0) {
+                    $objDevice->isHumidity = $status;
+                }
+            }
+            /* Digital (AC / Genset) Sensor Working Status */
+            if ($objDevice->isDigital == 0) {
+                $objDevice->isDigital = $this->getDigitalSensorStatus($objDevice, $PATH, $db);
+            }
+        }
+        return $objDevice;
+    }
+
+    public function getTemperatureSensorStatus($PATH, $db) {
+        $sensorStatus = 0;
+        $deviceSensorStatusQuery = "SELECT *
+        FROM devicehistory
+        INNER JOIN unithistory ON unithistory.lastupdated = devicehistory.lastupdated
+        INNER JOIN vehiclehistory ON vehiclehistory.lastupdated = unithistory.lastupdated
+        WHERE (unithistory.analog1 NOT IN (0,1150)
+        OR unithistory.analog2 NOT IN (0,1150)
+        OR unithistory.analog3 NOT IN (0,1150)
+        OR unithistory.analog4 NOT IN (0,1150)
+        )
+        LIMIT 1";
+        $deviceSensorStatusQueryResult = $db->query($deviceSensorStatusQuery);
+        if ($deviceSensorStatusQueryResult !== false) {
+            $sensorStatus = 1;
+        }
+        return $sensorStatus;
+    }
+
+    public function getDigitalSensorStatus($objDevice, $PATH, $db) {
+        $sensorStatus = 0;
+        $sensorOnCondition = 0;
+        if ($objDevice->is_ac_opp == 1 || $objDevice->is_genset_opp == 1) {
+            $sensorOnCondition = 1;
+        }
+
+        $deviceSensorStatusQuery = "SELECT *
+        FROM devicehistory
+        INNER JOIN unithistory ON unithistory.lastupdated = devicehistory.lastupdated
+        INNER JOIN vehiclehistory ON vehiclehistory.lastupdated = unithistory.lastupdated
+        WHERE unithistory.digitalio = " . $sensorOnCondition . " LIMIT 1";
+        $deviceSensorStatusQueryResult = $db->query($deviceSensorStatusQuery);
+        if ($deviceSensorStatusQueryResult !== false) {
+            $sensorStatus = 1;
+        }
+        return $sensorStatus;
+    }
+
+    public function getFirstLatLong($objDevice, $location) {
+        $latLngData = array();
+        $PATH = "sqlite:$location";
+        $db = new PDO($PATH);
+        $Query = "SELECT devicehistory.deviceid, devicehistory.devicelat, devicehistory.devicelong
+        FROM devicehistory
+        INNER JOIN unithistory ON unithistory.lastupdated = devicehistory.lastupdated
+        INNER JOIN vehiclehistory ON vehiclehistory.lastupdated = unithistory.lastupdated
+        WHERE devicehistory.devicelat <> '0.000000' AND devicehistory.devicelong <> '0.000000' Order By devicehistory.lastupdated ASC LIMIT 1";
+        $QueryResult = $db->query($Query);
+        if ($QueryResult !== false) {
+            if (isset($QueryResult) && $QueryResult != "") {
+                foreach ($QueryResult as $row) {
+                    $objData = new stdClass();
+                    $objData->deviceId = $row['deviceid'];
+                    $objData->lat = $row['devicelat'];
+                    $objData->lng = $row['devicelong'];
+                    $latLngData[] = $objData;
+                }
+            }
+        }
+        return $latLngData;
+    }
+
+    public function updateDeviceInstallAddress($device) {
+        $Query = "Update devices
+                SET installlat = '" . $device->lat . "'
+                , installlng = '" . $device->lng . "'
+                Where deviceid = " . $device->deviceId . "
+                AND uid = " . $device->unitId . "
+                AND customerno = " . $device->customerNo . "";
+        echo $this->_databaseManager->executeQuery($Query);
+    }
+
+
+    function get_daily_report_mysql_night_per_userTime($date, $customerno, $vehicleid){
+        $i = 0;
+         $query = "SELECT dailyreport.*,vehicle.vehicleno,unit.unitno,dailyreport.last_online_updated,`group`.groupname,simcard.simcardno,dailyreport.night_first_lat,dailyreport.night_first_long
+               FROM dailyreport
+               LEFT JOIN vehicle ON dailyreport.vehicleid = vehicle.vehicleid
+               LEFT JOIN unit ON unit.uid = vehicle.uid
+               LEFT JOIN `group` ON vehicle.groupid = group.groupid
+               LEFT JOIN devices ON devices.uid = vehicle.uid
+               LEFT JOIN simcard ON simcard.id = devices.simcardid
+               WHERE dailyreport.customerno   = $customerno
+               AND dailyreport.vehicleid      = $vehicleid
+               AND dailyreport.daily_date     = '$date'";
+
+        $this->_databaseManager->executeQuery($query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            $update = array();
+            while ($row = $this->_databaseManager->get_nextRow()){
+                  $last_odometer                            = $row['last_odometer'];
+                  $end_lat                                  = $row['end_lat'];
+                  $end_long                                 = $row['end_long'];
+                  $update[$i]['night_first_odometer']       = $last_odometer;
+                  $update[$i]['night_first_lat']            = $end_lat;
+                  $update[$i]['night_first_long']           = $end_long;
+
+                $i++;
+            }
+             return $update;
+
+        } else {
+            return 0;
+        }
+    }
+
+    public function pulldevices_dailyreport_night_perCustomer($customerNo){
+        $devices = Array();
+         $query = 'SELECT devices.customerno, vehicle.vehicleid , unit.unitNo,unit.uid
+                  FROM devices INNER JOIN unit ON unit.uid = devices.uid
+                  INNER JOIN vehicle ON vehicle.uid = devices.uid
+                  WHERE vehicle.isdeleted = 0
+                  AND devices.customerNo ='.$customerNo;
+
+        $this->_databaseManager->executeQuery($query);
+        if($this->_databaseManager->get_rowCount() > 0){
+            while ($row = $this->_databaseManager->get_nextRow()){
+                $report = new VODReport();
+                $report->unitNo = $row["unitNo"];
+                $report->customerno = $row["customerno"];
+                $report->vehicleid  = $row["vehicleid"];
+                $report->uid  = $row["uid"];
+                $devices[] = $report;
+            }
+            return $devices;
+        }
+        return NULL;
+    }
+
+    function set_daily_report_mysql_night_travel($data, $date) {
+       $count=0;
+        foreach ($data as $customerno => $this_veh_details) {
+            foreach ($this_veh_details as $veh_id => $veh_details) {
+                $update_query = "update dailyreport set ";
+                foreach ($veh_details as $veh1_id => $c_data) {
+                    $dats = array();
+                        foreach ($c_data as $c => $d) {
+                            $dats[] = $c . '=' . $d;
+                        }
+                }
+                    $count++;
+                    $update_query .= implode(', ', $dats);
+                   $update_query .= " where customerno=$customerno and vehicleid=$veh_id and daily_date = '$date'";
+                    $this->_databaseManager->executeQuery($update_query);
+            }
+        }
+    }
+
+    public function get_vehicle_unit_details($unitno,$customerNo){
+        $dataResult = array();
+              echo $query = 'SELECT unit.uid, vehicle.vehicleid
+                          FROM unit INNER JOIN vehicle ON unit.uid = vehicle.uid
+                          WHERE unit.unitno = "'.$unitno.'"
+                          AND vehicle.isdeleted = 0 AND unit.customerNo ='.$customerNo;
+        $this->_databaseManager->executeQuery($query);
+        if($this->_databaseManager->get_rowCount() > 0){
+            while ($row = $this->_databaseManager->get_nextRow()){
+                $dataResult['uid'] = $row["uid"];
+                $dataResult['vehicleid'] = $row["vehicleid"];
+            }
+        }
+        return $dataResult;
+    }
+	
+	 public function GetDailyReport_Listener($objRequest) {
+        /*
+                    #################################################################
+                    ##### DO NOT CHANGE THE SEQUENCE OF PARAMS IN SELECT QUERY ######
+                    #################################################################
+        */
+        $Query = "SELECT flag_harsh_break
+                        , flag_sudden_acc
+                        , flag_towing
+                        , last_odometer
+                        , topspeed
+                        , last_online_updated
+                        , offline_data_time
+                        , topspeed_lat
+                        , topspeed_long
+                        , harsh_break
+                        , sudden_acc
+                        , towing
+                        , max_odometer
+                        , end_lat
+                        , end_long
+                        , first_odometer
+                        , topspeed_time
+                        , daily_date 
+                        FROM dailyreport 
+                        WHERE vehicleid = %d 
+                        ORDER BY daily_date 
+                        DESC LIMIT 1";
+        $dailyReportQuery = sprintf($Query, Sanitise::String($objRequest->vehicleid));
+        $pdo = $this->_databaseManager->CreatePDOConn();
+        $dailyReportDetails = $pdo->query($dailyReportQuery)->fetchAll();
+        $this->_databaseManager->ClosePDOConn($pdo);
+        return $dailyReportDetails;
+    }
+
+    public function InsertDailyReport_Listener($objRequest){
+        $isInserted = 0;
+        $pdo = $this->_databaseManager->CreatePDOConn();
+        $sp_params = "'" . $objRequest->timestamp . "'"
+                    . ",'" . $objRequest->customerno . "'"
+                    . ",'" . $objRequest->vehicleid . "'"
+                    . ",'" . $objRequest->unitid . "'"
+                    . ",'" . $objRequest->odometer . "'"
+                    . ",'" . $objRequest->devicelat . "'"
+                    . ",'" . $objRequest->devicelong . "'"
+                    . ",'" . $objRequest->daily_date . "'"
+                    . ",'" . $objRequest->driverid . "'"
+                    . "," . '@isInserted';
+
+        $queryCallSP = $this->_databaseManager->PrepareSP("listener_insert_dailyreport", $sp_params);
+        $pdo->query($queryCallSP);
+
+        $outputParamsQuery = "SELECT @isInserted AS isInserted";
+        $outputResult = $pdo->query($outputParamsQuery)->fetch(PDO::FETCH_ASSOC);
+        $isInserted = $outputResult['isInserted'];
+
+        $this->_databaseManager->ClosePDOConn($pdo);
+        return $isInserted;
+    }
+
+    public function UpdateDailyReport_Listener($objRequest) {
+        $isUpdated = 0;
+        $pdo = $this->_databaseManager->CreatePDOConn();
+        $sp_params = "'" . $objRequest->timestamp . "'"
+                    . ",'" . $objRequest->topspeed . "'"
+                    . ",'" . $objRequest->topspeed_lat . "'"
+                    . ",'" . $objRequest->topspeed_long . "'"
+                    . ",'" . $objRequest->topspeed_time . "'"
+                    . ",'" . $objRequest->offline_data_time . "'"
+                    . ",'" . $objRequest->harsh_break . "'"
+                    . ",'" . $objRequest->flag_harsh_break . "'"
+                    . ",'" . $objRequest->sudden_acc . "'"
+                    . ",'" . $objRequest->flag_sudden_acc . "'"
+                    . ",'" . $objRequest->towing . "'"
+                    . ",'" . $objRequest->flag_towing . "'"
+                    . ",'" . $objRequest->odometer . "'"
+                    . ",'" . $objRequest->max_odometer . "'"
+                    . ",'" . $objRequest->first_odometer . "'"
+                    . ",'" . $objRequest->devicelat . "'"
+                    . ",'" . $objRequest->devicelong . "'"
+                    . ",'" . $objRequest->driverid . "'"
+                    . ",'" . $objRequest->daily_date . "'"
+                    . ",'" . $objRequest->vehicleid . "'"
+                    . ",'" . $objRequest->customerno . "'"
+                    . "," . '@isUpdated';
+
+        $queryCallSP = $this->_databaseManager->PrepareSP("listener_update_dailyreport", $sp_params);
+        $pdo->query($queryCallSP);
+
+        $outputParamsQuery = "SELECT @isUpdated AS isUpdated";
+        $outputResult = $pdo->query($outputParamsQuery)->fetch(PDO::FETCH_ASSOC);
+        $isUpdated = $outputResult['isUpdated'];
+
+        $this->_databaseManager->ClosePDOConn($pdo);
+        return $isUpdated;
+    }
+}

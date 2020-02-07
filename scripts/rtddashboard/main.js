@@ -1,0 +1,280 @@
+var columnDefs = [
+];
+var gridOptions = {
+    enableColResize: true,
+    suppressRowClickSelection: true,
+    groupSelectsChildren: true,
+    enableRangeSelection: true,
+    rowSelection: 'multiple',
+    rowModelType: 'viewport',
+    floatingFilter: true,
+    enableSorting:false,
+    enableFilter: true,
+    unSortIcon: true,
+    headerHeight: 55,
+    rowHeight: 50,
+    columnDefs: columnDefs,
+    defaultColDef: {
+        enableRowGroup: true,
+        enablePivot: false,
+        enableValue: true,
+        filter: "agTextColumnFilter"
+    },
+    masterDetail: true,
+    debug: true,
+    onFirstDataRendered(params) {
+        params.api.sizeColumnsToFit();
+    },
+    onGridReady: function (params) {
+        gridApi = params.api;
+        gridColumnApi = params.columnApi;
+    },
+    // implement this so that we can do selection
+    getRowNodeId: function(data) {
+        // the code is unique, so perfect for the id
+        //alert(data.Id);
+        return data.Id;
+    },
+    components:{
+        rowIdRenderer: function(params) {
+            return '' + params.rowIndex;
+        },
+        renderHtml: function (params) {
+            // put the value in bold
+            return params.value;
+        },
+        numberFormatter: function (params) {
+            if (typeof params.value === 'number') {
+                return params.value.toFixed(2);
+            } else {
+                return params.value;
+            }
+        }
+    },
+    onRowEditingStarted: function(event) {
+        console.log('never called - not doing row editing');
+    },
+    onRowEditingStopped: function(event) {
+        console.log('never called - not doing row editing');
+    },
+    onCellEditingStarted: function(event) {
+        console.log('cellEditingStarted');
+    },
+    onCellEditingStopped: function(event) {
+        updateVehicle(event.data.Id,event.value,event.data.customerNo);
+    }
+};
+// setup the grid after the page has finished loading
+document.addEventListener('DOMContentLoaded', function() {
+    var gridDiv = document.querySelector('#myGrid');
+    new agGrid.Grid(gridDiv, gridOptions);
+    gridOptions.api.setColumnDefs(columnDefinitions);
+    /*
+    allColumnIds = [];
+    gridOptions.columnApi.getAllColumns().forEach(function(column) {
+        allColumnIds.push(column.colId);
+    });
+    gridOptions.columnApi.autoSizeColumns(allColumnIds);
+    */
+    // do http request to get our sample data - not using any framework to keep the example self contained.
+    // you will probably use a framework like JQuery, Angular or something else to do your HTTP calls.
+    agGrid.simpleHttpRequest({url: 'rtdDashboardDatasource.php?action=dashboard'}).then(function(data) {
+        // set up a mock server - real code will not do this, it will contact your
+        // real server to get what it needs
+        //console.log(data);
+        var mockServer = new MockServer();
+        mockServer.init(data);
+        var viewportDatasource = new ViewportDatasource(mockServer);
+        gridOptions.api.setViewportDatasource(viewportDatasource);
+        // put the 'size cols to fit' into a timeout, so that the scroll is taken into consideration
+        /*
+        setTimeout(function() {
+            gridOptions.api.sizeColumnsToFit();
+        }, 10000);
+        */
+    });
+    //setInterval( this.periodicallyUpdateData.bind(this), 10000 );
+});
+function updateVehicle(vehicleId, vehicleNo, customerNo){
+    jQuery.ajax({
+        type: "POST",
+        url: "rtdDashboardDatasource.php?action=updateVehicle",
+        data: {vehicleId: vehicleId, vehicleNo: vehicleNo, customerNo:customerNo, action:'updateVehicle'},
+        cache: false,
+        dataType: "json",
+        success: function (data) {
+            if(data){
+                alert('Vehicle No Updated Successfully');
+            }
+        }
+    });
+}
+function routehistopen(vehicleid) {
+    window.open("../reports/reports.php?vehicleid=" + vehicleid, "_blank");
+}
+function travelhistopen(vehicleid) {
+    window.open("../reports/reports.php?id=2&vehicleid=" + vehicleid, "_blank");
+}
+function tempreport(vehicleid, sensor, deviceid) {
+    window.open("../reports/reports.php?id=13&vehicleid=" + vehicleid + "&tempsen=" + sensor + "&devid=" + deviceid, "_blank");
+}
+function humreport(vehicleid, deviceid) {
+    window.open("../reports/reports.php?id=48&vehicleid=" + vehicleid + "&deviceid=" + deviceid, "_blank");
+}
+function click_buzzer(vehicleid, unitno) {
+    //alert(vehicleid);
+    jQuery("#vehicle_id").val(vehicleid);
+    jQuery("#unitno").val(unitno);
+    var data = "vehicleid=" + vehicleid;
+    jQuery.ajax({
+        type: "POST",
+        url: "../../modules/user/route.php",
+        data: data,
+        cache: false,
+        success: function (json) {
+            jQuery('#Buzzer').modal('show');
+            jQuery("#header-2").html('Buzzer For Vehicle No.- ' + json);
+        }
+    });
+}
+function click_buzzer1(vehicleid, unitno) {
+    jQuery("#vehicle_id").val(vehicleid);
+    jQuery("#unitno").val(unitno);
+    var data = "vehicleid=" + vehicleid;
+    jQuery.ajax({
+        type: "POST",
+        url: "../../modules/user/route.php",
+        data: data,
+        cache: false,
+        success: function (json) {
+            jQuery('#BuzzerNot').modal('show');
+            jQuery("#header-10").html('Buzzer For Vehicle No.- ' + json);
+        }
+    });
+}
+function click_immobiliser(vehicleid, unitno, mobiliser, status) {
+    jQuery("#vehicle_id").val(vehicleid);
+    jQuery("#unitno").val(unitno);
+    jQuery("#statuscommand").val(status);
+    var data = "vehicleid=" + vehicleid;
+    jQuery.ajax({
+        type: "POST",
+        url: "../../modules/user/route.php",
+        data: data,
+        cache: false,
+        success: function (json) {
+            jQuery('#Immobiliser').modal('show');
+            jQuery("#header-5").html('Immobilizer For Vehicle No.- ' + json);
+            if (mobiliser == 0) {
+                jQuery("#text-immobilise").html('Immobilizer Not Installed In Your Vehicle.<br/> * Note: For further information please contact an elixir.');
+                jQuery("#save_mobiliser").hide();
+                jQuery("#no_mobiliser").hide();
+                jQuery("#ok_mobiliser").show();
+            } else {
+                if (status == 1) {
+                    jQuery("#lock").show();
+                    jQuery("#start").hide();
+                    jQuery("#text-immobilise").html('Would You Wish To Immobilize The Vehicle ?');
+                } else {
+                    jQuery("#start").show();
+                    jQuery("#lock").hide()
+                    jQuery("#text-immobilise").html('Would You Wish To Start The Vehicle ?');
+                }
+                jQuery("#save_mobiliser").show();
+                jQuery("#no_mobiliser").show();
+                jQuery("#ok_mobiliser").hide();
+            }
+        }
+    });
+}
+function click_unfreeze(vehicleid, unitno, freeze, status) {
+    jQuery("#vehicle_id").val(vehicleid);
+    jQuery("#unitno").val(unitno);
+    var data = "vehicleid=" + vehicleid;
+    jQuery.ajax({
+        type: "POST",
+        url: "../../modules/user/route.php",
+        data: data,
+        cache: false,
+        success: function (json) {
+            jQuery('#UNfreeze').modal('show');
+            jQuery("#header-12").html('Freeze For Vehicle No.- ' + json);
+        }
+    });
+}
+function click_freeze(vehicleid, unitno, freeze, status) {
+    jQuery("#vehicle_id").val(vehicleid);
+    jQuery("#unitno").val(unitno);
+    var data = "vehicleid=" + vehicleid;
+    jQuery.ajax({
+        type: "POST",
+        url: "../../modules/user/route.php",
+        data: data,
+        cache: false,
+        success: function (json) {
+            jQuery('#freeze').modal('show');
+            jQuery("#header-13").html('Freeze For Vehicle No.- ' + json);
+        }
+    });
+}
+function messageToDriver(vehicleid, drivername, driverno) {
+    jQuery('#vehicle_id').val(vehicleid);
+    jQuery('#driver_name').val(drivername);
+    jQuery('#driver_no').val(driverno);
+    jQuery('#MessageToDriver').modal('show');
+    jQuery("#header-6").html('Send Message To Driver.- ' + drivername);
+}
+function sendMessage() {
+    var message = "Message:";
+    message += jQuery("#messageText").val();
+    var mobileno = jQuery("#driver_no").val();
+    jQuery('#pageloaddiv').show();
+    var match = mobileno.match(/8888888888/g);
+    if (match != null || mobileno.length <= 10) {
+        jQuery("#drivermsgerr1").text("Please provide Mobile number!");
+        jQuery("#drivermsgerr1").show();
+        jQuery("#drivermsgerr1").fadeOut(4000);
+    } else if (message == "") {
+        jQuery("#drivermsgerr1").text("Please Enter Message!");
+        jQuery("#drivermsgerr1").show();
+        jQuery("#drivermsgerr1").fadeOut(4000);
+    } else {
+        mobileno = mobileno.replace(" ", "");
+        var vehicleid = jQuery("#vehicle_id").val();
+        var data = "driverno=" + mobileno + "&driversms=" + message + "&vehicleid1=" + vehicleid;
+        jQuery.ajax({
+            type: "POST",
+            url: "../../modules/realtimedata/rtd_ajax.php",
+            data: data,
+            cache: false,
+            success: function (json) {
+                jQuery('#pageloaddiv').hide();
+                if (json == 0) {
+                    jQuery("#drivermsgerr1").text("Successfully Sent");
+                    jQuery("#drivermsgerr1").show();
+                    jQuery("#drivermsgerr1").fadeOut(8000);
+                } else if (json == 1) {
+                    jQuery("#drivermsgerr1").text("SMS sending FAILED to " + jQuery('#driver_name').val());
+                    jQuery("#drivermsgerr1").show();
+                    jQuery("#drivermsgerr1").fadeOut(8000);
+                } else if (json == -1) {
+                    jQuery("#drivermsgerr1").text("You have exceeded specified SMS limit for this vehicle");
+                    jQuery("#drivermsgerr1").show();
+                    jQuery("#drivermsgerr1").fadeOut(8000);
+                } else if (json == -2) {
+                    jQuery("#drivermsgerr1").text("This user have exceeded specified SMS limit");
+                    jQuery("#drivermsgerr1").show();
+                    jQuery("#drivermsgerr1").fadeOut(8000);
+                } else if (json == -3) {
+                    jQuery("#drivermsgerr1").text("Unable to send SMS to " + jQuery('#driver_name').val() + " due to insufficient SMS balance.");
+                    jQuery("#drivermsgerr1").show();
+                    jQuery("#drivermsgerr1").fadeOut(8000);
+                } else if (json == -4) {
+                    jQuery("#drivermsgerr1").text("Message already sent once.Plese try after some time");
+                    jQuery("#drivermsgerr1").show();
+                    jQuery("#drivermsgerr1").fadeOut(8000);
+                }
+            }
+        });
+    }
+}

@@ -1,0 +1,282 @@
+<style type="text/css">
+    #map{
+        width: 100%;
+        height: 450px;
+    }
+</style>
+<?php
+include 'panels/routehist.php';
+$devices = getvehicles();
+//print_r($_REQUEST);die();
+$devicesopt = "";
+$getvehicleid = "";
+$getvehicleno = "";
+$getdate = "";
+$toggleTripId = 0;
+if (isset($_REQUEST['vehicleid'])) {
+    $getvehicleid = $_REQUEST['vehicleid'];
+    $vehicleDetails = getvehicle_byID($getvehicleid);
+    if (isset($vehicleDetails)) {
+        $getvehicleno = $vehicleDetails->vehicleno;
+        $groupname = $vehicleDetails->groupname;
+    }
+
+    if (isset($_REQUEST['toggleTripId']) && $_REQUEST['toggleTripId'] != 0) {
+        $toggleTripId = $_REQUEST['toggleTripId'];
+    }
+}
+if (isset($_GET['vehicleno']) && $_GET['vehicleno']) {
+    $arrVehicle = getVehicleDetailsByVehicleNo($_GET['vehicleno']);
+    //print_r($arrVehicle);die('fdgdsfgsdfg');
+    if (isset($arrVehicle) && !empty($arrVehicle)) {
+        $getvehicleno = $arrVehicle[0]->vehicleno;
+        $getvehicleid = $arrVehicle[0]->vehicleid;
+        $vehicleid = $arrVehicle[0]->vehicleid;
+        if (isset($_REQUEST['toggleTripId']) && $_REQUEST['toggleTripId'] != 0) {
+            $toggleTripId = $_REQUEST['toggleTripId'];
+        }
+    } else {
+        $vehicleid = 0;
+        $getvehicleid = 0;
+    }
+}
+foreach ($devices as $device) {
+    if (isset($_POST['vehicleid']) && $device->vehicleid == $_POST['vehicleid']) {
+        $devicesopt .= "<option value = '$device->vehicleid' selected = 'selected'>$device->vehicleno</option>";
+    } else {
+        $devicesopt .= "<option value = '$device->vehicleid'>$device->vehicleno</option>";
+    }
+}
+if (!isset($_POST['SDate'])) {
+    $Sdate = getdate_IST();
+} else {
+    $Sdate = strtotime($_POST['SDate']);
+}
+
+if (!isset($_POST['EDate'])) {
+    $Edate = $Sdate;
+} else {
+    $Edate = strtotime($_POST['EDate']);
+}
+
+if (!isset($_POST['STime'])) {
+    $stime = "00:00";
+} else {
+    $stime = $_POST['STime'];
+}
+if (!isset($_POST['ETime'])) {
+    $etime = "23:59";
+} else {
+    $etime = $_POST['ETime'];
+}
+if (isset($_REQUEST['report']) && $_REQUEST['report'] == "view") {
+    $Sdate = $_REQUEST['date'];
+    $Edate = $_REQUEST['date'];
+    $stime = "00:00";
+    $etime = "23:59";
+}
+?>
+<?php
+if (isset($_SESSION['ecodeid'])) {
+    ?>
+    <input type="hidden" name="s_start" id="s_start" value="<?php echo date('d-m-Y', strtotime($_SESSION['startdate'])); ?>" />
+    <input type="hidden" name="e_end" id="e_end" value="<?php echo date('d-m-Y', strtotime($_SESSION['enddate'])); ?>" />
+    <input type="hidden" name="days" id="days" value="<?php echo $_SESSION['days']; ?>" />
+    <?php
+}
+?>
+<tr class="hideTr">
+    <td >
+        <input  type="text" name="vehicleno" id="vehicleno" size="20" value="<?php echo $getvehicleno; ?>" autocomplete="off" placeholder="Enter Vehicle No" required>
+        <input type="hidden" name="vehicleid" id="vehicleid" size="20" value="<?php echo $getvehicleid; ?>"/>
+        <input  type="hidden" name="route_groupname" id="route_groupname" value="<?php echo ($groupname != '') ? $groupname : 'Not Assigned'; ?>" >
+        <input  type="hidden" name="customerno" id="customerno" value="<?php echo $_SESSION['customerno']; ?>" >
+        <div id="display" class="listvehicle"></div>
+        <input type="hidden" name="toggleTripId" id="toggleTripId" size="20" value="<?php echo $toggleTripId; ?>"/>
+    </td>
+    <td>Start Date</td>
+    <td>
+        <input id="SDate" name="SDate" type="text" class="input-small" value="<?php
+if (isset($_REQUEST['report'])) {
+    echo $Sdate;
+} else {
+    echo date('d-m-Y', $Sdate);
+}
+?>" required/>
+    </td>
+    <td>Start Hour</td>
+    <td>
+        <input id="STime" name="STime" type="text" class="input-mini" data-date="<?php echo $stime; ?>" />
+    </td>
+    <td>End Date</td>
+    <td>
+        <input id="EDate" name="EDate" type="text" class="input-small" value="<?php
+if (isset($_REQUEST['report'])) {
+    echo $Edate;
+} else {
+    echo date('d-m-Y', $Edate);
+}
+?>" required/>
+    </td>
+    <td>End Hour</td>
+    <td>
+        <input id="ETime" name="ETime" type="text" class="input-mini" data-date2="<?php echo $etime; ?>" />
+    </td>
+    <td>
+        <select id="reporttype" name="reporttype" onchange="changereport();">
+            <option value="0">Speed</option>
+            <?php
+if ($_SESSION['temp_sensors'] == 1) {
+    ?>
+                <option value="1">Temperature</option>
+                <?php
+} elseif ($_SESSION['temp_sensors'] == 2) {
+    ?>
+                <option value="1">Temperature 1</option>
+                <option value="2">Temperature 2</option>
+                <?php
+}
+?>
+        </select>
+    </td>
+    <td id="overspeed_limit" >
+        Speed Limit >
+        <select id="overspeed" name="overspeed">
+            <option value="3">30</option>
+            <option value="40">40</option>
+            <option value="45">45 </option>
+            <option value="50" <?php
+if ($_SESSION['customerno'] == 69) {
+    echo "selected";
+}
+?>>50</option>
+            <option value="60" >60</option>
+            <option value="65">65 </option>
+            <option value="70">70 </option>
+            <option value="75">75 </option>
+            <option value="80">80 </option>
+            <option value="85">85 </option>
+            <option value="90">90 </option>
+            <option value="95">95 </option>
+            <option value="100">100 </option>
+            <option value="120">120 </option>
+        </select>
+        KM/H
+    </td>
+    <td id="temp_limit" style="display: none;"> Temp Limit
+        >  <input type="text" id="temp" name="temp" value="" size="2" required/>&#x2103;
+    </td>
+    <td>
+        Moving Speed
+        <input type="text" class="span2 slider" value="" data-slider-min="1" data-slider-max="10" data-slider-step="1" data-slider-value="5" data-slider-orientation="horizontal" data-slider-selection="after"data-slider-tooltip="show">
+    </td>
+    <td id="tdholdtime">
+        Hold Time
+        <select id="holdtime" name="holdtime">
+            <option value="2">>2 Min</option>
+            <option value="3">>3 Min</option>
+            <option value="5" <?php
+if ($_SESSION['customerno'] == 69) {
+    echo "selected";
+}
+?>>>5 Min</option>
+            <option value="10">>10 Min</option>
+            <option value="15">>15 Min</option>
+            <option value="20" >>20 Min</option>
+            <option value="30" <?php
+if ($_SESSION['customerno'] != 69) {
+    echo "selected";
+}
+?>>>30 Min</option>
+            <option value="45">>45 Min</option>
+            <option value="60">>1 Hour</option>
+            <option value="90">>1.5 Hour</option>
+            <option value="120">>2 Hour</option>
+            <option value="180">>3 Hour</option>
+            <option value="300">>5 Hour</option>
+            <option value="600">>10 Hour</option>
+        </select>
+    </td>
+    <td>Checkpoint
+        <input type="checkbox" name="displaycheckpoints" id="displaycheckpoints" onclick="displaycheckpoints();">
+    </td>
+    <td width="10%">
+        <div class="btn-group clearfix sepH_a" >
+            <button class="btn btn-mini btn-primary"  onclick="chk_play_history();">Play</button>
+            <button class="btn btn-mini btn-primary" onclick="pause_history();" >Pause</button>
+            <button class="btn btn-mini btn-primary" onclick="refresh();">Stop</button>
+            <button class="map-print"><img src="../../images/print.png" alt="Print Report" class='exportIcons' title="Print Report" /></button>
+        </div>
+    </td>
+</tr>
+</tbody>
+</table>
+<input type="hidden" name="getvehicleid" id="getvehicleid" value="<?php echo $getvehicleid; ?>">
+<div id="routeHistPrint">
+    <div id="sidebar" style="height: auto;display: none;">
+        <div style="width:150px;"><?php if (isset($_REQUEST['vehicleid'])) {?>
+                <button id="btnPrint" class='map-print'><img src="../../images/print.png" alt="Print Report" class='exportIcons' title="Print Report" /></button>
+            <?php }
+?></div>
+        <table id="loc_table" border="1" style="text-align: left;" >
+            <tr>
+                <th >Start Location</th>
+                <th >End Location</th>
+            </tr>
+            <tr>
+                <td  id="stlocation"></td>
+                <td id="endlocation"></td>
+            </tr>
+            <tr>
+                <th >Start Date</th>
+                <th >End Date</th>
+            </tr>
+            <tr>
+                <td  id="stdate"></td>
+                <td id="enddate"></td>
+            </tr>
+            <tr>
+                <th >Start Time</th>
+                <th >End Time</th>
+            </tr>
+            <tr>
+                <td  id="sttime"></td>
+                <td id="endtime"></td>
+            </tr>
+            <tr>
+                <th >Vehicle No</th>
+                <th>Group Name</th>
+            </tr>
+            <tr>
+                <td id="route_vehicleview"></td>
+                <td id="route_groupnameview"></td>
+            </tr>
+            <tr>
+                <th colspan="2">Distance Travelled</th>
+            </tr>
+            <tr>
+                <td colspan="2" id="route_distance"></td>
+            </tr>
+            <?php if (isset($_REQUEST['toggleTripId']) && $_REQUEST['toggleTripId'] != 0) {?>
+            <tr>
+                <th>Gross Weight</th>
+                <th>Net Weight</th>
+            </tr>
+            <tr>
+                <td id="route_grossWeight"></td>
+                <td id="route_netWeight"></td>
+            </tr>
+            <tr>
+                <th colspan="2">Unladen Weight</th>
+            </tr>
+            <tr>
+                <td colspan="2" id="route_unladenWeight"></td>
+            </tr>
+        <?php }?>
+        </table>
+    </div>
+    <div id="map" ></div>
+</div>
+<!-- Date: 30th oct 14, ak added, for add location popup-->
+<script type='text/javascript' src="createcheck.js"></script>
+<?php include "location_pop_html.php";?>

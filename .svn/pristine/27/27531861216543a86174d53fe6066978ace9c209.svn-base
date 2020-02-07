@@ -1,0 +1,32 @@
+<?php
+
+function get_google_location($address) {
+    $address = urlencode($address);
+    $file_to_send = signUrl("http://maps.google.com/maps/api/geocode/json?address=$address&region=in&sensor=false&key=" . GOOGLE_MAP_API_KEY, '');
+    $data1 = file_get_contents($file_to_send);
+    $data2 = json_decode($data1);
+    $return = array('lat' => null, 'lng' => null);
+    if (isset($data2->results[0]->geometry->location)) {
+        $return = (array) $data2->results[0]->geometry->location;
+    }
+    return $return;
+}
+
+function encodeBase64UrlSafe($value) {
+    return str_replace(array('+', '/'), array('-', '_'), base64_encode($value));
+}
+
+function decodeBase64UrlSafe($value) {
+    return base64_decode(str_replace(array('-', '_'), array('+', '/'), $value));
+}
+
+function signUrl($myUrlToSign, $privateKey) {
+    $url = parse_url($myUrlToSign);
+    $urlPartToSign = $url['path'] . "?" . $url['query'];
+    $decodedKey = decodeBase64UrlSafe($privateKey);
+    $signature = hash_hmac("sha1", $urlPartToSign, $decodedKey, true);
+    $encodedSignature = encodeBase64UrlSafe($signature);
+    return $myUrlToSign; // . "&signature=" . $encodedSignature;
+}
+
+?>

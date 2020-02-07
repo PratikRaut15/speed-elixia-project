@@ -1,0 +1,114 @@
+<?php
+
+require_once "../../lib/system/utilities.php";
+require_once '../../lib/bo/DeviceManager.php';
+require_once '../../lib/bo/ComQueueManager.php';
+require_once '../../lib/bo/CronManager.php';
+require_once '../../lib/bo/VehicleManager.php';
+require_once '../../lib/bo/DailyReportManager.php';
+require_once '../../lib/bo/PointLocationManager.php';
+require_once 'files/calculatedist.php';
+require_once 'files/push_sqlite.php';
+
+$cm = new CronManager();
+
+//Checkpoint
+class VODataCron {
+
+}
+
+$smsstart = date('Y-m-d') . " 04:00:00";
+$smsend = date('Y-m-d') . " 14:00:00";
+
+$curtime = date('Y-m-d H:i:s');
+
+// Freeze
+$freeze = $cm->getalldevices_freeze();
+if (isset($freeze)) {
+    $data = '';
+    foreach ($freeze as $thisfreeze) {
+        $devicelat = $thisfreeze->devicelat;
+        $devicelong = $thisfreeze->devicelong;
+        $vehicleid = $thisfreeze->vehicleid;
+
+        if ($vehicleid == 2710) {
+            echo $cradfreeze = FREEZE_RADIUS; // 40 Meter define in utility page
+
+            $getfreezedata = $cm->getfreezedata($vehicleid);
+            echo $distance_freeze = calculate($devicelat, $devicelong, $getfreezedata['freezelat'], $getfreezedata['freezelong']);
+
+            if ((float) $distance_freeze >= (float) $cradfreeze) {
+                //unfreeze vehicle if distance beyond 40 meter
+                $vehiclemanager = new VehicleManager($thisfreeze->customerno);
+                $vehiclemanager->unfreezedvehicle($thisfreeze->unitno, $thisfreeze->customerno, $getfreezedata['userid']);
+                // Insert in Queue
+                $cqm = new ComQueueManager();
+                $cvo = new VOComQueue();
+                $cvo->customerno = $thisfreeze->customerno;
+                $cvo->lat = $thisfreeze->devicelat;
+                $cvo->long = $thisfreeze->devicelong;
+                $cvo->message = "Vehicle " . $thisfreeze->vehicleno . " has moved";
+                $cvo->type = 17;
+                $cvo->status = 1;
+                $cvo->chkid = 0;
+                $cvo->vehicleid = $thisfreeze->vehicleid;
+                $cqm->InsertQChk($cvo);
+            }
+        }
+
+    }
+}
+
+function send_notification($registatoin_ids, $message) {
+    $url = 'https://android.googleapis.com/gcm/send';
+
+    $fields = array(
+        'registration_ids' => $registatoin_ids,
+        'data' => $message,
+    );
+
+    $headers = array(
+        'Authorization: key=AIzaSyAIiCaa3qdm8IRMLfX_QWjDgILxthR0WsI',
+        'Content-Type: application/json',
+    );
+    // Open connection
+    $ch = curl_init();
+
+    // Set the url, number of POST vars, POST data
+    curl_setopt($ch, CURLOPT_URL, $url);
+
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    // Disabling SSL Certificate support temporarly
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+
+    // Execute post
+    $result = curl_exec($ch);
+    if ($result === FALSE) {
+        die('Curl failed: ' . curl_error($ch));
+    }
+
+    // Close connection
+    curl_close($ch);
+    echo $result;
+}
+
+function sendSMS($phone, $message, $customerno) {
+    //$phone = "9773352169"; // Comment Phone No After Testing
+    $cm = new CustomerManager();
+    $url = "http://pacems.asia:8080/bulksms/bulksms?username=xzt-elixia&password=elixia&type=0&dlr=1&destination=91" . urlencode($phone) . "&source=ELIXIA&message=" . urlencode($message);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // return into a variable
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    return true;
+}
+
+?>

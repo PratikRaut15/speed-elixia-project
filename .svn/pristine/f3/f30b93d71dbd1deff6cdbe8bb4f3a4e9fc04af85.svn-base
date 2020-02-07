@@ -1,0 +1,395 @@
+<?php
+include_once("session.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/components/gui/datagrid.php");
+include_once("../../lib/system/DatabaseManager.php");
+include_once("../../lib/system/Sanitise.php");
+
+$_scripts[] = "../../scripts/trash/prototype.js";
+$_scripts[] = "../../scripts/jquery.min.js";
+ 
+include("header.php");
+
+class testing{
+    
+}
+
+date_default_timezone_set("Asia/Calcutta");                             
+$today = date("Y-m-d H:i:s");
+$db = new DatabaseManager();
+
+if(isset($_POST["utest"]))
+{
+    $unitno = GetSafeValueString($_POST["utesting"], "string");     
+    $result = GetSafeValueString($_POST["utestingresult"], "string");     
+
+    $SQL = sprintf('UPDATE unit SET trans_statusid= '.$result.' where uid='.$unitno);
+    $db->executeQuery($SQL);
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', %d, '%s','%s','%s','%s')",
+    $unitno, GetLoggedInUserId(), Sanitise::DateTime($today),$result, "Tested","","","");
+    $db->executeQuery($SQLunit);
+    
+}
+
+if(isset($_POST["stest"]))
+{
+    $simcardno = GetSafeValueString($_POST["stesting"], "string");     
+    $result = GetSafeValueString($_POST["stestingresult"], "string");     
+    
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= '.$result.' where id='.$simcardno);
+    $db->executeQuery($SQL);
+    
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 1, '%s', %d, '%s','%s','%s','%s')",
+    $simcardno, GetLoggedInUserId(), Sanitise::DateTime($today),$result, "Suspected","","","");
+    $db->executeQuery($SQLsim);                        
+}
+
+// ALLOT DEVICE AND SIMCARD
+if(isset($_POST["uallot"]))
+{
+    $simcardid = GetSafeValueString($_POST["sready"], "string");   
+    $unitid = GetSafeValueString($_POST["uready"], "string");     
+    $teamid = GetSafeValueString($_POST["uteamid"], "long");
+    
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 19, teamid='.$teamid.' where id='.$simcardid);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 18, teamid='.$teamid.' where uid='.$unitid);
+    $db->executeQuery($SQL);
+
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`, `allot_teamid`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', %d, '%s','%s','%s','%s',%d)",
+    $simcardid, GetLoggedInUserId(), Sanitise::DateTime($today),19, "Simcard Allotment","","","",$teamid);
+    $db->executeQuery($SQLunit);    
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`, `allot_teamid`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', %d, '%s','%s','%s','%s',%d)",
+    $unitid, GetLoggedInUserId(), Sanitise::DateTime($today),18, "Device Allotment","","","",$teamid);
+    $db->executeQuery($SQLunit);        
+}
+
+if(IsHead() || IsService())
+{
+    
+$SQL = sprintf("SELECT unit.unitno, unit.uid,trans_status.status FROM unit INNER JOIN trans_status ON trans_status.id = unit.trans_statusid WHERE trans_statusid IN (1,4,17)");
+$db->executeQuery($SQL);
+$units = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new testing();
+        $unit->unitno = $row["unitno"]."[ ".$row["status"]." ]";
+        $unit->uid = $row["uid"];        
+        $units[] = $unit;        
+    }    
+}
+
+$SQL = sprintf("SELECT unit.unitno, unit.uid,trans_status.status FROM unit INNER JOIN trans_status ON trans_status.id = unit.trans_statusid WHERE trans_statusid IN (2)");
+$db->executeQuery($SQL);
+$readyunits = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new testing();
+        $unit->unitno = $row["unitno"]."[ ".$row["status"]." ]";
+        $unit->uid = $row["uid"];        
+        $readyunits[] = $unit;        
+    }    
+}
+
+$SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno,trans_status.status FROM simcard INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE trans_statusid IN (12)");
+$db->executeQuery($SQL);
+$badsimcards = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $simcard = new testing();
+        $simcard->simcardno  = $row["simcardno"]."[ ".$row["status"]." ]";
+        $simcard->id = $row["simid"];        
+        $badsimcards[] = $simcard;        
+    }    
+}
+
+$SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno,trans_status.status FROM simcard INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE trans_statusid IN (11)");
+$db->executeQuery($SQL);
+$activatedsimcards = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $simcard = new testing();
+        $simcard->simcardno  = $row["simcardno"]."[ ".$row["status"]." ]";
+        $simcard->id = $row["simid"];        
+        $activatedsimcards[] = $simcard;        
+    }    
+}
+
+$SQL = sprintf("SELECT team.teamid, team.name FROM team");
+$db->executeQuery($SQL);
+$team_allot_array = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $team = new testing();
+        $team->teamid  = $row["teamid"];
+        $team->name = $row["name"];        
+        $team_allot_array[] = $team;        
+    }    
+}
+
+?>
+
+<!--  Testing Unit-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Testing - Device</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="testing.php" enctype="multipart/form-data">
+    <table width="50%">
+         <tr>
+        <td>Unit No. </td>
+        <td><select name="utesting">
+                <?php
+                foreach($units as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->uid); ?>"><?php echo($thisunit->unitno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Fresh / Repaired / Suspected Device List)
+        </td>
+        </tr>
+
+         <tr>
+        <td>Result </td>
+        <td><select name="utestingresult">
+                <option value="2">Ready</option>
+                <option value="3">Bad</option>                
+            </select>
+        </td>
+        </tr>
+        
+    </table>
+
+    <div><input type="submit" id="utest" name="utest" value="Submit"/></div>
+    </form>
+    </div>
+    </div>
+
+<!--  Testing Sim Card-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Testing - Sim Card</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="testing.php" enctype="multipart/form-data">
+    <table width="40%">
+         <tr>
+        <td>Sim Card No. </td>
+        <td><select name="stesting">
+                <?php
+                foreach($badsimcards as $thiscard)
+                {
+                ?>
+                <option value="<?php echo($thiscard->id); ?>"><?php echo($thiscard->simcardno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Bad Sim Card List)
+        </td>
+        </tr>
+        
+         <tr>
+        <td>Result </td>
+        <td><select name="stestingresult">
+                <option value="11">Activate</option>
+                <option value="15">Apply for Disconnection</option>                
+            </select>
+        </td>
+        </tr>
+        
+    </table>
+
+    <div><input type="submit" id="stest" name="stest" value="Submit"/></div>
+    </form>
+    </div>
+    </div>
+
+<!--  Allot Unit and Simcard-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Allot Device and Simcard</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="testing.php" enctype="multipart/form-data">
+    <table width="50%">
+
+         <tr>
+        <td>Elixir</td>
+        <td><select name="uteamid">
+                <?php
+                foreach($team_allot_array as $thisteam)
+                {
+                ?>
+                <option value="<?php echo($thisteam->teamid); ?>"><?php echo($thisteam->name); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        </tr>
+        
+         <tr>
+        <td>Unit No. </td>
+        <td><select name="uready">
+                    <option value="0">No Unit</option>                                
+                <?php
+                foreach($readyunits as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->uid); ?>"><?php echo($thisunit->unitno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Ready Device List)
+        </td>
+        </tr>
+
+         <tr>
+        <td>Sim Card No. </td>
+        <td><select name="sready">
+                    <option value="0">No Simcard</option>                
+                <?php
+                foreach($activatedsimcards as $thiscard)
+                {
+                ?>
+                <option value="<?php echo($thiscard->id); ?>"><?php echo($thiscard->simcardno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Activated Sim Card List)
+        </td>
+        </tr>
+        
+    </table>
+
+    <div><input type="submit" id="uallot" name="uallot" value="Allot"/></div>
+    </form>
+    </div>
+    </div>
+
+
+<!--  Re-Allot Unit and Simcard-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+       Re-Allot Device and Simcard</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="testing.php" enctype="multipart/form-data">
+    <table width="50%">
+
+         <tr>
+        <td>Allot From</td>
+        <td><select name="uteamid" id="uteamid" onChange="pullunit();">
+                <option value="0">Select an Elixir</option>
+                <?php
+                foreach($team_allot_array as $thisteam)
+                {
+                ?>
+                <option value="<?php echo($thisteam->teamid); ?>"><?php echo($thisteam->name); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        </tr>
+        
+         <tr>
+        <td>Unit No. </td>
+        <td><select name="uready">
+                    <option value="0">No Unit</option>                                
+                <?php
+                foreach($readyunits as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->uid); ?>"><?php echo($thisunit->unitno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Ready Device List)
+        </td>
+        </tr>
+
+         <tr>
+        <td>Sim Card No. </td>
+        <td><select name="sready">
+                    <option value="0">No Simcard</option>                
+                <?php
+                foreach($activatedsimcards as $thiscard)
+                {
+                ?>
+                <option value="<?php echo($thiscard->id); ?>"><?php echo($thiscard->simcardno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Activated Sim Card List)
+        </td>
+        </tr>
+<tr><td></td><td>---</td></tr>        
+         <tr>
+        <td>Allot To</td>
+        <td><select name="uteamid">
+                <option value="0">Select an Elixir</option>
+                <?php
+                foreach($team_allot_array as $thisteam)
+                {
+                ?>
+                <option value="<?php echo($thisteam->teamid); ?>"><?php echo($thisteam->name); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        </tr>
+        
+    </table>
+
+    <div><input type="submit" id="uallot" name="uallot" value="Allot"/></div>
+    </form>
+    </div>
+    </div>
+
+<?php
+}
+?>
+
+<br/>
+
+<?php
+include("footer.php");
+?>
+
+<script>
+
+function pullunit()
+{
+    var uteamid = document.getElementId('#uteamid').val();    
+    
+}
+</script>

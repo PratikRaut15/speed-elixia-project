@@ -1,0 +1,4 @@
+BO: Business Object
+
+BO's are responsible for handling all business logic. There will be typically one BO for each Use Case.
+So for example, Users will have a BO which provides methods for retrieving and updating Users. The BO is responsible for maintaining integrity and a BO method may update many database tables by using DAO objects.

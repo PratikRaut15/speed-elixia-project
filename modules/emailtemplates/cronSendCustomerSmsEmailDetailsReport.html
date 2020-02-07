@@ -1,0 +1,51 @@
+<html>
+<head>
+    <title>Sent Email SMS Details</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type='text/css'>
+        body{
+          font-family:Arial;
+          font-size: 11pt;
+        }
+        table{
+          text-align: center;
+          border-right:1px solid black;
+          border-bottom:1px solid black;
+          border-collapse:collapse;
+          font-family:Arial;
+          font-size: 10pt;
+          width: 60%;
+        }
+        td, th{
+          border-left:1px solid black;
+          border-top:1px solid black;
+        }
+        .colHeading{
+          background-color: #D6D8EC;
+        }
+        span{
+          font-weight:bold;
+        }
+    </style>
+</head>
+<body>Dear {{REALNAME}},
+    <br/><br/>
+    Greetings from Elixia Tech!<br/><br/>
+    Customer No: <b>{{CUSTOMER}}</b><br/>
+            <p> SMS consume count:</p><br>
+            {{DATA_ROWS}}
+    <br>
+    <p>Please feel free to contact us on <strong>022-2513-7471</strong> or email us at <strong>support@elixiatech.com</strong>
+    in case you have any queries regarding using the system. </p>
+    <br/>
+    <br/><font size="smaller">To unsubscribe, please uncheck your alerts <a href="http://www.speed.elixiatech.com/modules/api/?action=login_userkey_unsub&key={{ENCODEKEY}}">here</a></font>
+    <br/><br/><br/>
+    Warm Regards, <br/>
+    Support Team,<br/>
+    Elixia Speed<br/>
+    Elixia Tech Solutions Ltd.<br/><br/>
+    <img style="width: 240px;" src = "http://speed.elixiatech.com/images/elixia_logo_75.png" alt = "Elixia Speed logo" />
+    <br/>
+</body>
+</html>

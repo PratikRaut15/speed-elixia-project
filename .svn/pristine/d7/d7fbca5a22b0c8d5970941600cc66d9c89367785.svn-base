@@ -1,0 +1,406 @@
+<?php
+include_once "session.php";
+include "loginorelse.php";
+include_once "db.php";
+include_once "../../constants/constants.php";
+include_once "../../lib/system/Sanitise.php";
+include_once "../../lib/components/gui/objectdatagrid.php";
+include_once "../../lib/system/DatabaseManager.php";
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT  teamid
+                        ,name
+                FROM    team");
+$db->executeQuery($SQL);
+$teams = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow()) {
+        $team['teamid'] = $row['teamid'];
+        $team['name'] = $row['name'];
+        $teams[] = $team;
+    }
+}
+$SQL = sprintf("SELECT  id
+                        ,name
+                FROM    bank");
+$db->executeQuery($SQL);
+$banks = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow()) {
+        $bank['id'] = $row['id'];
+        $bank['name'] = $row['name'];
+        $banks[] = $bank;
+    }
+}
+if (isset($_POST['submitdeposit'])) {
+    $customerno = GetSafeValueString($_POST['cno'], "string");
+    $type = GetSafeValueString($_POST['dep_type'], "string");
+    $amount = GetSafeValueString($_POST['dep_amt'], "string");
+    $responsible = GetSafeValueString($_POST['dep_responsible'], "string");
+    $chequeno = GetSafeValueString($_POST['dep_chequeno'], "string");
+    $bank = GetSafeValueString($_POST['dep_bank'], "string");
+    $bankid = GetSafeValueString($_POST['rec_bank'], "string");
+    $status = 1;
+    $todaysdate = date('Y-m-d H:i:s');
+    $pdo = $db->CreatePDOConn();
+    $sp_params = "'" . $todaysdate . "'"
+    . ",'" . $customerno . "'"
+    . ",'" . GetLoggedInUserId() . "'"
+        . ",'" . $chequeno . "'"
+        . ",'" . $bank . "'"
+        . ",'" . $amount . "'"
+        . ",'" . $type . "'"
+        . ",'" . $status . "'"
+        . ",'" . $responsible . "'"
+        . ",'" . $bankid . "'"
+        . ",@is_executed";
+    $queryCallSP = "CALL " . speedConstants::SP_INSERT_BANK_DEPOSIT . "($sp_params)";
+    $arrResult = $pdo->query($queryCallSP);
+    $outputParamsQuery = "SELECT    @is_executed AS is_executed";
+    $outputResult = $pdo->query($outputParamsQuery)->fetch(PDO::FETCH_ASSOC);
+    $db->ClosePDOConn($pdo);
+    if ($outputResult['is_executed'] == 1) {
+        header("location:deposit.php?msg=success");
+    } else {
+        header("location:deposit.php?msg=fail");
+    }
+}
+//QUERY for display
+$Display = array();
+$SQL = "SELECT  brs.id
+                ,brs.customerno
+                ,c.customercompany
+                ,brs.type
+                ,brs.chequeno
+                ,brs.bank
+                ,brs.amount
+                ,brs.`status`
+                ,t.name
+        FROM    " . DB_PARENT . ".bank_reconc_stmt brs
+        INNER JOIN customer c ON c.customerno = brs.customerno
+        INNER JOIN team t ON t.teamid = brs.responsible_id
+        WHERE   brs.customerno IS NOT NULL
+        AND     brs.status NOT IN (3,4)
+        AND     brs.is_deleted = 0
+        ORDER BY brs.id DESC";
+$db->executeQuery($SQL);
+if ($db->get_rowCount() > 0) {
+    $x = 0;
+    while ($row = $db->get_nextRow()) {
+        $Datacap = new stdClass();
+        $x++;
+        $Datacap->id = $row['id'];
+        if ($row['id'] < 10) {
+            $Datacap->transid = "BRS00" . $row['id'];
+        } else {
+            $Datacap->transid = "BRS0" . $row['id'];
+        }
+        $Datacap->customerno = $row['customerno'];
+        $Datacap->clientname = $row['customercompany'];
+        if ($row['type'] == 0) {
+            $Datacap->type = 'Cash';
+        } elseif ($row['type'] == 1) {
+            $Datacap->type = 'Cheque';
+        }
+        if (!empty($row['chequeno'])) {
+            $Datacap->chequeno = $row['chequeno'];
+        } else {
+            $Datacap->chequeno = 'NA';
+        }
+        if (!empty($row['bank'])) {
+            $Datacap->bank = $row['bank'];
+        } else {
+            $Datacap->bank = 'NA';
+        }
+        $Datacap->amount = $row['amount'];
+        if ($row['status'] == 1) {
+            $Datacap->status = 'Received';
+        } elseif ($row['status'] == 2) {
+            $Datacap->status = 'Deposited';
+        } elseif ($row['status'] == 5) {
+            $Datacap->status = 'Cleared';
+        }
+        $Datacap->responsible = $row['name'];
+        $Datacap->x = $x;
+        $name = "'" . $Datacap->transid . "'";
+        $Datacap->delete = '<img src="../../images/delete.png" onclick="deleteDeposit(' . $row['id'] . ',' . $name . ')"></img>';
+        $Display[] = $Datacap;
+    }
+}
+$dg = new objectdatagrid($Display);
+$dg->AddColumn("Sr.No", "x");
+$dg->AddColumn("Transaction ID", "transid");
+$dg->AddColumn("Customer No", "customerno");
+$dg->AddColumn("Customer Name", "clientname");
+$dg->AddColumn("Type", "type");
+$dg->AddColumn("Cheque #", "chequeno");
+$dg->AddColumn("Bank", "bank");
+$dg->AddColumn("Amount(in Rs)", "amount");
+$dg->AddColumn("Status", "status");
+$dg->AddColumn("Responsible", "responsible");
+$dg->AddColumn("Delete", "delete");
+$dg->AddRightAction("View", "../../images/edit.png", "deposit_edit.php?id=%d");
+$dg->SetNoDataMessage("No Deposits");
+$dg->AddIdColumn("id");
+include "header.php";
+?>
+<style>
+    .recipientbox {
+        border: 1px solid #999999;
+        float: left;
+        font-weight: 700;
+        padding: 4px 27px;
+        /*    width: 100px;*/
+        float:left;
+        -webkit-transition:all 0.218s;
+        -webkit-user-select:none;
+        background-color:#000;
+        /*background-image:-webkit-linear-gradient(top, #4D90FE, #4787ED);*/
+        border:1px solid #3079ED;
+        color:#FFFFFF;
+        text-shadow:rgba(0, 0, 0, 0.0980392) 0 1px;
+        border:1px solid #DCDCDC;
+        border-bottom-left-radius:2px;
+        border-bottom-right-radius:2px;
+        border-top-left-radius:2px;
+        border-top-right-radius:2px;
+        cursor:default;
+        display:inline-block;
+        font-size:11px;
+        font-weight:bold;
+        height:27px;
+        line-height:27px;
+        min-width:46px;
+        padding:0 8px;
+        text-align:center;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color:#fff !important;
+        font-size: 11px;
+        font: bold 11px/27px Arial,sans-serif !important;
+        vertical-align: top;
+        margin-left:5px;
+        margin-top:5px;
+        text-align:left;
+    }
+    .recipientbox img {
+        float:right;
+        padding-top:5px;
+    }
+    #submitdeposit{
+        background: #00a6b8;
+    }
+</style>
+<div class="panel">
+    <div class="paneltitle" align="center">Add Deposits</div>
+    <div class="panelcontents">
+        <form method="post" name="depositform" id="depositform" action="deposit.php" onsubmit="ValidateForm();
+                return false;" enctype="multipart/form-data">
+            <div style="height:20px;">
+                <span id="general_success" style="display:none; color: #00FF00">Data Added Successfully.</span>
+                <span id="cust_err" style="display:none; color: red">Select correct customer.</span>
+                <span id="type_err" style="display:none; color: red">Select correct type.</span>
+                <span id="amount_err" style="display:none; color: red">Amount field should not be empty.</span>
+                <span id="respons_err" style="display:none; color: red">Select correct responsible person.</span>
+                <span id="cheque_err" style="display:none; color: red">Cheque No field should not be empty.</span>
+                <span id="bank_err" style="display:none; color: red">Bank field should not be empty.</span>
+                <span id="bank_id_err" style="display:none; color: red">Select correct bank.</span>
+                <span id="fail_msg" style="display:none; color: red">Insertion failed.</span>
+            </div>
+            <table width="100%">
+                <tr><td>Client</td>
+                    <td>
+                        <input  type="text" name="icustomer" id="icustomer" size="25" value="<?php
+if (isset($_POST['icustomer'])) {
+    echo $_POST['icustomer'];
+}
+?>" autocomplete="off" placeholder="Enter Customer No Or Name" onkeyup="getCust()" />
+                        <input type="hidden" name="cno" id="cno" value="<?php
+if (isset($_POST['cno'])) {
+    echo $_POST['cno'];
+}
+?>"/>
+                        <input type="hidden" name="cname" id="cname" value="<?php
+if (isset($_POST['cname'])) {
+    echo $_POST['cname'];
+}
+?>"/>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Type</td>
+                    <td>
+                        <select id="dep_type" name="dep_type">
+                            <option value="-1">Select type</option>
+                            <option value="0">Cash</option>
+                            <option value="1">Cheque</option>
+                        </select>
+                    </td>
+                    <td>Amount (in Rs)</td>
+                    <td><input type="text" id="dep_amt" name="dep_amt" /></td>
+                    <td>Responsible</td>
+                    <td>
+                        <select id="dep_responsible" name="dep_responsible">
+                            <option value="-1">Select Team Member</option>
+                            <?php
+foreach ($teams as $data) {
+    echo '<option value="' . $data['teamid'] . '">' . $data['name'] . '</option>';
+}
+?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Cheque No.</td>
+                    <td><input type="text" id="dep_chequeno" name="dep_chequeno" /></td>
+                    <td>Bank</td>
+                    <td><input type="text" id="dep_bank" name="dep_bank" /></td>
+                    <td>Deposit At</td>
+                    <td>
+                        <select id="rec_bank" name="rec_bank">
+                            <option value="-1">Select bank</option>
+                            <?php
+foreach ($banks as $data) {
+    echo '<option value="' . $data['id'] . '">' . $data['name'] . '</option>';
+}
+?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"></td>
+                    <td colspan="2" style="text-align: center;">
+                        <input type="submit" id="submitdeposit" name="submitdeposit" class="btn btn-primary" value="SUBMIT">
+                    </td>
+                    <td colspan="2"></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<br/>
+<div class="panel">
+    <div class="paneltitle" align="center">Bank Outstandings</div>
+    <div class="panelcontents">
+        <?php $dg->Render();?>
+    </div>
+</div>
+<br/>
+<?php
+include "footer.php";
+?>
+<script>
+    $(document).ready(function () {
+<?php
+if ($_REQUEST['msg'] == 'success') {
+    echo 'jQuery("#success_msg").show();';
+    echo 'jQuery("#success_msg").fadeOut(6000);';
+} elseif ($_REQUEST['msg'] == 'fail') {
+    echo 'jQuery("#fail_msg").show();';
+    echo 'jQuery("#fail_msg").fadeOut(6000);';
+}
+?>
+    });
+    function ValidateForm() {
+        var customerno = jQuery('#cno').val();
+        var type = jQuery('#dep_type').val();
+        var amount = jQuery('#dep_amt').val();
+        var responsible = jQuery('#dep_responsible').val();
+        var chequeno = jQuery('#dep_chequeno').val();
+        var bank = jQuery('#dep_bank').val();
+        var bank_id = jQuery('#rec_bank').val();
+        if (customerno < 1)
+        {
+            jQuery("#cust_err").show();
+            jQuery("#cust_err").fadeOut(6000);
+            return false;
+        }
+        if (type == '0')
+        {
+            if (amount == '')
+            {
+                jQuery("#amount_err").show();
+                jQuery("#amount_err").fadeOut(6000);
+                return false;
+            }
+        } else if (type == '1') {
+            if (chequeno == '')
+            {
+                jQuery("#cheque_err").show();
+                jQuery("#cheque_err").fadeOut(6000);
+                return false;
+            }
+            if (bank == '')
+            {
+                jQuery("#bank_err").show();
+                jQuery("#bank_err").fadeOut(6000);
+                return false;
+            }
+            if (amount == '')
+            {
+                jQuery("#amount_err").show();
+                jQuery("#amount_err").fadeOut(6000);
+                return false;
+            }
+        } else {
+            jQuery("#type_err").show();
+            jQuery("#type_err").fadeOut(6000);
+            return false;
+        }
+        if (responsible < 1)
+        {
+            jQuery("#respons_err").show();
+            jQuery("#respons_err").fadeOut(6000);
+            return false;
+        }
+        if (bank_id < 1)
+        {
+            jQuery("#bank_id_err").show();
+            jQuery("#bank_id_err").fadeOut(6000);
+            return false;
+        } else {
+            jQuery("#depositform").submit()
+        }
+    }
+    function getCust() {
+        jQuery("#icustomer").autocomplete({
+            source: "route_ajax.php?customername=getcust",
+            select: function (event, ui) {
+                /*clear selected value */
+                jQuery(this).val(ui.item.value);
+                jQuery('#cno').val(ui.item.cid);
+                jQuery('#cname').val(ui.item.cname);
+                jQuery('#price').val(ui.item.unitprice);
+                jQuery('#renewal').val(ui.item.renewal);
+                jQuery("#invamt").val('');
+                jQuery("#pamt").val('');
+                jQuery("#tamt").val('');
+                return false;
+            }
+        });
+    }
+    function deleteDeposit(id, name) {
+        if (confirm('Do you want to delete transaction "' + name + '"?')) {
+            jQuery.ajax({
+                url: "route_ajax.php",
+                type: 'POST',
+                cache: false,
+                data: {deleteDeposit: id},
+                dataType: 'html',
+                success: function (html) {
+                    if (html == 'Success') {
+                        alert("Successfully deleted.");
+                        window.location.reload();
+                    } else {
+                        alert("Failed");
+                        return false;
+                    }
+                }
+            });
+        } else {
+            return false;
+        }
+    }
+</script>

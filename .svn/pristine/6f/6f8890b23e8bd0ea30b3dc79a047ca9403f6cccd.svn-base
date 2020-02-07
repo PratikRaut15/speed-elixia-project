@@ -1,0 +1,89 @@
+/*
+* @Author: shrikant
+* @Date:   2019-02-26 11:38:12
+* @Last Modified by:   shrikant
+* @Last Modified time: 2019-02-26 11:39:42
+*/
+.rt{
+        opacity: 0.6;
+    }
+    .rate3 {
+        padding:2px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        background: #ffffff; /* Old browsers */
+        background: -moz-linear-gradient(top, #ffffff 0%, #e5e5e5 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#e5e5e5)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* IE10+ */
+        background: linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%); /* W3C */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
+    }
+    .rate4 {
+        padding:2px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        background: #88bfe8; /* Old browsers */
+        background: -moz-linear-gradient(top, #88bfe8 0%, #70b0e0 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#88bfe8), color-stop(100%,#70b0e0)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #88bfe8 0%,#70b0e0 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #88bfe8 0%,#70b0e0 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #88bfe8 0%,#70b0e0 100%); /* IE10+ */
+        background: linear-gradient(to bottom, #88bfe8 0%,#70b0e0 100%); /* W3C */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#88bfe8', endColorstr='#70b0e0',GradientType=0 ); /* IE6-9 */
+    }
+    .rate5 {
+        padding:2px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        background: #ffffff; /* Old browsers */
+        background: -moz-linear-gradient(top, #ffffff 0%, #e5e5e5 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#e5e5e5)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); /* IE10+ */
+        background: linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%); /* W3C */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
+    }
+    .rate6 {
+        padding:2px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        background: #88bfe8; /* Old browsers */
+        background: -moz-linear-gradient(top, #88bfe8 0%, #70b0e0 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#88bfe8), color-stop(100%,#70b0e0)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #88bfe8 0%,#70b0e0 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #88bfe8 0%,#70b0e0 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #88bfe8 0%,#70b0e0 100%); /* IE10+ */
+        background: linear-gradient(to bottom, #88bfe8 0%,#70b0e0 100%); /* W3C */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#88bfe8', endColorstr='#70b0e0',GradientType=0 ); /* IE6-9 */
+    }
+    .vote {
+        height:30px;
+        width:auto;
+        margin-bottom:10px;
+    }
+    .ek1{
+        min-width: 50px;
+        max-width: 50px;
+    }
+    #pageloaddiv {
+        left:35%;
+        top:20%;
+        width: 20%;
+        height: 20%;
+        z-index: 2000;
+        background: url('../../images/progressbar.gif') no-repeat center center;
+    }
+    #innerImg{
+        width: auto;
+        height: auto;
+    }
+    #innerSmall{
+        position: absolute;
+        bottom: -6px;
+        left: 1px;
+        width: 35px;
+        height: 35px;
+    }

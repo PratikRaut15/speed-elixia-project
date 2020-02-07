@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title>Checkpoint Email</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type='text/css'>
+        body{
+          font-family:Arial;
+          font-size: 11pt;
+        }
+        table{
+          text-align: center;
+          border-right:1px solid black;
+          border-bottom:1px solid black;
+          border-collapse:collapse;
+          font-family:Arial;
+          font-size: 10pt;
+          width: 60%;
+        }
+        td, th{
+          border-left:1px solid black;
+          border-top:1px solid black;
+        }
+        .colHeading{
+          background-color: #D6D8EC;
+        }
+        span{
+          font-weight:bold;
+        }
+    </style>
+</head>
+<body>Dear Customer,
+    <br/><br/>
+    {{EMAIL_BODY}}
+    <br><br/><br/>
+    Regards, <br/>
+    Control Tower,<br/>
+    Email: <a href="mailto:fct@rkfoodland.com">fct@rkfoodland.com</a><br/>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<?php
+
+if (!isset($RELATIVE_PATH_DOTS) || trim($RELATIVE_PATH_DOTS) == "") {
+    $RELATIVE_PATH_DOTS = "../../";
+}
+include 'reports_route_functions.php';?>
+<?php
+class VOautocomplete {};
+if (isset($_REQUEST['action']) && $_REQUEST['action'] == "chkPtList") {
+    $checkpointmanager = new CheckpointManager($_SESSION['customerno']);
+    $checkpoints = $checkpointmanager->getcheckpointsforcustomer();
+    $chkList = '';
+    if ($checkpoints) {
+        $data = array();
+        foreach ($checkpoints as $row) {
+            $chkList .= "<option value='".$row->checkpointid."'>".$row->cname."</option>";
+        }
+    }
+    echo $chkList;
+} elseif (isset($_REQUEST['action']) && $_REQUEST['action'] == "chkTypeList") {
+    $checkpointmanager = new CheckpointManager($_SESSION['customerno']);
+    $checkpoints = $checkpointmanager->getcheckpointtypesforcustomer();
+    $chkList = '';
+    if ($checkpoints) {
+        $data = array();
+        foreach ($checkpoints as $row) {
+            $chkList .= "<option value='".$row->ctid."'>".$row->name."</option>";
+        }
+    }
+    echo $chkList;
+} elseif (isset($_REQUEST['action']) && $_REQUEST['action'] == "driverDetails") {
+    if ($_REQUEST['term'] != '') {
+        $q = '%' . $_REQUEST['term'] . '%';
+    }
+    $dm = new DriverManager($_SESSION['customerno']);
+        $drivers = $dm->serachAllocatedDriver($q);
+    if ($drivers) {
+        $data = array();
+        foreach ($drivers as $row) {
+            $driver = new VOautocomplete();
+            $driver->value = $row->drivername;
+            $driver->driverid = $row->driverid;
+            $data[] = $driver;
+        }
+        echo json_encode($data);exit;
+    }
+}elseif (isset($_REQUEST['action'])) {
+    if ($_REQUEST['term'] != '') {
+        $q = '%' . $_REQUEST['term'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->devicesformapping_byId($q);
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->value = $row->vehicleno;
+            $vehicle->vehicleid = $row->vehicleid;
+            $vehicle->groupname = $row->groupname;
+            $vehicle->deviceid = $row->deviceid;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+} elseif ($_POST['dummydata'] == 'genset') {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->devicesformapping_acsensor_byId($q);
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->vehicleno = $row->vehicleno;
+            $vehicle->vehicleid = $row->deviceid;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+} elseif ($_POST['dummydata'] == 'extradigital') {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->devicesformapping_extrasensor_byId($q);
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->vehicleno = $row->vehicleno;
+            $vehicle->vehicleid = $row->deviceid;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+} elseif ($_POST['dummydata'] == 'doorSensor') {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->door_sensor_devices($q);
+
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->vehicleno = $row->vehicleno;
+            $vehicle->vehicleid = $row->deviceid;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+} elseif ($_POST['dummydata'] == 'location') {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->devicesformapping_byId($q);
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->vehicleno = $row->vehicleno;
+            $vehicle->vehicleid = $row->deviceid;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+} elseif ($_POST['dummydata'] == 'maintenance') {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->maintenance_vehicles($q);
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->vehicleno = $row->vehicleno;
+            $vehicle->vehicleid = $row->vehicleid;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+}  elseif ($_POST['dummydata'] == 'groupList') {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $groupmanager = new GroupManager($_SESSION['customerno']);
+    $devices = $groupmanager->searchgroupname($q);
+    if (!empty($devices)) {
+        $data = array();
+        foreach ($devices as $row) {
+            $group = new stdClass();
+            $group->value = $row->groupname;
+            $group->groupid = $row->groupid;
+            $data[] = $group;
+        }
+        echo json_encode($data);exit;
+    }
+} elseif (isset($_POST['data'])) {
+    if ($_POST['data'] != '') {
+        $q = '%' . $_POST['data'] . '%';
+    }
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->devicesformapping_byId($q);
+    if ($devices) {
+        $data = array();
+        foreach ($devices as $row) {
+            $vehicle = new VOautocomplete();
+            $vehicle->vehicleno = $row->vehicleno;
+            $vehicle->vehicleid = $row->vehicleid;
+            $vehicle->groupname = $row->groupname;
+            $data[] = $vehicle;
+        }
+        echo json_encode($data);exit;
+    }
+}
+
+?>

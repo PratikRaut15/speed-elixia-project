@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Suspect Device</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: center;
+                border-right:1px solid #ccc;
+                border-bottom:1px solid #ccc;
+
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 60%;
+            }
+
+            td, th{
+                border-left:1px solid #ccc;
+                border-top:1px solid #ccc;
+                padding:5px;
+            }
+
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+
+            span{
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="color: #000000">
+            Dear  {{REALNAME}}  ,<br><p></p></br>
+            Greetings from Elixia Tech!<br/>
+            Please find the Bad Unit Remove Details. <br/></br>
+            <table style="border:1px solid #ccc;" cellspacing="0" cellpadding="0">
+                <tr style="background-color:#ccc;height:25px;">
+                    <td colspan="6" id="formheader" >Suspected Unit Details</td>
+                </tr>
+                <tr>
+                    <td >Vehicle No</td>
+                    <td > Unit No</td>
+                    <td >Simcard No</td>
+                    <td >Elixir</td>
+                    <td >Comments</td>
+                </tr>
+                <tr>
+                    <td > {{VEHICLENO}} </td>
+                    <td >{{UNITNO}}</td>
+                    <td >{{SIMCARDNO}}</td>
+
+                    <td >{{ELEXIR}}</td>
+                    <td >{{COMMENTS}}</td>
+                </tr>
+            </table></br></br><br>
+            <br/>Warm Regards, <br/>
+            Support Team,<br/>
+            Elixia Speed<br/>
+            Elixia Tech Solutions Ltd.
+            <br/><br/>
+
+            <img style="width: 240px;" src = "http://speed.elixiatech.com/images/elixia_logo_75.png" alt = "Elixia Speed logo" />
+        </div>
+
+    </body>
+</html>

@@ -1,0 +1,38 @@
+<?php
+if(IsLoggedIn())
+{
+?>
+    <div align="center">
+    <div style="width:auto">
+    <ul class="menuteam">
+		<?php if(!IsData())
+		{ 	?>             
+    <li><a href='purchase.php'>Purchase</a></li>                    
+    <?php
+    if(IsHead() || IsService())
+    {
+    ?>
+        <li><a href='testing.php'>Testing</a></li>                                
+    <?php
+    }
+    ?>
+    <li><a href='customers.php'>Sales</a></li>        
+    <li><a href='devices.php'>Search</a></li>            
+    <?php
+    if(IsHead())
+    {
+    ?>
+    <li><a href='team.php'>Team</a></li>   
+<?php 
+    }
+} 
+?>    
+    <li><a href='realtime.php'>Data</a></li>  
+    <li><a href='alerthist.php'>Alerts</a></li>  
+    <li><a href='logout.php'>Log Out</a></li>
+    </ul>
+    </div>
+    </div>
+<?php 
+} 
+?>    

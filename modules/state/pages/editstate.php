@@ -1,0 +1,57 @@
+<?php $state = getstate($_REQUEST['stateid']);?>
+<form method="POST" id="editstate" class="form-horizontal well "  style="width:70%;">
+    <?php include 'panels/editstate.php';?>
+    
+	<fieldset>
+			<div class="control-group">
+			<div class="input-prepend ">
+			<span class="add-on">Name <span class="mandatory">*</span></span> <input type="text" name="name" id="name" placeholder="Name" value="<?php echo $state->name;?>" autofocus>
+                
+			</div>
+			<div class="input-prepend ">
+			<span class="add-on">Code <span class="mandatory">*</span></span>  <input type="text" name="code" id="code" placeholder="Code" value="<?php echo $state->code;?>">
+                
+			</div>
+			</div>
+	</fieldset>
+    
+    
+	<fieldset>
+			<div class="control-group">
+			<div class="input-prepend ">
+			<span class="add-on">Address <span class="mandatory">*</span></span> <textarea type="text" name="address" id="address" placeholder="Address"><?php echo $state->address;?></textarea>
+                
+			</div>
+                        <div class="input-prepend ">
+			<span class="add-on"><?php echo($_SESSION["nation"]); ?> </span>
+                        <select id="nationid" name="nationid">
+                            <option value="">Select <?php echo($_SESSION["nation"]); ?></option>
+                            <?php
+                            $nations = getnations($_SESSION['userid']);
+                            if(isset($nations))
+                            {
+                            foreach ($nations as $nation)
+                            {
+                                if($state->nationid == $nation->nationid){
+                                echo "<option value='$nation->nationid' selected='selected'>$nation->name</option>";
+                                }
+                                else{
+                                echo "<option value='$nation->nationid'>$nation->name</option>";
+                                }
+                            }
+                            }
+                            ?>
+                        </select>
+                
+			</div>
+                        </div>
+        </fieldset>
+	
+	<fieldset>
+                  <div class="control-group pull-right">
+                      <input type="hidden" value="<?php echo $state->stateid;?>" name="stateid" id="stateid">
+                        <input type="button" value="Edit <?php echo($_SESSION["state"]); ?>" class="btn btn-primary" onclick="editstate();">
+                  </div>    
+	</fieldset>
+    
+</form>

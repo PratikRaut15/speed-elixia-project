@@ -1,0 +1,264 @@
+<?php
+include_once '../../lib/bo/VehicleManager.php';
+include_once '../../lib/bo/GroupManager.php';
+include_once '../../lib/bo/CustomerManager.php';
+include_once '../../lib/bo/MaintananceManager.php';
+$userid = $_SESSION['userid'];
+$customerno = $_SESSION['customerno'];
+$groupmanager = new GroupManager($customerno);
+$customermanager = new CustomerManager();
+$vmmanager = new VehicleManager($customerno);
+$roles = $vmmanager->setMaintenanceRoles($customerno);
+$mainmanager = new MaintananceManager($customerno);
+/*  Rendering limited options for consignee/distributor starts here  */
+    if(isset($_SESSION['username']) && isset($_SESSION['role_modal']) && strtolower($_SESSION['role_modal']) == 'consignee') 
+    {
+?>            <ul class="nav pull-right">
+            <li class="dropdown">
+            <a data-intro="Manage your Account" data-position="bottom" data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop3" href="javascript:void(0);"><?php if (isset($_SESSION['username'])) {
+                                                                                                                                                                                        ?><?php
+                                echo $_SESSION['username'];
+                            }
+                            ?><b class="caret"></b></a>
+                <ul aria-labelledby="drop3" role="menu" class="dropdown-menu">
+                    <?php
+                    echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/logout.php' title='Log Out' tabindex='-1' role='menuitem'>Log Out</a></li>";
+                    ?>
+                </ul>
+            </li>
+        </ul>
+<?php         
+    }
+    else
+    {
+
+        if (isset($_SESSION['username'])) {
+            
+            ?>
+
+            <ul class="nav pull-right">
+                <?php
+                if (isset($_SESSION['use_secondary_sales'])) {
+                    if ($_SESSION["use_secondary_sales"] == 1) {
+                        include_once '../../lib/bo/StateManager.php';
+                        $state_manager2 = new StateManager($customerno);
+                        $states = $state_manager2->get_all_stateslist();
+                        if ($_SESSION['customerno'] != '170' && $_SESSION['customerno'] != '207') {
+                            ?>
+                            <li>
+                                <div class="styled-select" style="margin-right:5px;" data-intro="<?php 
+                                                                                                    ?> your State" data-position="left">
+                                    <select id="stateid2" name="stateid2" onChange="statechange()" class="input-mini">
+                                        <?php
+                                        $state_id2 = "";
+                                        $state_id2 .= "<option value = '0'>-All-</option>";
+                                        if (isset($states)) {
+                                            foreach ($states as $state) {
+                                                if ($_SESSION['stateid'] == $state->stateid) {
+                                                    $state_id2 .= "<option value = '$state->stateid' selected='selected'>$state->statename</option>";
+                                                } else {
+                                                    $state_id2 .= "<option value = '$state->stateid'>$state->statename</option>";
+                                                }
+                                            }
+                                        }
+                                        ?>
+                                        <?php echo $state_id2; ?>
+                                    </select>
+                                </div>
+                            </li>
+                        <?php
+                    }
+                }
+            }
+            ?>
+                <li>
+                    <?php
+                    // 170 207
+                    if ($_SESSION["customerno"] != '196' && $_SESSION["customerno"] != '170' && $_SESSION["customerno"] != '207' && $_SESSION['switch_to'] != 9) {
+                        ?>
+                        <div class="styled-select" data-intro="<?php echo ($_SESSION['group']); ?> your vehicles" data-position="left">
+                            <select id="grouplist" name="grouplist" onChange="updategroupid()" class="input-mini">
+                                <?php
+                                $groups = $groupmanager->getgroupsbyuserid($userid);
+                                if (isset($groups)) {
+
+                                    if ($_SESSION['group'] == "Branch") {
+                                        echo "<option value='0'>All " . $_SESSION['group'] . "es</option>";
+                                    } else {
+                                        echo "<option value='0'>All " . $_SESSION['group'] . "s</option>";
+                                    }
+
+                                    foreach ($groups as $group) {
+                                        if ($group->groupid != $_SESSION["groupid"]) {
+                                            echo "<option value='$group->groupid'>$group->groupname</option>";
+                                        } else if ($group->groupid == $_SESSION["groupid"]) {
+                                            echo "<option value='$group->groupid' selected='selected'>$group->groupname</option>";
+                                        }
+                                    }
+                                } else {
+                                    if ($_SESSION['group'] == "Branch") {
+                                        echo "<option value='0'>All " . $_SESSION['group'] . "es</option>";
+                                    } else {
+                                        echo "<option value='0'>All " . $_SESSION['group'] . "s</option>";
+                                    }
+                                    $groupss = $groupmanager->getallgroups();
+                                    if (isset($groupss)) {
+                                        foreach ($groupss as $group) {
+                                            if ($group->groupid != $_SESSION["groupid"]) {
+                                                echo "<option value='$group->groupid'>$group->groupname</option>";
+                                            } else if ($group->groupid == $_SESSION["groupid"]) {
+                                                echo "<option value='$group->groupid' selected='selected'>$group->groupname</option>";
+                                            }
+                                        }
+                                    }
+                                    echo "<option value='add' style='color:black;'>Create " . $_SESSION['group'] . "...</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    <?php
+                }
+                ?>
+                </li>
+                <?php if ($_SESSION["customerno"] != '170' && $_SESSION["customerno"] != '207') {
+                    ?>
+                    <li class="dropdown">
+                        <a>
+                            <?php
+                            $sms = $customermanager->pullsmsdetails($customerno);
+                            //echo("SMS Left: " . $sms->smsleft . "/" . $sms->totalsms);
+                            echo ("SMS Left: " . $sms->smsleft);
+                            ?>
+                        </a>
+                    </li>
+                <?php } ?>
+                <li class="dropdown">
+                    <a data-intro="Manage your Account" data-position="bottom" data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop3" href="javascript:void(0);"><?php if (isset($_SESSION['username'])) {
+                                                                                                                                                                                        ?><?php
+                                echo $_SESSION['username'];
+                            }
+                            ?><b class="caret"></b></a>
+                    <ul aria-labelledby="drop3" role="menu" class="dropdown-menu">
+                        <?php
+                        echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/accinfo.php' title='My Account' tabindex='-1' role='menuitem'>My Account</a></li>";
+                        $roleIdsWithLimitedPrivileges = array(9, 11, 12, 13, 14, 15, 16, 17, 39, 43, 47);
+                        if (!in_array($_SESSION['roleid'], $roleIdsWithLimitedPrivileges)) {
+                            echo "<li class='divider' role='presentation'></li>";
+                            if ($_SESSION['roleid'] != 7 && $_SESSION['userid'] != 391 && $_SESSION['userid'] != 392 && $_SESSION['customerno'] != 170 && $_SESSION['customerno'] != 207) {
+                                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/accinfo.php?id=2' title='Contract Information' tabindex='-1' role='menuitem'> Inventory Management</a></li>";
+                                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/accinfo.php?id=6' title='Contract Information' tabindex='-1' role='menuitem'> Account Summary</a></li>";
+                                if ($_SESSION['customerno'] == 64) {
+                                    echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/accinfo.php?id=7' title='Contract Information' tabindex='-1' role='menuitem'>MIS Reports</a></li>";
+                                }
+
+                                echo "<li class='divider' role='presentation'></li>";
+                                if ($_SESSION['customerno'] != 174) {
+                                    echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/accinfo.php?id=3' title='Alerts' tabindex='-1' role='menuitem'>Alerts</a></li>";
+                                }
+                            }
+                            if ($_SESSION['portable'] != '1') {
+                                if ($_SESSION["role_modal"] == 'Administrator' || $_SESSION["role_modal"] == 'elixir' || $_SESSION["role_modal"] == 'Master' || $_SESSION["roleid"] == '18') {
+                                    if ($_SESSION['customerno'] != 174 && $_SESSION['customerno'] != 170 && $_SESSION['customerno'] != 207) {
+                                        echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/accinfo.php?id=4' title='Customize' tabindex='-1' role='menuitem'>Customize</a></li>";
+                                        echo "<li class='divider' role='presentation'></li>";
+                                    }
+                                }
+                            }
+                            echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/support/support.php' tabindex='-1' role='menuitem'>Support</a></li>";
+                            if ($_SESSION['use_tracking'] == '1' && $switch_to != 0) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(0);' role='menuitem' style='cursor:pointer;'>Switch To Tracking</a></li>";
+                            }
+                            /*
+                            // Remove Maintenance - switch (GP)
+                            if ($_SESSION['use_maintenance'] == '1' && $switch_to != 1) {
+                                $mahindraUsersarr = array(298, 1043, 299, 6639, 217);  //Restrict mantenance module access for MahFin Users
+                                if (in_array($_SESSION['userid'], $mahindraUsersarr) && $_SESSION['customerno'] == '64'){
+                                //if($_SESSION['customerno'] == '64'){
+                                    echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(1);' role='menuitem' style='cursor:pointer;'>Switch To Maintenance</a></li>";
+                                }elseif($_SESSION['customerno'] != '64'){
+                                    echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(1);' role='menuitem' style='cursor:pointer;'>Switch To Maintenance</a></li>";
+                                }
+                            }
+                            * 
+                            */
+                            if ($_SESSION['use_delivery'] == '1' && $switch_to != 2) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(2);' role='menuitem' style='cursor:pointer;'>Switch To Delivery</a></li>";
+                            }
+                            if ($_SESSION['use_warehouse'] == '1' && $switch_to != 3) {
+                                if (isset($_SESSION['Warehouse'])) {
+                                    $custom = $_SESSION['Warehouse'];
+                                } else {
+                                    $custom = "Warehouse";
+                                }
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(3);' role='menuitem' style='cursor:pointer;'>Switch To " . $custom . "</a></li>";
+                            }
+                            if ($_SESSION['use_routing'] == '1' && $switch_to != 4) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(4);' role='menuitem' style='cursor:pointer;'>Switch To Delivery</a></li>";
+                            }
+                            if ($_SESSION['use_mobility'] == '1' && $switch_to != 5) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(5);' role='menuitem' style='cursor:pointer;'>Switch To Service Call</a></li>";
+                            }
+                            if ($_SESSION['use_secondary_sales'] == '1' && $switch_to != 6) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(6);' role='menuitem' style='cursor:pointer;'>Switch To Secondary Sales</a></li>";
+                            }
+                            if ($_SESSION['use_pickup'] == '1' && $switch_to != 7) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(7);' role='menuitem' style='cursor:pointer;'>Switch To Pickup</a></li>";
+                            }
+                            if ($_SESSION['use_pickup'] == '1' && $switch_to != 10 && $_SESSION['customerno'] == 127) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(10);' role='menuitem' style='cursor:pointer;'>Switch To Wow Now</a></li>";
+                            }
+                            if ($_SESSION['use_sales'] == '1' && $switch_to != 8) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(8);' role='menuitem' style='cursor:pointer;'>Switch To Sales Engagement</a></li>";
+                            }
+                            if ($_SESSION['customerno'] == '2' && $switch_to != 12) {
+                                echo "<li role='presentation'><a tabindex='-1' onclick='switch_to(12);' role='menuitem' style='cursor:pointer;'>Switch To Secondary TMS</a></li>";
+                            }
+                        }
+
+                        //heirarchyid=0 shows loginhistory to (head level roles)
+                        $heirarchyid = $_SESSION['heirarchy_id'];
+
+
+
+                        if ($_SESSION['role_modal'] == 'elixir' || $_SESSION['role_modal'] == 'Administrator' || ($_SESSION['use_maintenance'] == '1' && $heirarchyid != ' ' && $heirarchyid == 0)) {
+                            echo "<li class='divider' role='presentation'></li>";
+                            echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/loginhistory.php' title='Login History' tabindex='-1' role='menuitem'>Login History</a></li>";
+                        }
+                        echo "<li class='divider' role='presentation'></li>";
+                        echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/logout.php' title='Log Out' tabindex='-1' role='menuitem'>Log Out</a></li>";
+                        ?>
+                    </ul>
+                </li>
+                <?php
+                if ($_SESSION["customerno"] == '9') {
+                    echo '<a href="" class="brandnew"><img src="../../images/9/etnowlogo.png"></img></a>';
+                }
+                ?>
+            </ul>
+        <?php
+        } else if (isset($_SESSION['ecodeid'])) {
+            ?>
+            <ul class="nav pull-right">
+                <li class="dropdown">
+                    <a data-intro="Manage your Account" data-position="bottom" data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop3" href="javascript:void(0);"><?php if (isset($_SESSION['ecodeid'])) {
+                                                                                                                                                                                        ?><?php
+                            echo " &nbsp;&nbsp;&nbsp;<strong> Elixiacode - " . $_SESSION['ecodeid'] . "</strong>&nbsp;&nbsp;&nbsp;";
+                        }
+                        ?><b class="caret"></b></a>
+                    <ul aria-labelledby="drop3" role="menu" class="dropdown-menu">
+                        <?php
+                        echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/user/logout.php' title='Log Out' tabindex='-1' role='menuitem'>Log Out</a></li>";
+                        ?>
+                    </ul>
+                </li>
+                <?php
+                if ($_SESSION["customerno"] == '9') {
+                    echo '<a href="" class="brandnew"><img src="../../images/9/etnowlogo.png"></img></a>';
+                }
+                ?>
+            </ul>
+        <?php
+        }
+    }
+/*  Rendering limited options for consignee/distributor ends here  */    
+?>

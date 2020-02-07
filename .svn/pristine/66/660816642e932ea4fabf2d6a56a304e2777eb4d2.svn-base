@@ -1,0 +1,464 @@
+<?php
+
+set_time_limit(180);
+session_start();
+ini_set('memory_limit', '1024M');
+//date_default_timezone_set("Asia/Calcutta");
+require_once "../../lib/system/utilities.php";
+require_once '../../lib/autoload.php';
+include '../../lib/bo/simple_html_dom.php';
+$excel = true;
+$geocode = '1';
+ob_start();
+if ($_REQUEST['report'] == 'travelhist') {
+    include_once 'reports_travel_functions.php';
+    $groupname = $_SESSION['groupname'];
+    get_travel_history_report_excel($_REQUEST['customerno'], $_REQUEST['vehicleid'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'], $geocode, $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_travelhistory.xls");
+} elseif ($_REQUEST['report'] == 'genset') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getgensetreportexcel($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_GensetReport.xls");
+} elseif ($_REQUEST['report'] == 'gensetsummary') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getgensetreportexcelsummary($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_GensetReport.xls");
+} elseif ($_REQUEST['report'] == 'gensetdetails') {
+    $groupname = isset($_SESSION['groupname']) ? $_SESSION['groupname'] : null;
+    include_once 'reports_common_functions.php';
+    $cat = getgensetreportexceldetails($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime'], $groupname, $_REQUEST['gensetSensor']);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_GensetReport.xls");
+} elseif ($_REQUEST['report'] == 'extra') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getextrareportexcel($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['extraid'], $_REQUEST['extraval'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_GensetReport.xls");
+} elseif ($_REQUEST['report'] == 'temperature') {
+    include_once 'reports_common_functions.php';
+    //$cat = gettempreportxls($_REQUEST['customerno'],$_REQUEST['sdate'],$_REQUEST['edate'],$_REQUEST['vehicleid'],$_REQUEST['vehicleno'],$_REQUEST['interval'],$_REQUEST['stime'],$_REQUEST['etime'], $_REQUEST['switchto']);
+    $groupname = $_SESSION['groupname'];
+    echo $cat = gettempreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], $groupname, 'xls', $_REQUEST['tempselect']);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_TemperatureReport.xls");
+} elseif ($_REQUEST['report'] == 'humidity') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    //$cat = gethumidityreportxls($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto']);
+    $cat = gethumidityreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], $groupname, 'xls');
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_TemperatureReport.xls");
+} elseif ($_REQUEST['report'] == 'temphumidity') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = gettemphumidityreportxls($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_Temperature&HumidityReport.xls");
+} elseif ($_REQUEST['report'] == 'tempException') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = gettempreportxlsExcep($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['tempselect'], $_REQUEST['switchto'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_TemperatureExceptionReport.xls");
+} elseif ($_REQUEST['report'] == 'location') {
+    $groupname = $_SESSION['groupname'];
+    include_once 'reports_location_functions.php';
+    if (isset($_REQUEST['interval']) && $_REQUEST['distance'] == 'undefined') {
+        $cat = getlocationreportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], null, $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['userid'], $_REQUEST['tripid'], $_REQUEST['triplogno'], $groupname);
+    } elseif (isset($_REQUEST['distance']) && $_REQUEST['interval'] == 'undefined') {
+        $cat = getlocationreportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], null, $_REQUEST['distance'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['userid'], $_REQUEST['tripid'], $_REQUEST['triplogno'], $groupname);
+    }
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_LocationReport.xls");
+} elseif ($_REQUEST['report'] == 'stoppage') {
+    include_once 'reports_stoppage_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getstoppagereportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_StoppageReport.xls");
+} elseif ($_REQUEST['report'] == 'overspeed') {
+    include_once 'reports_overspeed_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getoverspeedreportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_OverspeedReport.xls");
+} elseif ($_REQUEST['report'] == 'alerthistory') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getalertreportxls($_REQUEST['sdate'], $_REQUEST['alerttype'], $_REQUEST['vehicleid'], $_REQUEST['chkid'], $_REQUEST['fenceid'], $_REQUEST['vehicleno'], $_REQUEST['customerno'], $_REQUEST['alertmode'], $_REQUEST['switchto'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_AlertHistoryReport.xls");
+} elseif ($_REQUEST['report'] == 'checkpointAll') {
+    include_once 'reports_chk_all_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $cat = getchkreportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['temp_sensors'], $groupname);
+    $xls_filename = "AllVehicle_" . date("d-m-Y") . "_CheckpointReport.xls";
+} elseif ($_REQUEST['report'] == 'FuelConsumption') {
+    $groupname = $_SESSION['groupname'];
+    include_once 'reports_fuelefficiency_functions.php';
+    $vehicles = GetVehicles_SQLite();
+    $use_hierarchy = isset($_REQUEST['use_hierarchy']) ? $_REQUEST['use_hierarchy'] : null;
+    $cat = getfuelconsumptioncsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $groupname);
+    $xls_filename = str_replace(' ', '', $vehicles[$_REQUEST['vehicleid']]['vehicleno'] . "_" . date("d-m-Y") . "_FuelConsumptionReport.xls");
+} elseif ($_REQUEST['report'] == 'FuelConsumptionNew') {
+    require_once 'reports_fuel_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $cat = get_fuelcomsumption_xls($customerno, $_REQUEST['STdate'], $_REQUEST['STime'], $_REQUEST['EDdate'], $_REQUEST['ETime'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $groupname);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_FuelConsumption.xls");
+} elseif ($_REQUEST['report'] == 'DistanceReport') {
+    include_once 'reports_common_functions.php';
+    include_once 'distancereport_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $cat = getdistancereportcsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_DistanceReport.xls");
+}
+/*Single Vehicle Report in Excel*/
+elseif ($_REQUEST['report'] == 'VehicleDistanceReport') {
+    /*print("<pre>"); print_r($_REQUEST);
+    die;*/
+    include_once 'reports_common_functions.php';
+    include_once 'distancereport_functions.php';
+    $groupname = $_SESSION['groupname'];
+
+    //print("<pre>"); print_r($_REQUEST); die;
+
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $cat = getVehicledistancereportcsv($_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_VehicleDistanceReport.xls");
+} elseif ($_REQUEST['report'] == 'IdeltimeReport') {
+    include_once 'reports_common_functions.php';
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $groupname = $_SESSION['groupname'];
+    $cat = getideltimereportcsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_IdeltimeReport.xls");
+} elseif ($_REQUEST['report'] == 'GensetReport') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $cat = getgensetreportcsv_All($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_GensetReport.xls");
+} elseif ($_REQUEST['report'] == 'Overspeed_Report') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $cat = getoverspeed_reportcsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_Overspeed_Report.xls");
+} elseif ($_REQUEST['report'] == 'Fence_Report') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $use_hierarchy = retval_issetor($use_hierarchy);
+    $cat = getfence_reportcsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_FenceConflict_Report.xls");
+} elseif ($_REQUEST['report'] == 'Location_Report') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $use_hierarchy = isset($_REQUEST['use_hierarchy']) ? $_REQUEST['use_hierarchy'] : null;
+    $cat = getlocation_reportcsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_Location_Report.xls");
+} elseif ($_REQUEST['report'] == 'Fuel_Report') {
+    include_once 'reports_common_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $cat = getFuel_reportcsv($_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_Fuel_Report.xls");
+} elseif ($_REQUEST['report'] == 'fuelHistMaintenance') {
+    include_once 'reports_fuelefficiency_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $sortdata_arr = array(
+        'sortorder' => $_REQUEST['sortorder'],
+        'sortcol' => $_REQUEST['sortcol'],
+        'vehiclenof' => $_REQUEST['vehiclenof'],
+        'transactionidf' => $_REQUEST['transactionidf'],
+        'seatcapacityf' => $_REQUEST['seatcapacityf'],
+        'fuelf' => $_REQUEST['fuelf'],
+        'amountf' => $_REQUEST['amountf'],
+        'ratef' => $_REQUEST['ratef'],
+        'refnof' => $_REQUEST['refnof'],
+        'startkmf' => $_REQUEST['startkmf'],
+        'endkmf' => $_REQUEST['endkmf'],
+        'netkmf' => $_REQUEST['netkmf'],
+        'averagef' => $_REQUEST['averagef'],
+        'dealerf' => $_REQUEST['dealerf'],
+        'datef' => $_REQUEST['datef'],
+        'srnof' => $_REQUEST['srnof'],
+        'addamtf' => $_REQUEST['addamtf'],
+        'notesf' => $_REQUEST['notesf'],
+        'ofasnumberf' => $_REQUEST['ofasnumberf'],
+        'chequenof' => $_REQUEST['chequenof'],
+        'chequeamountf' => $_REQUEST['chequeamountf'],
+        'chequedatef' => $_REQUEST['chequedatef'],
+        'tdsamountf' => $_REQUEST['tdsamountf']
+    );
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $cat = generate_maintenance_fuel_xls($_REQUEST['vehicleid'], $_REQUEST['vehno'], $_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['dealer'], $customerno, $sortdata_arr, $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_Fuel_Hist.xls");
+} elseif ($_REQUEST['report'] == 'Trip_Report') {
+    include_once 'reports_fuelefficiency_functions.php';
+    $cat = print_Trip_report_csv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['chk_start'], $_REQUEST['chk_end'], $_REQUEST['chk_via'], $_REQUEST['reporttype'],$_REQUEST['chktype'],$_REQUEST['vehicleid']);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_Trip_Report.xls");
+} elseif ($_REQUEST['report'] == 'harsh_break') {
+    require_once 'reports_advanced_functions.php';
+    $groupname = $_SESSION['groupname'];
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    $cat = generate_excel_harsh_break($STdate, $EDdate, $groupname);
+    $xls_filename = date("d-m-Y") . "_HarshBreak_Report.xls";
+} elseif ($_REQUEST['report'] == 'sudden_acc') {
+    require_once 'reports_advanced_functions.php';
+    $groupname = $_SESSION['groupname'];
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    $cat = generate_excel_sudden_acc($STdate, $EDdate, $groupname);
+    $xls_filename = date("d-m-Y") . "_Sudden_Acceleration.xls";
+} elseif ($_REQUEST['report'] == 'sharp_turn') {
+    require_once 'reports_advanced_functions.php';
+    $groupname = $_SESSION['groupname'];
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    $cat = generate_excel_sharp_turn($STdate, $EDdate, $groupname);
+    $xls_filename = date("d-m-Y") . "_Sharp_Turn.xls";
+} elseif ($_REQUEST['report'] == 'towing') {
+    require_once 'reports_advanced_functions.php';
+    $groupname = $_SESSION['groupname'];
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    $cat = generate_excel_towing($STdate, $EDdate, $groupname);
+    $xls_filename = date("d-m-Y") . "_Towing.xls";
+} elseif ($_REQUEST['report'] == 'doorHist') {
+    require_once 'reports_door_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $vehicleno = retval_issetor($_REQUEST['vehicleno']);
+    if ($_SESSION['customerno'] == speedConstants::CUSTNO_RKFOODLANDS && $_SESSION['switch_to'] == 3) {
+        $cat = getDoubleDoorHist_excel($customerno, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $vehicleno, $groupname);
+    }else{
+        $cat = getDoorHist_excel($customerno, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $vehicleno, $groupname);
+    }
+
+    $xls_filename = str_replace(' ', '', $vehicleno . '_' . date("d-m-Y") . "_DoorHistory.xls");
+} elseif ($_REQUEST['report'] == 'routeSmry') {
+    require_once 'route_summary_functions.php';
+    $groupname = $_SESSION['groupname'];
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $cat = getRouteSummary_excel($_REQUEST['sdate'], $_REQUEST['edate'], $customerno, $groupname);
+    $xls_filename = date("d-m-Y") . "_RouteSummary.xls";
+} elseif ($_REQUEST['report'] == 'routeTatSmry') {
+    require_once 'route_summary_functions.php';
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $groupname = $_SESSION['groupname'];
+    $cat = getRouteTatSummary_pdf($_REQUEST['sdate'], $_REQUEST['edate'], $customerno, 'xls', $_REQUEST['grpid'], $_REQUEST['routelist'], $groupname);
+    $xls_filename = date("d-m-Y") . "_RoutewiseTrackingReport.xls";
+} elseif ($_REQUEST['report'] == 'vehrenewal') {
+    require_once 'reports_renewal_functions.php';
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $cat = getvehicles_renewal_xls();
+    $xls_filename = date("d-m-Y") . "_vehicle_renewals.xls";
+} elseif ($_REQUEST['report'] == 'transHistMaintenance') {
+    include_once 'reports_fuelefficiency_functions.php';
+    $customerno = $_SESSION['customerno'];
+    $groupname = $_SESSION['groupname'];
+    $cat = xls_maintenance_trans_hist($_REQUEST['vehicleid'], $_REQUEST['vehno'], $_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['dealer'], $customerno, $_REQUEST['category'], $_REQUEST['status'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_Transaction_Hist.xls");
+} elseif ($_REQUEST['report'] == 'loginhistory') {
+    require_once '../user/user_functions.php';
+    $groupname = $_SESSION['groupname'];
+    if (isset($_REQUEST['sdate']) && isset($_REQUEST['edate'])) {
+        $cat = getloginhistorycsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'], $groupname);
+    }
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_loginhistory.xls");
+} elseif ($_REQUEST['report'] == 'maintenanceuser') {
+    require_once '../account/account_functions.php';
+    $cat = getmaintenanceusers($_REQUEST['customerno'], $_REQUEST['userid'], $_REQUEST['roleid']);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_userlist.xls");
+} elseif ($_REQUEST['report'] == 'callreport') {
+    include_once '../sales/sales_function.php';
+    $customerno = $_REQUEST['customerno'];
+    $userid = $_REQUEST['userid'];
+    $prevdate = $_REQUEST['prevdate'];
+    $startdate = $_REQUEST['startdate'];
+    $enddate = $_REQUEST['enddate'];
+    $srarr = $_REQUEST['srarr'];
+    $srid = $_REQUEST['srid'];
+
+
+    if ($srid != 0) {
+        $datatest = array(
+            'srid' => $srid,
+            'prevdate' => $prevdate,
+            'startdate' => $startdate,
+            'enddate' => $enddate,
+            'userid' => $userid,
+            'customerno' => $customerno,
+            'srarr' => $srarr
+        );
+    }
+    $cat = excel_callreport($datatest);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_callreport.xls");
+} elseif ($_REQUEST['report'] == 'skuorderdetails') {
+    include_once '../sales/sales_function.php';
+    $customerno = $_REQUEST['customerno'];
+    $userid = $_REQUEST['userid'];
+    $prevdate = $_REQUEST['prevdate'];
+    $stdate = $_REQUEST['stdate'];
+    $edate = $_REQUEST['edate'];
+    $srarr = $_REQUEST['srarr'];
+    $srid = $_REQUEST['srid'];
+    $suplist = $_REQUEST['suplist'];
+    $srlist = $_REQUEST['srlist'];
+
+    if ($srid != 0) {
+        $datatest = array(
+            'srid' => $srid,
+            'prevdate' => $prevdate,
+            'stdate' => $stdate,
+            'edate' => $edate,
+            'userid' => $userid,
+            'customerno' => $customerno,
+            'srarr' => $srarr,
+            'suplist' => $suplist,
+            'srlist' => $srlist
+        );
+    }
+    $cat = excel_stylereport($datatest);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_stylereport.xls");
+} elseif ($_REQUEST['report'] == 'salessummaryreport') {
+    include_once '../sales/sales_function.php';
+    $customerno = $_REQUEST['customerno'];
+    $userid = $_REQUEST['userid'];
+    $prevdate = $_REQUEST['prevdate'];
+    $stdate = $_REQUEST['stdate'];
+    $edate = $_REQUEST['edate'];
+    $srarr = $_REQUEST['srarr'];
+    $srid = $_REQUEST['srid'];
+    $supid = $_REQUEST['supid'];
+    $bysupervisor = $_REQUEST['bysupervisor'];
+
+    if ($srid != 0) {
+        $datatest = array(
+            'srid' => $srid,
+            'prevdate' => $prevdate,
+            'stdate' => $stdate,
+            'edate' => $edate,
+            'userid' => $userid,
+            'customerno' => $customerno,
+            'srarr' => $srarr,
+            'suplist' => $supid,
+            'srlist' => $srid,
+            'bysupervisor' => $bysupervisor
+        );
+    }
+    $cat = excel_sales_summaryreport($datatest);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_sales_summary_report.xls");
+} elseif ($_REQUEST['report'] == 'inactive') {
+    require_once 'reports_common_functions.php';
+    ob_start();
+    $cat = getInactiveDevicePDF($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate']);
+
+    $xls_filename = str_replace(' ', '', "inactice_device_" . date("d-m-Y") . ".xls");
+}
+elseif($_REQUEST['report'] == 'vehiclereport'){
+require_once '../account/account_functions.php';
+    $cat = getvehiclelist($_REQUEST['customerno'], $_REQUEST['userid'], $_REQUEST['roleid']);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_vehiclelist.xls");
+}
+elseif ($_REQUEST['report'] == 'salescallsummaryreport') {
+    include_once '../sales/sales_function.php';
+    $customerno = $_REQUEST['customerno'];
+    $userid = $_REQUEST['userid'];
+    $startdate = $_REQUEST['stdate'];
+    $enddate = $_REQUEST['edate'];
+    $srarr = $_REQUEST['srarr'];
+    $srid = $_REQUEST['srid'];
+    // $supid = $_REQUEST['supid'];
+    // $bysupervisor = $_REQUEST['bysupervisor'];
+    if ($srid != 0) {
+        $datatest = array(
+            'srid' => $srid,
+            // 'prevdate' => $prevdate,
+            'startdate' => $startdate,
+            'enddate' => $enddate,
+            'userid' => $userid,
+            'customerno' => $customerno,
+            'srarr' => $srarr,
+            // 'suplist' => $supid,
+            'srlist' => $srid,
+            // 'bysupervisor' => $bysupervisor
+        );
+    }
+    $cat = excel_sales_call_summaryreport($datatest);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_sales_summary_report.xls");
+} elseif ($_REQUEST['report'] == 'temperature_nestle') {
+    include_once 'reports_common_functions.php';
+    //$cat = gettempreportxls($_REQUEST['customerno'],$_REQUEST['sdate'],$_REQUEST['edate'],$_REQUEST['vehicleid'],$_REQUEST['vehicleno'],$_REQUEST['interval'],$_REQUEST['stime'],$_REQUEST['etime'], $_REQUEST['switchto']);
+    $groupname = $_SESSION['groupname'];
+    echo $cat = gettempreportpdf_nestle($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], $groupname, 'xls', $_REQUEST['tempselect']);
+    $xls_filename = str_replace(' ', '', $_REQUEST['vehicleno'] . "_" . date("d-m-Y") . "_TemperatureReport.xls");
+}elseif ($_REQUEST['report'] == 'attendancedetails') {
+    include_once '../sales/sales_function.php';
+    $customerno = $_REQUEST['customerno'];
+    $userid = $_REQUEST['userid'];
+    $stdate = $_REQUEST['stdate'];
+    $edate = $_REQUEST['edate'];
+
+        $datatest = array(
+            'stdate' => $stdate,
+            'edate' => $edate,
+             'userid' => $userid,
+            'customerno' => $customerno,
+        );
+    $cat = excel_attendancereport($datatest);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_attendancereport.xls");
+}
+ elseif ($_REQUEST['report'] == 'smsStore') {
+    require_once 'reports_common_functions.php';
+    ob_start();
+    $cat = getSmsStorePDF($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate']);
+
+    $xls_filename = str_replace(' ', '', "sms_store_" . date("d-m-Y") . ".xls");
+}
+ elseif ($_REQUEST['report'] == 'inactiveVehicle') {
+    require_once 'reports_common_functions.php';
+    ob_start();
+    $cat = getInactiveVehiclePDF($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate']);
+
+    $xls_filename = str_replace(' ', '', "inactive_vehicle_" . date("d-m-Y") . ".xls");
+}
+ elseif ($_REQUEST['report'] == 'powerStatus') {
+    require_once 'power_report_function.php';
+
+    ob_start();
+    $cat = get_power_report_data($_REQUEST['vehicleid'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'],$_REQUEST['customerno'],'excel');
+
+    $xls_filename = str_replace(' ', '', "power_status_" . date("d-m-Y") . ".xls");
+}
+elseif ($_REQUEST['report'] == 'doorSensor') {
+    require_once 'reports_door_functions.php';
+    ob_start();
+$cat = get_door_sensor_report_data($_REQUEST['sdate'], $_REQUEST['edate'],$_REQUEST['deviceid'], $_REQUEST['doorsensor'],$_REQUEST['vehicleno'],'excel');
+    $xls_filename = str_replace(' ', '', "door_sensor_" . date("d-m-Y") . ".xls");
+
+}
+elseif ($_REQUEST['report'] == 'annexure') {
+    require_once 'reports_common_functions.php';
+    ob_start();
+    $cat = getAnnexurePDF($_REQUEST['customerno'],$_REQUEST['sdate'], $_REQUEST['edate'],'excel');
+      $xls_filename = str_replace(' ', '', "annexure_xls_" . date("d-m-Y") . ".xls");
+}
+elseif ($_REQUEST['report'] == 'DriverPerformanceReport') {
+    /*print("<pre>"); print_r($_REQUEST);
+    die;*/
+    include_once 'reports_common_functions.php';
+    include_once 'distancereport_functions.php';
+    $groupname = $_SESSION['groupname'];
+
+    //print("<pre>"); print_r($_REQUEST); die;
+
+    $use_hierarchy = retval_issetor($_REQUEST['use_hierarchy']);
+    $cat = getDriverPerformanceReportcsv($_REQUEST['driverid'], $_REQUEST['drivername'], $_REQUEST['customerno'], $_REQUEST['use_maintainance'], $use_hierarchy, $_REQUEST['groupid'], $_REQUEST['sdate'], $_REQUEST['edate'], $groupname);
+    $xls_filename = str_replace(' ', '', date("d-m-Y") . "_VehicleDistanceReport.xls");
+}
+$content = ob_get_clean();
+$html = str_get_html($content);
+
+if ($excel) {
+    header("Content-type: application/vnd.ms-excel");
+    header("Content-Disposition: attachment; filename=$xls_filename");
+}
+//echo $html;
+echo $content;
+?>

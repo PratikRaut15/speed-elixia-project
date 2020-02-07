@@ -1,0 +1,97 @@
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
+.bg00 {
+  background: url("https://f9ir.github.io/responsivpricingtablecss3/bg.png"); }
+
+.table {
+  margin: 100px; }
+
+.prop .rec {
+  width: 100px;
+  height: 20px;
+  display: block;
+  margin: 0 auto 30px auto;
+  visibility: hidden; }
+.prop h2 {
+  padding: 15px;
+  visibility: hidden; }
+.prop li {
+  font-family: "Montserrat", sans-serif;
+  list-style: none;
+  color: #fffff3;
+  padding: 5px;
+  margin: 5px 0;
+  display: inline-block;
+  border-bottom: 1px dashed #00a6b8; }
+
+.price {
+  background: #fffff3;
+  box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.5); }
+  .price h2 {
+    font-family: "Montserrat", sans-serif;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 15px;
+    color: #566270; }
+  .price svg {
+    display: block;
+    margin: 0 auto 30px auto;
+    width: 100px;
+    height: 100px;
+    fill: rgba(0, 161, 175, 0.29); }
+  .price li:nth-child(even) {
+    background: rgba(0, 161, 175, 0.29); }
+  .price li:nth-child(odd) {
+    background: #e0e3da; }
+  .price li {
+    list-style: none;
+    text-align: center;
+    padding: 3px;
+    margin: 10px 0; }
+  .price span {
+    display: block;
+    text-align: center;
+    font-family: "Montserrat", sans-serif;
+    font-size: 2em;
+    color: #566270; }
+    .price span strong {
+      font-size: 2.2em; }
+  .price a {
+    display: block;
+    font-family: "Montserrat", sans-serif;
+    font-size: 2em;
+    padding: 10px;
+    background: rgba(0, 161, 175, 0.29);
+    color: #fffff3;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s ease-in-out; }
+    .price a:hover {
+      background: #566270; }
+
+.visible-xs {
+  display: none; }
+
+@media (max-width: 74.9em) {
+  .table {
+    margin: 100px 0; }
+
+  .visible-xs {
+    display: none;
+    margin: 5px 0;
+    font-family: "Montserrat", sans-serif; } }
+@media (max-width: 61.9em) {
+  .prop {
+    display: none; }
+
+  .visible-xs {
+    display: block; } }
+.header-icon{
+	height:130px;
+	padding-left:55px;
+	
+}
+.check{
+	width:30px;
+	
+}

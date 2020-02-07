@@ -1,0 +1,211 @@
+.ui-autocomplete{
+  box-shadow:2px 2px 2px #666;  
+}
+
+.ui-widget-content{
+  border: 1px solid #ddd !important;
+  background: #fff !important;
+  color: #000  !important;
+}
+.ui-menu-item{
+  padding-bottom: 5px !important;
+}
+.ui-state-focus {
+  border: none !important;
+  background: #e1e1e1 !important;
+  font-weight: bold !important;
+  color: #000 !important;
+}
+.searchArea{
+  background: #fff url('../images/search.png') no-repeat right;
+}
+legend{
+    padding:0 0 0 10px !important;
+    margin-bottom: 0 !important;
+    border-bottom:0px !important;
+}
+p{
+    width: auto !important;
+}
+textarea{
+    resize: none;
+    height: 40px;
+    width:200px;
+    margin: 0 1% 3% 1% !important;
+    vertical-align:bottom;
+}
+/*select{
+     margin:0 10px 0 0 !important;
+}*/
+
+label{
+  height:auto !important;
+  width:auto !important;
+  font-weight: 600;
+  display: inline ;
+  padding-left: 10px;
+}
+
+input[type="text"] {
+  margin: 3% 1% 3% 1% !important;
+  box-shadow:2px 2px 2px #666;   
+}
+
+select{
+ margin: 3% 1% 3% 1% !important; 
+}
+
+input[type="button"] {
+  background-color: #3b5998;
+  border: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  vertical-align: middle;
+}
+input[type="submit"] {
+  background-color: #3b5998;
+  border: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  transform: translateY(4px);
+}
+
+select {
+  box-shadow:2px 2px 2px #666; 
+  max-width: 200px !important;
+}
+
+.panel{
+  width:1324px !important;
+}
+.paneltitle{
+   width:1308px !important;
+}
+.rows{
+    content: "";
+    display: table;
+    clear: both;
+    width: 100%; 
+    }
+.column {
+    border-left : 1px;
+    float: left;
+    width:40%;     
+    height: auto; /* Should be removed. Only for demonstration */
+    }
+table td{
+  vertical-align: middle !important;
+  padding: 2% 0 0 0;
+}
+h4{
+  display: inline !important;
+}
+.tableButton{
+  margin: 3% 20% 3% 20% !important;
+}
+.modal {
+    display: table;
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    margin: 0px !important;
+}
+.remarks_table{
+  text-align: center !important;
+  font-size: 12px;
+}
+.customerContainer:hover,.productContainer:hover{
+
+    background-color:#00a6b8;
+    color:white;
+}
+.customerContainer,.productContainer{
+  cursor:pointer;
+  padding:2px;
+  background-color:white;
+  color:black;
+  border-radius: 3px;
+  font-size: 15px;
+  margin:3px;
+  font-weight: 500;
+}
+.removeCustomer,.removeProduct{
+  cursor:pointer;
+  float:right; 
+  font-size: 15px;
+  font-weight: 500;
+}
+.switch-field {
+  font-family: "Lucida Grande", Tahoma, Verdana, sans-serif;
+  padding: 40px;
+    overflow: hidden;
+}
+
+.switch-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.switch-field input {
+    position: absolute !important;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    width: 1px;
+    border: 0;
+    overflow: hidden;
+}
+
+.switch-field label {
+  float: left;
+}
+
+.switch-field label {
+  padding:5px;
+  display: inline-block;
+  width: auto;
+  background-color: #e4e4e4;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  text-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition:    all 0.1s ease-in-out;
+  -ms-transition:     all 0.1s ease-in-out;
+  -o-transition:      all 0.1s ease-in-out;
+  transition:         all 0.1s ease-in-out;
+}
+
+.switch-field label:hover {
+    cursor: pointer;
+}
+
+.switch-field input:checked + label {
+  color:white;
+  font-weight: 700;
+  background-color: rgba(255,0,0,0.7);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.switch-field label:first-of-type {
+  border-radius: 4px 0 0 4px;
+}
+
+.switch-field label:last-of-type {
+  border-radius: 0 4px 4px 0;
+}

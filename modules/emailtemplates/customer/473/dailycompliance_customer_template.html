@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+		<style type='text/css'>
+			table, td { border: solid 1px; padding:10px;   }
+			hr.style-six { border: 0; height: 0; border-top: 1px solid rgba(0, 0, 0, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+		</style>
+    </head>
+    <body>
+		<div style='width:1050px;'>
+			<table style='width: 100%; border:none;'>
+				<tr>
+					<td style='width:10%; border:none;'></td>
+					<td style='width:70%; border:none;'><h3 style='text-transform:uppercase;'>Daily Temperature Compliance Report - {{REPORT_DATE}} </h3><br /> </td>
+					<td style='width:20%; border:none;'><img src='../../images/elixia_monitor_logo.png'  /></td>
+				</tr>
+			</table>
+			
+                        {{VEHICLENAME}}
+                        <hr/>
+			<table style='width: 100%; font-size:14px;'>
+					<tr>
+						<th style='width:50%;'>Details</th>
+						<th style='width:25%;'> &nbsp;</th>
+						<th style='width:25%;'>Percentage Non Compliance</th>
+					</tr>
+					<tr>
+						<td>Max Temperature</td>
+						<td>{{TEMP_MAX}} &deg;C</td> 
+						<td style="text-align: center; vertical-align: middle;" rowspan="7"><img src="data:image/png;base64,{{BASE64IMAGE_GAUGE}}" alt="Gauge" /></td>
+					</tr>
+					<tr>
+						<td>Min Temperature</td>
+						<td>{{TEMP_MIN}} &deg;C</td>
+					</tr>
+					<tr>
+						<td>No of data points</td>
+						<td>{{TOTAL_COUNT}}</td>
+					</tr>
+					<tr>
+						<td>No of data points in range</td>
+						<td>{{COMPLIANCE_COUNT}}</td>
+					</tr>
+					<tr>
+						<td>No of data points out of range</td>
+						<td>{{NON_COMPLIANCE_COUNT}}</td>
+					</tr>
+					<tr>
+						<td>Percentage Compliance</td>
+						<td>{{COMPLIANCE_PERCENT}} %</td>
+					</tr>
+					<tr>
+						<td>Percentage Non Compliance</td>
+						<td>{{NON_COMPLIANCE_PERCENT}} %</td>
+					</tr>
+			</table>
+                        <hr/>
+                       <h4>Annexure - 15 min interval temp details</h4>
+                        {{TABLEVIEW}}
+		</div>
+    </body>
+</html>

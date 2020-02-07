@@ -1,0 +1,1055 @@
+var columnLength = new Array();
+var startTime = "00:00";
+jQuery(document).ready(function () {
+    /* Auto dropdown for Vehicle No. */
+    jQuery("#vehicleno").autocomplete({
+        source: "autocomplete.php?action=vehicles",
+        minLength: 1,
+        select: function (event, ui) {
+            jQuery('#vehicleid').val(ui.item.vehicleid);
+            VehicleForRoute_ById(ui.item.vehicleid, ui.item.value);
+            ui.item.value = '';
+        }
+    });
+});
+mappedvehicles();
+function mappedvehicles() {
+	jQuery('.mappedvehicles').each(function () {
+		var vehicleid = jQuery(this).attr('rel');
+        var vehicleno = jQuery(this).val();
+        ldvehicle(vehicleno, vehicleid);
+	});
+}
+function ldvehicle(vehicleno, vehicleid)
+{
+    var selected_name = vehicleno;
+    if (vehicleid > -1 && jQuery('#to_vehicle_div_' + vehicleid).val() == null)
+    {
+        var div = document.createElement('div');
+        var remove_image = document.createElement('img');
+        remove_image.src = "../../images/boxdelete.png";
+        remove_image.className = 'clickimage';
+        remove_image.onclick = function() { removeVehicle(vehicleid); };
+        div.className = 'recipientbox';
+        div.id = 'to_vehicle_div_' + vehicleid;
+        div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" class="v_list_element" name="to_vehicle_' + vehicleid + '" value="' + vehicleid + '"/>';
+        jQuery('#vehicle_list_route').append(div);
+        jQuery(div).append(remove_image);
+    }
+}
+function VehicleForRoute() {
+	var vehicleid = jQuery('#vehicleroute').val();
+	if (vehicleid > -1 && jQuery('#to_vehicle_div_' + vehicleid).val() == null) {
+		var selected_name = jQuery("#vehicleroute option:selected").text();
+		var div = document.createElement('div');
+		var remove_image = document.createElement('img');
+		remove_image.src = "../../images/boxdelete.png";
+		remove_image.className = 'clickimage';
+		remove_image.onclick = function () {
+			removeVehicle(vehicleid);
+		};
+		div.className = 'recipientbox';
+		div.id = 'to_vehicle_div_' + vehicleid;
+		div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" class="v_list_element" name="to_vehicle_' + vehicleid + '" value="' + vehicleid + '"/>';
+		jQuery("#vehicle_list_route").append(div);
+		jQuery(div).append(remove_image);
+	}
+	jQuery("#vehicleroute").prop("selectedIndex", 0);
+}
+function VehicleForRoute_ById(vehicleid,selected_name) {
+	//var vehicleid = jQuery('#vehicleroute').val();
+	if (vehicleid > -1 && jQuery('#to_vehicle_div_' + vehicleid).val() == null) {
+		//var selected_name = jQuery("#vehicleroute option:selected").text();
+		var div = document.createElement('div');
+		var remove_image = document.createElement('img');
+		remove_image.src = "../../images/boxdelete.png";
+		remove_image.className = 'clickimage';
+		remove_image.onclick = function () {
+			removeVehicle(vehicleid);
+		};
+		div.className = 'recipientbox';
+		div.id = 'to_vehicle_div_' + vehicleid;
+		div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" class="v_list_element" name="to_vehicle_' + vehicleid + '" value="' + vehicleid + '"/>';
+		jQuery("#vehicle_list_route").append(div);
+		jQuery(div).append(remove_image);
+	}
+	jQuery("#vehicleno").val('');
+}
+function addallvehicleForRoute() {
+	for (var i = 1; i < jQuery('#vehicleroute option').length; i++) {
+		jQuery("#vehicleroute").prop("selectedIndex", i);
+		VehicleForRoute();
+	}
+}
+function removeVehicle(vehicleid) {
+	jQuery('#to_vehicle_div_' + vehicleid).remove();
+}
+function AddedVehicleForRoute() {
+	var vehicleid = jQuery('#chk_vehid').val();
+	var selected_name = jQuery('#vehicleid1 option[value=' + vehicleid + ']').text();
+	if (vehicleid > -1 && jQuery('#to_vehicle_div_' + vehicleid) == null) {
+		var div = document.createElement('div');
+		var remove_image = document.createElement('img');
+		remove_image.src = "../../images/boxdelete.png";
+		remove_image.className = 'clickimage';
+		remove_image.onclick = function () {
+			removeVehicle(vehicleid);
+		};
+		div.className = 'recipientbox';
+		div.id = 'to_vehicle_div_' + vehicleid;
+		div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" class="v_list_element" name="to_vehicle_' + vehicleid + '" value="' + vehicleid + '"/>';
+		jQuery('#vehicle_list1').append(div);
+		jQuery(div).append(remove_image);
+	}
+	jQuery("#vehicleroute").prop("selectedIndex", 0);
+}
+function remove_addedVehicleForRoute(vehicleid) {
+	jQuery('#to_vehicle_div_' + vehicleid).remove();
+}
+function addcheckpointtovehicle() {
+	var checkpointid = jQuery('#checkpointid').val();
+	if (checkpointid > -1 && jQuery('#to_chkpt_div_' + checkpointid).val() == null) {
+		var selected_name = jQuery('#checkpointid options:selected').text();
+		var div = document.createElement('div');
+		var remove_image = document.createElement('img');
+		remove_image.src = "../../images/boxdelete.png";
+		remove_image.className = 'clickimage';
+		remove_image.onclick = function () {
+			removeChkpt(checkpointid);
+		};
+		div.className = 'recipientbox';
+		div.id = 'to_chkpt_div_' + checkpointid;
+		div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" class="c_list_element" name="to_chkpt_' + checkpointid + '" value="' + checkpointid + '"/>';
+		jQuery('chkpt_list').appendChild(div);
+		$(div).appendChild(remove_image);
+	}
+	jQuery('#checkpointid').selectedIndex = 0;
+}
+function addedcheckpoint() {
+	jQuery('.chk_id').each(function () {
+		var checkpointid = this.id;
+		var selected_name = jQuery('#checkpointid option[value=' + checkpointid + ']').text();
+		if (checkpointid > -1 && jQuery('#to_chkpt_div_' + checkpointid).val() == null) {
+			var div = document.createElement('div');
+			var remove_image = document.createElement('img');
+			remove_image.src = "../../images/boxdelete.png";
+			remove_image.className = 'clickimage';
+			remove_image.onclick = function () {
+				removeChkpt(checkpointid);
+			};
+			div.className = 'recipientbox';
+			div.id = 'to_chkpt_div_' + checkpointid;
+			div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" name="to_added_chkpt_' + checkpointid + '" value="' + checkpointid + '"/>';
+			jQuery('#chkpt_list').appendChild(div);
+			$(div).appendChild(remove_image);
+		}
+		jQuery('#checkpointid').selectedIndex = 0;
+	});
+}
+function addallCheckpointForVehicle() {
+	var select_box = jQuery('#checkpointid');
+	for (var i = 1; i < select_box.options.length; i++) {
+		select_box.selectedIndex = i;
+		var checkpointid = jQuery('#checkpointid').getValue();
+		if (checkpointid > -1 && jQuery('#to_chkpt_div_' + checkpointid).val() == null) {
+			var selected_name = jQuery('#checkpointid option[value=' + checkpointid + ']').text();
+			var div = document.createElement('div');
+			var remove_image = document.createElement('img');
+			remove_image.src = "../../images/boxdelete.png";
+			remove_image.className = 'clickimage';
+			remove_image.onclick = function () {
+				removeChkpt(checkpointid);
+			};
+			div.className = 'recipientbox';
+			div.id = 'to_chkpt_div_' + checkpointid;
+			div.innerHTML = '<span>' + selected_name + '</span><input type="hidden" class="c_list_element" name="to_chkpt_' + checkpointid + '" value="' + checkpointid + '"/>';
+			jQuery('#chkpt_list').appendChild(div);
+			$(div).appendChild(remove_image);
+		}
+	}
+	jQuery('#checkpointid').selectedIndex = 0;
+}
+function removeChkpt(checkpointid) {
+	jQuery('#to_chkpt_div_' + checkpointid).remove();
+}
+function checkroute()
+{
+    var routearray=jQuery('#column2').sortable('toArray');
+	if(jQuery("#routename").val() == ""){
+		jQuery("#namecomp").show();
+		jQuery("#namecomp").fadeOut(3000);
+	}else if(routearray == ""){
+		jQuery("#routelist").show();
+		jQuery("#routelist").fadeOut(3000);
+	}else{
+        var params = "routen=" + encodeURIComponent(jQuery("#routename").val());
+        jQuery.ajax({
+        	type: "POST",
+        	data: params,
+        	url: "route_ajax.php",
+        	success: function (statuscheck) {
+                if(statuscheck == "ok"){
+                    submitroute();
+                }
+                else{
+                    jQuery("#samename").show();
+                    jQuery("#samename").fadeOut(3000);
+                }
+	        }
+        });
+    }
+}
+var tm = 0;
+var dt = 0;
+function checkroute_new()
+{
+    var th=0;
+    var flag = 0;
+    var chk = 0;
+    var timechk = new Array();
+    var validatetimechk = new Array();
+    var validatechk = new Array();
+    jQuery('.thour').each(function() {
+           timechk.push(jQuery(this).val());
+    });
+    jQuery('.checkpoint').each(function() {
+           validatechk.push(jQuery(this).val());
+    });
+    if(jQuery("#routename").val() == "")
+    {
+        jQuery("#namecomp").show();
+        jQuery("#namecomp").fadeOut(3000);
+    }
+    else if(jQuery(".checkpoint").val() == "")
+    {
+        jQuery("#checkpt").show();
+        jQuery("#checkpt").fadeOut(3000);
+    }
+    else if(timechk.length < 2 ){
+        jQuery("#morethan").show();
+        jQuery("#morethan").fadeOut(3000);
+    }
+    else if(jQuery(".checkpoint").val() != "" && validatechk.length > 1 ){
+        var unique_values = {};
+        var list_of_values = [];
+        jQuery('.checkpoint').each(function() {
+            if ( ! unique_values[jQuery(this).val()] ) {
+                unique_values[jQuery(this).val()] = true;
+                list_of_values.push(jQuery(this).val());
+                chk = 1;
+            } else {
+                jQuery("#duplicate").show();
+                jQuery("#duplicate").fadeOut(3000);
+                chk=0;
+            }
+        });
+    }
+    if(jQuery('.thour').val()!='' && chk !=0){
+        jQuery('.thour').each(function() {
+            if(jQuery(this).val()  >= th)
+            {
+              th = jQuery(this).val();
+              //alert(th);
+              flag = 1;
+              validatetimechk.push(jQuery(this).val());
+              if(timechk.length == validatetimechk.length && th!=0)
+                  {
+                      //alert("ok tested");
+                       var params = "routen=" + encodeURIComponent(jQuery("#routename").val());
+                        jQuery.ajax({
+                          type: "POST",
+                          data: params,
+                          url: "route_ajax.php",
+                          success: function (statuscheck) {
+                              if(statuscheck == "ok")
+                              {
+                                 submitroute_new();
+                              }
+                              else
+                              {
+                                 jQuery("#samename").show();
+                                 jQuery("#samename").fadeOut(3000);
+                              }
+                          }
+                      });
+                  }
+                  else{
+                        jQuery("#timeerr").show();
+	                    jQuery("#timeerr").fadeOut(3000);
+                  }
+            }
+            else
+            {
+                //alert("Please Enter The Larger value than previous checkpoint time");
+                jQuery("#timeerr").show();
+	            jQuery("#timeerr").fadeOut(3000);
+                flag=0;
+            }
+        });
+    }
+    /*
+   else
+    {
+        var params = "routen=" + encodeURIComponent(jQuery("#routename").val());
+      jQuery.ajax({
+        type: "POST",
+        data: params,
+        url: "route_ajax.php",
+        success: function (statuscheck) {
+            if(statuscheck == "ok")
+            {
+               submitroute_new();
+            }
+            else
+            {
+               jQuery("#samename").show();
+               jQuery("#samename").fadeOut(3000);
+            }
+        }
+    });
+    }
+    */
+}
+function submitroute(){
+    var routename = jQuery("#routename").val();
+	var routeTat = jQuery("#routeTat").val();
+	var routearray=jQuery('#column2').sortable('toArray');
+
+    var routeType = jQuery("#routeType").val();
+
+    var vehiclearray = new Array();
+    jQuery('.v_list_element').each(function() {
+        vehiclearray.push(jQuery(this).val());
+    });
+    var chkdetails = new Array();
+    jQuery('.tableRow').each(function(index, td) {
+        var rowData = new Array();
+        jQuery(this).find("input").each(function() {
+            rowData.push(jQuery(this).val());
+        });
+        //console.log(rowData);
+        chkdetails.push(rowData);
+    });
+    //console.log(chkdetails);
+    chkdetails = JSON.stringify(chkdetails);
+
+    // alert(routeType); return false;
+    var datastring = "routename=" + routename + "&routearray=" + routearray + "&vehiclearray=" + vehiclearray+ "&chkDetails=" + chkdetails+ "&routeTat=" + routeTat + "&routeType=" + routeType ;
+    jQuery.ajax({
+	    type: "POST",
+		url: "route_ajax.php",
+		data: datastring,
+		cache: false,
+		success: function(html){
+            jQuery("#saved").show();
+            jQuery("#saved").fadeOut(3000);
+            window.location.href = "route.php?id=2";
+		}
+	});
+}
+function submitroute_new()
+{
+   // var datastring = jQuery("#add_route").serialize();
+    var routename = jQuery("#routename").val();
+    var vehiclearray = new Array();
+    var checkpointid = new Array();
+    var thour = new Array();
+    var tmin = new Array();
+    var distance = new Array();
+    jQuery('.v_list_element').each(function() {
+       vehiclearray.push(jQuery(this).val());
+    });
+    jQuery('.checkpointid').each(function() {
+        checkpointid.push(jQuery(this).val());
+    })
+    jQuery('.thour').each(function() {
+       thour.push(jQuery(this).val());
+    })
+    jQuery('.tmin').each(function() {
+        tmin.push(jQuery(this).val());
+    })
+    jQuery('.distance').each(function() {
+        distance.push(jQuery(this).val());
+    })
+     var data = jQuery('#add_route').serialize();
+     var datastring = "routename=" + routename + "&routearray=" + checkpointid + "&vehiclearray=" + vehiclearray+"&thourarray=" +thour+"&tminarray="+tmin+"&distancearray="+distance;
+     //alert(datastring);
+     jQuery.ajax({
+		type: "POST",
+		url: "route_ajax.php?add_new=1",
+		data: datastring,
+		cache: false,
+		success: function(html)
+			{
+                         jQuery("#saved").show();
+                         jQuery("#saved").fadeOut(3000);
+                         window.location.href = "enh_route.php?id=2";
+			}
+		});
+}
+function modifyroutechk()
+{
+    var routearray=jQuery('#column2').sortable('toArray');
+    var vehiclearray = new Array();
+    jQuery('.v_list_element').each(function() {
+        vehiclearray.push(jQuery(this).val());
+    });
+    if(routearray == "")
+    {
+    	jQuery("#routelist").show();
+    	jQuery("#routelist").fadeOut(3000);
+    }
+    else
+    {
+        modifyroute();
+    }
+}
+function modifyroutechk_new()
+{
+    var th=0;
+    var flag = 0;
+    var timechk = new Array();
+    var validatetimechk = new Array();
+    jQuery('.thour').each(function() {
+        timechk.push(jQuery(this).val());
+    });
+    if( timechk.length < 2)
+    {
+        jQuery("#morethan").show();
+        jQuery("#morethan").fadeOut(3000);
+    }
+    else if(jQuery('.thour').val()!=''){
+        jQuery('.thour').each(function() {
+            if(jQuery(this).val()  >= th)
+            {
+                th = jQuery(this).val();
+                flag = 1;
+                validatetimechk.push(jQuery(this).val());
+                if(timechk.length == validatetimechk.length && th!=0)
+                {
+                    //alert("ok tested");
+                    modifyroute_new();
+                }
+                else{
+                    jQuery("#timeerr").show();
+	                jQuery("#timeerr").fadeOut(3000);
+                }
+            }
+            else
+            {
+                //alert("Please Enter The Larger value than previous checkpoint time");
+                jQuery("#timeerr").show();
+	             jQuery("#timeerr").fadeOut(3000);
+                flag=0;
+            }
+        });
+    }
+}
+function modifyroute()
+{
+    //$(ui.item).find('h2').click();
+    //var sortorder='';
+    var routeid = jQuery("#routeid").val();
+    var routename = jQuery("#routename").val();
+    var routeTat = jQuery("#routeTat").val();
+
+    var routeType = jQuery("#routeType").val();
+
+    var routearray=jQuery('#column2').sortable('toArray');
+    var vehiclearray = new Array();
+    jQuery('.v_list_element').each(function() {
+        vehiclearray.push(jQuery(this).val());
+    });
+    var chkdetails = new Array();
+    jQuery('.tableRow').each(function(index, td) {
+        var rowData = new Array();
+        jQuery(this).find("input").each(function() {
+            rowData.push(jQuery(this).val());
+        });
+        chkdetails.push(rowData);
+    });
+    chkdetails = JSON.stringify(chkdetails);
+    var datastring = "routeid=" + routeid + "&routename=" + routename + "&routearray=" + routearray + "&vehiclearray=" + vehiclearray+ "&chkDetails=" + chkdetails+ "&routeTat=" + routeTat + "&routeType=" + routeType;
+    jQuery.ajax({
+        type: "POST",
+        url: "route_ajax.php",
+        data: datastring,
+        cache: false,
+        success: function(html)
+        {
+            jQuery("#saved").show();
+            jQuery("#saved").fadeOut(3000);
+            window.location.href = "route.php?id=2";
+        }
+    });
+}
+function modifyroute_new()
+{
+	var routeid = jQuery("#routeid").val();
+	var routename = jQuery("#routename").val();
+        var vehiclearray = new Array();
+        var checkpointid = new Array();
+        var thour = new Array();
+        var tmin = new Array();
+        var distance = new Array();
+        jQuery('.v_list_element').each(function() {
+            vehiclearray.push(jQuery(this).val());
+        });
+        jQuery('.checkpointid').each(function() {
+            checkpointid.push(jQuery(this).val());
+        })
+        jQuery('.thour').each(function() {
+            thour.push(jQuery(this).val());
+        })
+        jQuery('.tmin').each(function() {
+            tmin.push(jQuery(this).val());
+        })
+        jQuery('.distance').each(function() {
+            distance.push(jQuery(this).val());
+        })
+        var datastring = "routeid=" + routeid + "&routename=" + routename + "&routearray=" + checkpointid + "&vehiclearray=" + vehiclearray+"&thourarray=" +thour+"&tminarray="+tmin+"&distancearray="+distance;
+        jQuery.ajax({
+		type: "POST",
+		url: "route_ajax.php?edit_new",
+		data: datastring,
+		cache: false,
+		success: function(html)
+		{
+                    jQuery("#saved").show();
+                    jQuery("#saved").fadeOut(3000);
+                    window.location.href = "enh_route.php?id=2";
+		}
+        });
+}
+var count = 1;
+var nRows = 2;
+function addRow() {
+        var tBody = document.getElementById('theBody');
+        var newRow = document.createElement('tr');
+        var col1 = document.createElement('td');
+        var col2 = document.createElement('td');
+        var col3 = document.createElement('td');
+        var col4 = document.createElement('td');
+        var col5 = document.createElement('td');
+        var list = document.createElement('div');
+        var rA = document.createElement('a');
+        newRow.setAttribute('id', 'n' + count);
+        list.id="chkdisplay" + count;
+        list.className = "checkpointlist";
+        rA.setAttribute('href', 'javascript:removeRow(\'n' + count + '\');');
+        rA.appendChild(document.createTextNode('Remove'));
+        // remove_image.onclick = function() { removeVehicle(vehicleid); };
+        var checkpoint = document.createElement("input");
+        checkpoint.type = "text";
+        checkpoint.name = "checkpoint" + count;
+        checkpoint.id = "checkpoint" + count;
+        checkpoint.className = "checkpoint";
+        checkpoint.size = "15";
+        checkpoint.placeholder = "Checkpoint";
+        checkpoint.onkeyup = function () { auto(count);};
+        var checkpointid = document.createElement("input");
+        checkpointid.type = "hidden";
+        checkpointid.name = "checkpointid" + count;
+        checkpointid.id = "checkpointid" + count;
+        checkpointid.size = "15";
+        checkpointid.className = "checkpointid";
+        var chk_lat = document.createElement("input");
+        chk_lat.type = "hidden";
+        chk_lat.name = "checkpoint_lat" + count;
+        chk_lat.id = "checkpoint_lat" + count;
+        chk_lat.size = "15";
+        chk_lat.className = "chk_lat";
+        var chk_long = document.createElement("input");
+        chk_long.type = "hidden";
+        chk_long.name = "checkpoint_long" + count;
+        chk_long.id = "checkpoint_long" + count;
+        chk_long.size = "15";
+        chk_long.className = "chk_long";
+        var thour = document.createElement("select");
+        thour.type = "select";
+        thour.name = "thour" + count;
+        thour.id = "thour" + count;
+        thour.className = "thour";
+        thour.placeholder = "HH";
+        for (var i = 0; i <= 100; i++) {
+        var option = document.createElement("option");
+       option.value = i;
+       option.text = i;
+       thour.appendChild(option);
+       }
+       var tmin = document.createElement("select");
+       tmin.type = "select";
+       tmin.name = "tmin" + count;
+       tmin.id = "tmin" + count;
+       tmin.className = "tmin";
+       tmin.placeholder = "MM";
+       for (var j = 0; j<= 60;) {
+       var minoption = document.createElement("option");
+       if(j == 60)
+       {
+           minoption.value = 59;
+       minoption.text = 59;
+       }else{
+           minoption.value = j;
+       minoption.text = j;
+       }
+       tmin.appendChild(minoption);
+       j+=10;
+       }
+       var distance = document.createElement("input");
+       distance.type = "text";
+       distance.name = "distance" + count;
+       distance.id = "distance" + count;
+       distance.className = "distance";
+       distance.size = "6";
+       distance.disabled = 'disabled';
+       distance.placeholder = "Distance";
+       col1.appendChild(checkpoint);
+       col2.appendChild(thour);
+       col1.appendChild(list)
+       col1.appendChild(checkpointid)
+       col1.appendChild(chk_lat)
+       col1.appendChild(chk_long)
+       col3.appendChild(tmin);
+       col4.appendChild(distance);
+       col5.appendChild(rA);
+       newRow.appendChild(col1);
+       newRow.appendChild(col2);
+       newRow.appendChild(col3);
+       newRow.appendChild(col4);
+       newRow.appendChild(col5);
+       if(count > 1){
+        var min = count - 1;
+        if(jQuery('#checkpoint'+min).val() =='')
+            {
+                jQuery("#checkpt").show();
+                jQuery("#checkpt").fadeOut(3000);
+            }
+            else{
+             tBody.appendChild(newRow);
+                count++;
+                nRows++;
+                if(count > 2){
+                var linkremove = count - 2;
+                var idnew = 'n'+linkremove;
+                //alert(linkremove);
+                var row = document.getElementById(idnew);
+                 row.deleteCell(-1);
+                }
+            }
+       }
+       else if(jQuery('#checkpoint').val() ==''){
+                jQuery("#checkpt").show();
+                jQuery("#checkpt").fadeOut(3000);
+       }
+       else{
+           tBody.appendChild(newRow);
+            count++;
+            nRows++;
+            if(count > 2){
+            var linkremove = count - 2;
+            var idnew = 'n'+linkremove;
+            //alert(linkremove);
+            var row = document.getElementById(idnew);
+             row.deleteCell(-1);
+            }
+       }
+}
+var count1 = 0;
+function addRow_new(cnt) {
+   	count = count1+parseInt(cnt);
+        var tBody = document.getElementById('theBody');
+        var newRow = document.createElement('tr');
+        var col1 = document.createElement('td');
+        var col2 = document.createElement('td');
+        var col3 = document.createElement('td');
+        var col4 = document.createElement('td');
+        var col5 = document.createElement('td');
+        var list = document.createElement('div');
+        var rA = document.createElement('a');
+        newRow.setAttribute('id', 'n' + count);
+        list.id="chkdisplay" + count;
+        list.className = "checkpointlist";
+        rA.setAttribute('href', 'javascript:removeRowEdit(\'n' + count + '\');');
+        rA.appendChild(document.createTextNode('Remove'));
+        // remove_image.onclick = function() { removeVehicle(vehicleid); };
+        var checkpoint = document.createElement("input");
+        checkpoint.type = "text";
+        checkpoint.name = "checkpoint" + count;
+        checkpoint.id = "checkpoint" + count;
+        checkpoint.className = "checkpoint";
+        checkpoint.size = "15";
+        checkpoint.placeholder = "Checkpoint";
+        checkpoint.onkeyup = function () { auto(count);};
+        var checkpointid = document.createElement("input");
+        checkpointid.type = "hidden";
+        checkpointid.name = "checkpointid" + count;
+        checkpointid.id = "checkpointid" + count;
+        checkpointid.size = "15";
+        checkpointid.className = "checkpointid";
+        var chk_lat = document.createElement("input");
+        chk_lat.type = "hidden";
+        chk_lat.name = "checkpoint_lat" + count;
+        chk_lat.id = "checkpoint_lat" + count;
+        chk_lat.size = "15";
+        chk_lat.className = "chk_lat";
+        var chk_long = document.createElement("input");
+        chk_long.type = "hidden";
+        chk_long.name = "checkpoint_long" + count;
+        chk_long.id = "checkpoint_long" + count;
+        chk_long.size = "15";
+        chk_long.className = "chk_long";
+        var thour = document.createElement("select");
+        thour.type = "select";
+        thour.name = "thour" + count;
+        thour.id = "thour" + count;
+        thour.className = "thour";
+        thour.placeholder = "HH";
+        for (var i = 0; i <= 100; i++) {
+        var option = document.createElement("option");
+       option.value = i;
+       option.text = i;
+       thour.appendChild(option);
+       }
+       var tmin = document.createElement("select");
+       tmin.type = "select";
+       tmin.name = "tmin" + count;
+       tmin.id = "tmin" + count;
+       tmin.className = "tmin";
+       tmin.placeholder = "MM";
+       for (var j = 0; j<= 60;) {
+       var minoption = document.createElement("option");
+       if(j == 60)
+           {
+              minoption.value = 59;
+              minoption.text = 59;
+           }else{
+               minoption.value = j;
+                minoption.text = j;
+           }
+       tmin.appendChild(minoption);
+       j+=10;
+       }
+       var distance1 = document.createElement("input");
+       distance1.type = "text";
+       distance1.name = "distance" + count;
+       distance1.id = "distance" + count;
+       distance1.className = "distance";
+       distance1.size = "6";
+       distance1.disabled = 'disabled';
+       distance1.placeholder = "Distance";
+       col1.appendChild(checkpoint);
+       col1.appendChild(list)
+       col1.appendChild(checkpointid)
+       col1.appendChild(chk_lat)
+       col1.appendChild(chk_long)
+       col2.appendChild(thour);
+       col3.appendChild(tmin);
+       col4.appendChild(distance1);
+       col5.appendChild(rA);
+       newRow.appendChild(col1);
+       newRow.appendChild(col2);
+       newRow.appendChild(col3);
+       newRow.appendChild(col4);
+       newRow.appendChild(col5);
+       //tBody.appendChild(newRow);
+       //count++;
+       //nRows++;
+       if(count > 1){
+        var min = count - 1;
+        if(jQuery('#checkpoint'+min).val() =='')
+            {
+                jQuery("#checkpt").show();
+                jQuery("#checkpt").fadeOut(3000);
+            }
+            else{
+             tBody.appendChild(newRow);
+                count++;
+                nRows++;
+                count1++;
+                if(count > 2){
+                var linkremove = count-2;
+                var idnew = 'n'+linkremove;
+                //alert(linkremove);
+                var row = document.getElementById(idnew);
+                 row.deleteCell(-1);
+                }
+            }
+       }
+       else if(jQuery('#checkpoint').val() ==''){
+                jQuery("#checkpt").show();
+                jQuery("#checkpt").fadeOut(3000);
+       }
+       else{
+           tBody.appendChild(newRow);
+            count++;
+            nRows++;
+            count1++;
+            if(count > 2){
+            var linkremove = count - 1;
+            var idnew = 'n'+linkremove;
+            //alert(linkremove);
+            var row = document.getElementById(idnew);
+             row.deleteCell(-1);
+            }
+       }
+}
+function removeRow(rowId) {
+    var tBody = document.getElementById('theBody');
+    //alert(count);
+    var rt = rowId.substring(1);
+    if(rt > 1)
+    {
+        var addcell = rt-1;
+        var linkadd = "n"+addcell
+        //alert(linkadd);
+        var col5 = document.createElement('td');
+        var rA = document.createElement('a');
+        rA.setAttribute('href', 'javascript:removeRow(\'n' + addcell + '\');');
+        rA.appendChild(document.createTextNode('Remove'));
+        col5.appendChild(rA);
+        var row = document.getElementById(linkadd);
+        var x = row.insertCell(4);
+        x.appendChild(col5);
+    }
+    tBody.removeChild(document.getElementById(rowId));
+    nRows--;
+    count--;
+ }
+function removeRowEdit(rowId) {
+    var tBody = document.getElementById('theBody');
+    //alert(count);
+    var rt = rowId.substring(1);
+    if(rt >= 1)
+    {
+        if(rt > 1)
+            {
+                var addcell = rt-1;
+            }else{
+                 addcell = rt;
+            }
+        var linkadd = "n"+addcell
+        //alert(linkadd);
+        var col5 = document.createElement('td');
+        var rA = document.createElement('a');
+        rA.setAttribute('href', 'javascript:removeRowEdit(\'n' + addcell + '\');');
+        rA.appendChild(document.createTextNode('Remove'));
+        col5.appendChild(rA);
+        var row = document.getElementById(linkadd);
+        var x = row.insertCell(4);
+        x.appendChild(col5);
+        var chkpt = jQuery('#checkpointid'+rt).val();
+        var routeid = jQuery('#routeid').val();
+        var routename = jQuery('#routename').val();
+        var customerno = jQuery('#customerno').val();
+        var datastring = "chkpt="+chkpt+"&routename="+routename+"&routeid="+routeid+"&customerno="+customerno;
+        jQuery.ajax({
+		type: "POST",
+		url: "delChk.php",
+		data: datastring,
+		cache: false,
+		success: function(json)
+		{
+                    if(json == 'del'){
+                    //window.location.href = "enh_route.php?id=4&did="+routeid+"&routename="+routename;
+                    tBody.removeChild(document.getElementById(rowId));
+                    nRows--;
+                    count--;
+                    location.reload();
+                    //alert("ok");
+                    }
+                    if(json == 'notdel')
+                    {
+                       tBody.removeChild(document.getElementById(rowId));
+                        nRows--;
+                        count--;
+                    }
+		}
+        });
+    }
+    else{
+    }
+ }
+function auto(listid)
+{
+    //alert(listid);
+    var srh;
+    if( listid > 0 ) {  listid = listid - 1;  }
+    if(listid == 0 ) {   srh = jQuery("#checkpoint").val();   }
+    else{  srh = jQuery("#checkpoint" + listid).val();  }
+    jQuery.ajax({
+            type: "GET",
+            url: "autochk.php",
+            data: "q="+srh+"&cnt="+listid ,
+            success: function(json){
+            if(listid > 0)
+                {
+                    jQuery('#chkdisplay'+listid).show();
+                    jQuery("#chkdisplay"+listid).html(json);
+                }else{
+                    jQuery('#chkdisplay').show();
+                    jQuery("#chkdisplay").html(json);
+                }
+            }
+    });
+   /**
+	$("#checkpoint").autoSuggest({
+		ajaxFilePath	 : "autochk.php",
+		ajaxParams	 : "dummydata=dummyData",
+		autoFill	 : false,
+		iwidth		 : "auto",
+		opacity		 : "0.9",
+		ilimit		 : ""+listid+"",
+		idHolder	 : "id-holder",
+		match		 : "contains"
+	});
+       $("#checkpoint").autocomplete("autochk.php", {
+		//selectFirst: true
+	});
+    */
+}
+jQuery.noConflict();
+jQuery(
+	function(){
+		jQuery('a.maxmin').click(
+		function(){
+			jQuery(this).parent().siblings('.dragbox-content').toggle();
+		});
+		jQuery('.column').sortable({
+		connectWith: '.column',
+		handle: 'h2',
+		cursor: 'move',
+		placeholder: 'placeholder',
+		forcePlaceholderSize: true,
+		opacity: 0.4,
+		stop: function(event, ui)
+			{
+				jQuery(ui.item).find('h2').click();
+        var sortorder='';
+				var itemorder=jQuery('#column2').sortable('serialize');
+				var columnId=jQuery('#column2').attr('id');
+				sortorder+=columnId+'='+itemorder.toString()+'&';
+				sortorder = sortorder.substring(0, sortorder.length - 1);
+        var fromColumnId = this.id;
+        var checkPointId = jQuery(ui.item).attr('id');
+        var checkPointName = jQuery(ui.item).attr('rel');
+        chkEtaDetails();
+      }
+		}).disableSelection();
+	});
+function chkEtaDetails(){
+    chkArray = new Array();
+    chkExistingArray = new Array();
+    jQuery("#column2 .alert-info").each(function () {
+        var chk = new Array();
+        chk.push({'chkId':this.id,'chkName':jQuery("#"+this.id).attr('rel')});
+        chkArray.push(chk);
+    });
+    jQuery(".tableRow").each(function () {
+        var chkExt = new Array();
+        var chkId = this.id.replace("chkEta", "");
+        var chkEta = jQuery('#eta'+chkId).val();
+        var chkEtd = jQuery('#etd'+chkId).val();
+        var chkReturnEta = jQuery('#returneta'+chkId).val();
+        var chkReturnEtd = jQuery('#returnetd'+chkId).val();
+        var km = jQuery('#km'+chkId).val();
+        chkExt.push({'chkId':chkId,'eta':chkEta,'etd':chkEtd,'returneta':chkReturnEta,'returnetd':chkReturnEtd,'km':km});
+        chkExistingArray.push(chkExt);
+    });
+    jQuery('.tableRow').remove();
+    if(chkArray.length == 0){
+      jQuery('#chkEtaDetails').hide();
+    }else{
+      jQuery('#chkEtaDetails').show();
+      jQuery.each(chkArray, function(i, chkData){
+        addChkEtaTableRow(chkData[0].chkId,chkData[0].chkName,i);
+        jQuery('.elixiaTimePicker').timepicker({'timeFormat': 'H:i'});
+      });
+      jQuery.each(chkExistingArray, function(i, chkData){
+        updateChkTableRowTime(chkData[0].chkId,chkData[0].eta,chkData[0].etd,chkData[0].returneta,chkData[0].returnetd,chkData[0].km);
+      });
+    }
+}
+function addChkEtaTableRow(chkPtId, chkName,rowCount) {
+    recordRow ='';
+    recordRow +='<tr id="chkEta' + chkPtId + '" class="tableRow">';
+    recordRow +='<td><input type="hidden" class="chkId" name="chkId'+chkPtId+'" id="chkId'+chkPtId+'" value="'+chkPtId+'">';
+    recordRow +='<input class="chkName" name="chkName'+chkPtId+'" id="chkName'+chkPtId+'" value="'+chkName+'"></td>';
+    recordRow +='<td><input class="eta elixiaTimePicker input-mini" name="eta'+chkPtId+'" id="eta'+chkPtId+'" value="00:00" ></td>';
+    recordRow +='<td><input class="etd elixiaTimePicker input-mini" name="etd'+chkPtId+'" id="etd'+chkPtId+'" value="00:00"></td>';
+    recordRow +='<td><input class="returneta elixiaTimePicker input-mini" name="returneta'+chkPtId+'" id="returneta'+chkPtId+'" value="00:00"></td>';
+    recordRow +='<td><input class="returnetd elixiaTimePicker input-mini" name="returnetd'+chkPtId+'" id="returnetd'+chkPtId+'" value="00:00"></td>';
+    if (rowCount == 0) {
+        recordRow +='<td><input class="km" name="km'+chkPtId+'" id="km'+chkPtId+'" value="0" readonly></td>';
+    } else {
+        recordRow +='<td><input class="km" name="km'+chkPtId+'" id="km'+chkPtId+'" value=""></td>';
+    }
+    recordRow +='</tr>';
+    jQuery('#chkEtaTable').append(recordRow);
+}
+function updateChkTableRowTime(chkId,eta,etd,returnEta,returnEtd,km){
+    jQuery('#eta'+chkId).val(eta);
+    jQuery('#etd'+chkId).val(etd);
+    jQuery('#returneta'+chkId).val(returnEta);
+    jQuery('#returnetd'+chkId).val(returnEtd);
+    jQuery('#km'+chkId).val(km);
+}
+function removeChkEtaTableRow(recordRow) {
+    jQuery('#chkEta' + recordRow).remove();
+}
+
+function submitFutureRoute(){
+    var routearray=jQuery('#column2').sortable('toArray');
+        if(routearray.length <= 0)
+        {
+            alert("Please Add Routes");
+            return false;
+        }
+    if(confirm("Vehicle Route Sequence will demapped ")){
+        var routename = "Future Route"
+        var vehicleid = jQuery("#vehicleid").val();
+        var routeid = jQuery("#routeid").val();
+        
+        //var routearray=jQuery('#column2').sortable('toArray');
+
+    /*console.log(routearray);
+    console.log(routeid);
+    console.log(vehicleid);*/
+     //return false;
+
+        var datastring = "vehicleid=" + vehicleid + "&routearray=" + routearray + "&action=saveFutureRoute";
+        // console.log(datastring); return false;
+        jQuery.ajax({
+            type: "POST",
+            url: "route_ajax.php",
+            data: datastring,
+            cache: false,
+            success: function(html){
+                if(html == 1){
+                    alert("Something Went Wrong");
+                }else{
+                    alert("Successfully Inserted");
+                }
+                console.log(html); 
+    /*           
+                jQuery("#saved").show();
+                jQuery("#saved").fadeOut(3000);
+    */
+                window.location.href = "route.php?id=9";
+            }
+        }); 
+        
+    }
+    else{
+        return false;       
+    }
+  
+    
+    
+}
+function addFutureRoute(vehicleno, routeid, vehicleid){
+    
+    jQuery('#vehicleid').val(vehicleid);
+    jQuery('#routeid').val(routeid);
+    jQuery('#vehicleno').html(vehicleno);
+}

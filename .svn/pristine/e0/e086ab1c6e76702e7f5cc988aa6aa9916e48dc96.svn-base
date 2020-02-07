@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ticket Update Alert</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: left;
+                border-right:1px solid #ccc;
+                border-bottom:1px solid #ccc;
+
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 50%;
+            }
+            table table{
+                width: 100%;
+            }
+            td, th{
+                border-left:1px solid #ccc;
+                border-top:1px solid #ccc;
+                padding:5px;
+            }
+
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+
+            span{
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h3>{{SUBJECT}}</h3>
+        <table style="border:1px solid #ccc;" cellspacing="0" cellpadding="0">
+            <tr>
+                <td><b>Ticket No :</b></td>
+                <td>{{TICKETID}}</td>
+                <td><b>Status :</b></td>
+                <td>{{TICKETSTATUS}}</td>
+            </tr>
+            <tr>
+                <td colspan="2"><b>Title :</b></td>
+                <td colspan="2">{{TICKETTITLE}}</td>
+            </tr>
+            <tr>
+                <td colspan="2"><b>Description :</b></td>
+                <td colspan="2">{{TICKETDESC}}</td>
+            </tr>
+
+            {{CLOSEDATA}}
+        </table>
+        <br><br>
+        <table>
+            <tr>
+                <td colspan="4"><b>Notes :</b></td>
+            </tr>
+            <tr>
+                <td colspan="4">{{NOTE}}</td>
+            </tr>
+        </table>
+
+        </br></br><br><br/>Warm Regards, <br/>
+        Support Team,<br/>
+        Elixia Speed<br/>
+        Elixia Tech Solutions Ltd.
+        <br/><br/>
+
+        <img style="width: 240px;" src = "http://speed.elixiatech.com/images/elixia_logo_75.png" alt = "Elixia Speed logo" />
+
+
+    </body>
+</html>

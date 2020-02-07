@@ -1,0 +1,113 @@
+<?php
+include 'user_functions.php';
+if (isset($_POST['username']) && isset($_POST['password']) && isset($_POST['authType']) && isset($_POST['otp'])) {
+    $_POST['otp'] = trim($_POST['otp']);
+    $loginStatus = 'notOk';
+    if ((substr(trim(strtolower($_POST['username'])), 0, 6) == 'elixir')) {
+        $arrAllowedIps = explode(",", speedConstants::ALLOWED_IPS);
+        if (in_array($_SERVER['REMOTE_ADDR'], $arrAllowedIps)) {
+            $arrUserLogin = login($_POST['username'], $_POST['password'], $_POST['authType'], $_POST['otp']);
+            if (isset($arrUserLogin)) {
+                if ($arrUserLogin['status'] == 'UserLogged') {
+                    $data = SetSession($arrUserLogin['userDetails']);
+                    if (isset($data)) {
+                        $loginStatus = redirection();
+                    }
+                }
+            }
+        } else {
+            header("Location: ../../index.php");
+        }
+    } else {
+        $arrUserLogin = login($_POST['username'], $_POST['password'], $_POST['authType'], $_POST['otp']);
+        if (isset($arrUserLogin)) {
+            if ($arrUserLogin['status'] == 'UserLogged') {
+                $data = SetSession($arrUserLogin['userDetails']);
+                if (isset($data)) {
+                    $loginStatus = redirection();
+                }
+            }
+        }
+    }
+    echo $loginStatus;
+}
+if (isset($_POST['chat_extid']) && isset($_POST['chat_restid'])) {
+    $objChat = new stdClass();
+    $objChat->externalId = $_POST['chat_extid'];
+    $objChat->restoreId = $_POST['chat_restid'];
+    $objChat->customerno = $_SESSION['customerno'];
+    setRestoreId($objChat);
+    // echo "saving the data";
+}
+if (isset($_POST['chat_extid'])) {
+    $objChat = new stdClass();
+    $objChat->externalId = $_POST['chat_extid'];
+    getRestoreId($objChat);
+}
+if (isset($_POST['account'])) {
+    account_switch($_POST['account']);
+    redirection();
+} elseif (isset($_POST['ecodeid'])) {
+    elixiacode_login($_POST['ecodeid']);
+    if ($_SESSION['ecodeid']) {
+        header("Location: ../map/map.php");
+    }
+} elseif (isset($_POST['groupid'])) {
+    updategroupid($_POST['groupid']);
+} elseif (isset($_POST['state'])) {
+    updatestateid($_POST['state']);
+} elseif (isset($_POST['setsession'])) {
+    updatesession($_POST['setsession']);
+} elseif (isset($_POST['switchto'])) {
+    $id = (int) $_POST['switchto'];
+    $_SESSION['switch_to'] = $id;
+    $page = redirect_page($id);
+    echo $page;
+    exit;
+} elseif (isset($_POST['removesession'])) {
+    removesession($_POST['removesession']);
+} elseif (isset($_POST['sel_status'])) {
+    updatesel_status($_POST['sel_status']);
+} elseif (isset($_POST['statusid'])) {
+    updatesel_status_onchange($_POST['statusid']);
+} elseif (isset($_POST['sel_category'])) {
+    updatesel_category($_POST['sel_category']);
+} elseif (isset($_POST['sel_stoppage'])) {
+    updatesel_stoppage($_POST['sel_stoppage']);
+} elseif (isset($_POST['TModify'])) {
+    modifyTalerts($_POST);
+    header('location: ../map/map.php');
+} elseif (isset($_POST['EModify'])) {
+    modifyEalerts($_POST);
+    header('location: ../map/map.php');
+} elseif (isset($_POST['vehicleid']) && !isset($_POST['customerno'])) {
+    $test = getVehcileno($_POST['vehicleid']);
+    return $test;
+} elseif (isset($_POST['vehicleid']) && isset($_POST['customerno'])) {
+    $test = getVehcilenoByCustomer($_POST['vehicleid'], $_POST['customerno']);
+    return $test;
+} elseif (isset($_POST['newpasswd']) && isset($_POST['confirm_newpasswd'])) {
+    if (!isset($_POST['forgot_userkey'])) {
+        header('location: ../../index.php');
+    } else {
+        $data = update_newpwd_byforgotpass($_POST['newpasswd'], $_POST['forgot_userkey']);
+    }
+    if (isset($data) && $data == 1) {
+        //unset($_SESSION['forgot_userkey']);
+        //header('location: ../../index.php');
+    }
+    echo "ok";
+    //header('location: ../../index.php');
+} elseif (isset($_GET['userkey'])) {
+//echo $_GET['userkey']; die();
+    loginwithuserkey($_GET['userkey']);
+    //redirection();
+    $page = redirection();
+    echo "<script>
+    window.location = 'http://localhost/speed/$page';
+</script>";
+//http://localhost/speed/modules/user/route.php?userkey=235903379
+    //localhost/speed/modules/user/route.php?userkey=e5fa7412646c2eacf89d19384d4bf02eaaf04d7c
+    //localhost/speed/modules/user/route.php?userkey=4a4af0a44e8ca90022aecfb918be349073221dfe
+}
+?>

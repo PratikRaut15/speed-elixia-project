@@ -1,0 +1,179 @@
+<script type="text/javascript">
+function updateToDatabase() {
+//jQuery('#deleteInsertSqlite').timepicker({'timeFormat': 'H:i'});
+var Stime = jQuery("#Stime").val();
+var Etime = jQuery("#Etime").val();
+var min = parseFloat(jQuery("#min").val());
+var max = parseFloat(jQuery("#max").val());
+/*var max = jQuery("#max").val();
+alert(min);
+alert(max); return false;
+*/
+    if (min == '' || min == undefined && max == '' || max == undefined) {
+        alert("Please Enter Temperatures.");
+        return false;
+    }
+    if (min >= max) {
+        alert("Please Enter Valid Temperature Range.");
+        return false;
+    }
+    if (Stime == '' || Stime == undefined && Etime == '' || Etime == undefined) {
+        alert("Please enter time.");
+        return false;
+    }
+    if (Stime > Etime) {
+        alert("Please Enter Valid Times.");
+        return false;
+    }
+    var data = jQuery("#deleteInsertSqlite").serialize();
+    //console.log(data);
+     jQuery('#pageloaddiv').show();
+    jQuery.ajax({
+        //url:"vehicledistancereport_ajax.php",
+        url:"route_ajax.php?act=deleteInsert",
+        type: 'POST',
+        data: data,
+        success:function(result){
+            jQuery("#centerDiv1").html(result);
+        },
+        complete: function(){
+            jQuery('#pageloaddiv').hide();
+        }
+    });
+    /*$(editableObj).css("background","#FFF url(loading.gif) no-repeat right");
+    event.defaultPrevent();
+    var data = jQuery("#updateSqlite").serialize();
+    $.ajax({
+        url: "route_ajax.php?act=deleteInsert",
+        type: "POST",
+        data : data,
+        success: function(data){
+            $(editableObj).css("background","#FFF");
+        }
+   });*/
+}
+</script>
+<?php
+if (isset($_POST['STdate'])) {
+    //include 'reports_common_functions.php';
+    include 'reports_sqlite_function.php';
+    //include 'reports_sqlite_function.php';
+    $STdate = date('Y-m-d', strtotime(GetSafeValueString($_POST['STdate'], 'string')));
+    $EDdate = date('Y-m-d', strtotime(GetSafeValueString($_POST['EDdate'], 'string')));
+    $vehicleno = GetSafeValueString($_POST['vehicleno'], 'string');
+    $vehicleid = GetSafeValueString($_POST['vehicleid'], 'string');
+    $STime = $_POST['STime'];
+    $ETime = $_POST['ETime'];
+    if (isset($_POST['interval'])) {
+        $interval = $_POST['interval'];
+    }
+    $deviceid = GetSafeValueString($_POST['deviceid'], 'string');
+    if ($STdate != '' && $STdate != '0000-00-00' && $STdate != '1970-01-01') {
+        $SDate = $STdate . ' ' . $STime;
+    }
+    if ($EDdate != '' && $EDdate != '0000-00-00' && $EDdate != '1970-01-01') {
+        $EDate = $EDdate . ' ' . $ETime;
+    }
+    $datecheck = datediff($SDate, $EDate);
+    $datediffcheck = date_SDiff($SDate, $EDate);
+    if ($datecheck != 1) {
+        echo "<script>jQuery('#error2').show();jQuery('#error2').fadeOut(3000)</script>";
+    } else {
+        if ($datediffcheck <= 30) {
+            $reports = getSqlitereport($STdate, $vehicleid, $STime, $ETime, $interval = null, $deviceid, $EDdate); // passed vehicle id for single record.//
+            // print("<pre>"); print_r($reports); die;
+            if (isset($reports)) {
+                //print("<pre>"); print_r($reports[0]); die;
+                ?>
+            <form action="reports.php?id=updateSqlite" method="POST" id="deleteInsertSqlite" onsubmit="updateToDatabase();return false;">
+                        <?php
+$fElement = reset($reports[0]['result']);
+                /*print("<prE>");
+                print_r($fElement); die;*/
+                /*stdClass Object ( [temp1] => 23.82 [temp2] => 22122 [temp3] => 2.12 [temp4] => 65.65 [vehicleid] => 10937 [date] => 2018-03-17 [uhid] => 1 [uid] => 9322 )*/
+                $title = "Update Sqlite Report";
+                $date = date('d-m-Y');
+                ?>
+                        <table width="50%">
+                         <thead>
+                            <tr>
+                                <td colspan="6">
+                                    <div style="font-weight: bold; font-size: 14px; padding: 5px 0;">Note:- Enter Min and Max Temperature and select the interval between data needs to be updated for particular temperature probe</div></td>
+                            </tr>
+                            <tr>
+                                <td>Min Temperature </td>
+                                <td>Max Temperature </td>
+                                <td>Start Time</td>
+                                <td>End Time</td>
+                                <td>Temperature</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                <tbody>
+                            <tr>
+                                <td>
+                                    <input id="min" name="min" class="input-mini" type="text" />
+                                </td>
+                                <td>
+                                    <input id="max" name="max" class="input-mini" type="text " />
+                                </td>
+                                <td>
+                                    <input id="Stime" name="Stime" type="time" />
+                                </td>
+                                <td>
+                                    <input id="Etime" name="Etime" type="time" />
+                                </td>
+ <!-- <td><select name="analog" id="analog"> -->
+<?php
+$temperature1 = $reports[0]['tempsen']['tempsen1'];
+                $temperature2 = $reports[0]['tempsen']['tempsen2'];
+                $temperature3 = $reports[0]['tempsen']['tempsen3'];
+                $temperature4 = $reports[0]['tempsen']['tempsen4'];
+//print("<pre>"); print_r($reports['tempsen']['tempsen1']); die;
+                ?>
+ <td><select name="analog" id="analog">
+ <?php
+if ($_SESSION['temp_sensors'] == 1) {
+                    echo "<option value=" . $temperature1 . ">Temperature 1</option>";
+                }
+                if ($_SESSION['temp_sensors'] == 2) {
+                    echo "<option value=" . $temperature1 . ">Temperature 1</option>";
+                    echo "<option value=" . $temperature2 . ">Temperature 2</option>";
+                }
+                if ($_SESSION['temp_sensors'] == 3) {
+                    echo "<option value=" . $temperature1 . ">Temperature 1</option>";
+                    echo "<option value=" . $temperature2 . ">Temperature 2</option>";
+                    echo "<option value=" . $temperature3 . ">Temperature 3</option>";
+                }
+                if ($_SESSION['temp_sensors'] == 4) {
+                    echo "<option value=" . $temperature1 . ">Temperature 1</option>";
+                    echo "<option value=" . $temperature2 . ">Temperature 2</option>";
+                    echo "<option value=" . $temperature3 . ">Temperature 3</option>";
+                    echo "<option value=" . $temperature4 . ">Temperature 4</option>";
+                }
+                ?>
+ </select></td>
+                                <td><!-- editableObj,column,id, date, vehicleid, uid -->
+                                    <input type="hidden" name="date" value="<?php echo $fElement->date; ?>" id="">
+                                    <input type="hidden" name="vehicleid" value="<?php echo $_POST['vehicleid']; ?>" id="">
+                                    <input type="hidden" name="vehicleno" value="<?php echo $_POST['vehicleno']; ?>" id="">
+                                    <input type="hidden" name="uid" value="<?php echo $fElement->uid; ?>" id="">
+                                    <input type="submit" class="g-button g-button-submit" value="Update Report" name="updateSqlite">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+                <?php include 'pages/panels/updateSqliteHeader.php';
+                include 'displayUpdateSqlitedata.php';
+            } else {
+                /*echo "else 2 "; die;*/
+                echo "<script type='text/javascript'>jQuery('#error').show();jQuery('#error').fadeOut(3000);</script>";
+            }
+        } else {
+            /*echo "else 3 "; die;*/
+            echo "<script type='text/javascript'>jQuery('#error4').show();jQuery('#error4').fadeOut(3000);</script>";
+        }
+    }
+}
+?>

@@ -1,0 +1,80 @@
+/*
+- RGB 0,165,185 - 00A5B9
+- Gradient - 009FB2
+*/
+
+.btn-secondary,
+.btn-secondary:hover{
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.btn-secondary.active {
+  color: rgba( 0, 165, 185 , 0.75);
+}
+
+.btn {
+  border-color: #ccc;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+}
+
+.btn-secondary {
+  background-color: #00A5B9;
+  *background-color: #00A5B9;
+  background-image: -ms-linear-gradient(top, #009FB2, #00A5B9);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#009FB2), to(#00A5B9));
+  background-image: -webkit-linear-gradient(top, #009FB2, #00A5B9);
+  background-image: -o-linear-gradient(top, #009FB2, #00A5B9);
+  background-image: -moz-linear-gradient(top, #009FB2, #00A5B9);
+  background-image: linear-gradient(top, #009FB2, #00A5B9);
+  background-repeat: repeat-x;
+  border-color: #00A5B9 #00A5B9 #003580;
+  border-color: rgba(0, 165, 185, 0.1) rgba(0, 165, 185, 0.1) rgba(0, 165, 185, 0.25);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='#009FB2', endColorstr='#00A5B9', GradientType=0);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+
+.btn-secondary:hover,
+.btn-secondary:active,
+.btn-secondary.active,
+.btn-secondary.disabled,
+.btn-secondary[disabled] {
+  background-color: #00A5B9;
+  *background-color: #00A5B9;
+}
+
+.btn-secondary:active,
+.btn-secondary.active {
+  background-color: #00A5B9 \9;
+}
+
+.btn-group.open .btn-secondary.dropdown-toggle {
+  background-color: #00A5B9;
+}
+
+
+.btn-secondary .caret {
+  border-top-color: #ffffff;
+  border-bottom-color: #ffffff;
+  opacity: 0.75;
+  filter: alpha(opacity=75);
+}
+
+.ui-widget-header {
+    border: 1px solid #00A5B9;
+    background: #00A5B9;
+    color: #fff;
+    font-weight: bold;
+}
+
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
+    color: #00A5B9;
+    text-decoration: none;
+}
+
+
+.ui-state-hover a, .ui-state-hover a:hover, .ui-state-hover a:link, .ui-state-hover a:visited, .ui-state-focus a, .ui-state-focus a:hover, .ui-state-focus a:link, .ui-state-focus a:visited {
+    color: #00A5B9;
+    text-decoration: none;
+}
+

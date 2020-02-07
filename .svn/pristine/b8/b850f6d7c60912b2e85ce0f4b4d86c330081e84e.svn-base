@@ -1,0 +1,38 @@
+// mod-analytics
+
+.mod-analytics {
+    .count {
+        font-size: 32px;
+        line-height: 34px;
+        text-align: center;
+        display: block;
+        font-weight: $fnt-bold;
+        color: $clr-root;
+        margin-bottom: 5px;
+    }
+    .feature {
+        font-size: 18px;
+        line-height: 23px;
+        text-align: center;
+        color: $clr-root;
+        width: 250px;
+        display: block;
+        margin: 0 auto;
+        text-transform: uppercase;
+    }
+}
+
+@media only screen and (max-width:$mobile-breakpoint) {
+    .mod-analytics {
+        .count {
+            font-size: 20px;
+            line-height: 22px;
+        }
+        .feature {
+            font-size: 12px;
+            line-height: 16px;
+            width: auto;
+            text-transform: capitalize;
+        }
+    }
+}

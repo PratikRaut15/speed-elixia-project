@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * Description of ResponseClass
+ *
+ * @author Mrudang
+ */
+class RequestClass {
+
+    // <editor-fold defaultstate="collapsed" desc="Public Variables">
+    /**
+     * userkey
+     * @var string
+     * @required
+     */
+    public $userkey;
+    /**
+     * pageindex
+     * @var int
+     */
+    public $pageindex;
+    /**
+     * pagesize
+     * @var int
+     */
+    public $pagesize;
+    /**
+     * searchstring
+     * @var string
+     */
+    public $searchstring;
+    /**
+     * groupid
+     * @var int
+     */
+    public $groupid;
+    /**
+     * customerno
+     * @var int
+     */
+    public $customerno;
+    /**
+     * iswarehouse
+     * @var bool
+     */
+    public $iswarehouse;
+    
+    public $latitude;
+    
+    public $longitude;
+    
+    public $ignition;
+    
+    public $speed;
+    
+    public $lastupdated;
+    
+    public $vehicleno;
+    
+    public $odometer;
+    
+    public $unitno;
+    
+    public $online_offline;
+    
+    public $gsmstrength;
+    
+    public $vehicle_battery;
+    
+    public $direction;
+    
+    public $temprature;
+    
+    public $isRequiredThirdParty;
+    
+    // </editor-fold>
+}

@@ -1,0 +1,40 @@
+//mod-social-media  
+.mod-social-media {
+    .media-list {
+        display: block;
+        text-align: center;
+        .item {
+            display: inline-block;
+            margin-right: 20px;
+            .media-link {
+                display: block;
+                padding: 5px;
+                .icon {
+                    font-size: 42px;
+                    line-height: 42px;
+                    color: $clr-root;
+                    display: block;
+                }
+            }
+            &:last-child {
+                margin: 0px;
+            }
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .mod-social-media {
+        .media-list {
+            margin: 18px 0;
+            // .item {
+            //     .media-link {
+            //         .icon {
+            //             font-size: 40px;
+            //             line-height: 42px;
+            //         }
+            //     }
+            // }
+        }
+    }
+}

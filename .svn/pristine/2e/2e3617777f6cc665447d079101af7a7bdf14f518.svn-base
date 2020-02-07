@@ -1,0 +1,300 @@
+<?php
+set_time_limit(60);
+include_once $RELATIVE_PATH_DOTS . 'lib/autoload.php';
+include_once $RELATIVE_PATH_DOTS . "lib/comman_function/reports_func.php";
+
+class GeoCoder extends VersionedManager {
+    public function __construct($customerno) {
+        // Constructor.
+        parent::__construct($customerno);
+    }
+
+    public function get_location_bylatlong($lat, $long) {
+        $use_geolocation = $this->get_use_geolocation();
+        $pullLocation = 0;
+        $address = null;
+        $latint = floor($lat);
+        $longint = floor($long);
+
+        //First, Search for location in that customer (if he has created checkpoints)
+        $LocQuery = "SELECT * , 3956 *2 * ASIN( SQRT( POWER( SIN( ( " . $lat . "- `lat` ) * PI( ) /180 /2 ) , 2 ) +
+        COS( " . $lat . " * PI( ) /180 ) * COS( `lat` * PI( ) /180 ) * POWER( SIN( ( " . $long . " - `long` ) * PI( ) /180 /2 ) , 2 ) ) )
+        AS distance, checkpointid FROM " . DB_PARENT . ".geotest WHERE `latfloor` = " . $latint . " AND `longfloor` = " . $longint . " HAVING distance < 0.5 AND customerno IN(" . $this->_Customerno . ") ORDER BY distance LIMIT 0,1 ";
+        $geoloc_query = sprintf($LocQuery);
+        $this->_databaseManager->executeQuery($geoloc_query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $city_state = '';
+                if ($row['created_on'] == "0000-00-00 00:00:00") {
+                    $city_state = ", " . $row['city'] . ", " . $row['state'];
+                }
+
+                if ($row['checkpointid'] != 0 && $row['distance'] < 0.5) {
+                    return $location_string = round($row['distance'], 2) . " Km from " . $row['location'] . $city_state;
+                } elseif ($row['distance'] < 0.1) {
+                    return $location_string = "Near " . $row['location'] . $city_state;
+                }
+            }
+            //return $location_string;
+        }
+
+        //Second, Search for location generically
+        $LocQuery = "SELECT * , 3956 *2 * ASIN( SQRT( POWER( SIN( ( " . $lat . "- `lat` ) * PI( ) /180 /2 ) , 2 ) +
+        COS( " . $lat . " * PI( ) /180 ) * COS( `lat` * PI( ) /180 ) * POWER( SIN( ( " . $long . " - `long` ) * PI( ) /180 /2 ) , 2 ) ) )
+        AS distance FROM " . DB_PARENT . ".geotest WHERE `latfloor` = " . $latint . " AND `longfloor` = " . $longint . " HAVING distance < 0.1 AND customerno IN(0) ORDER BY distance LIMIT 0,1 ";
+        $geoloc_query = sprintf($LocQuery);
+        $this->_databaseManager->executeQuery($geoloc_query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $city_state = '';
+                if ($row['created_on'] == "0000-00-00 00:00:00") {
+                    $city_state = ", " . $row['city'] . ", " . $row['state'];
+                }
+                $location_string = "Near " . $row['location'] . $city_state;
+            }
+            return $location_string;
+        } else {
+            $pullLocation = 1;
+            if (isset($use_geolocation) && $use_geolocation == 1) {
+                $API = "http://uat-speed.elixiatech.com/location.php?lat=" . $lat . "&long=" . $long . "";
+                $location = json_decode(file_get_contents("$API&sensor=false"));
+                //print_r($location);
+                //echo $location->results[0]->formatted_address;
+                //$objlog = new Log();
+                //$objlog->createlog_geocode($this->_Customerno, $location->status);
+                if (isset($location) && isset($location->results[0]->formatted_address) && $location->results[0]->formatted_address != "" && $location->status != 'ZERO_RESULTS' && $location->status != 'OVER_QUERY_LIMIT') {
+                    @$address = "Near " . $location->results[0]->formatted_address;
+                    $this->insertGeoLocation($location, $lat, $long);
+                    $pullLocation = 0;
+                    return $address;
+                }
+            }
+            if ($pullLocation == 1) {
+                $Query = "SELECT * , 3956 *2 * ASIN( SQRT( POWER( SIN( ( " . $lat . "- `lat` ) * PI( ) /180 /2 ) , 2 ) +
+                COS( " . $lat . " * PI( ) /180 ) * COS( `lat` * PI( ) /180 ) * POWER( SIN( ( " . $long . " - `long` ) * PI( ) /180 /2 ) , 2 ) ) )
+                AS distance FROM " . DB_PARENT . ".geotest WHERE `latfloor` = " . $latint . " AND `longfloor` = " . $longint . " HAVING distance < 10 AND customerno IN(0," . $this->_Customerno . ") ORDER BY distance LIMIT 0,1 ";
+                $geolocation_query = sprintf($Query);
+                $this->_databaseManager->executeQuery($geolocation_query);
+                if ($this->_databaseManager->get_rowCount() > 0) {
+                    while ($row = $this->_databaseManager->get_nextRow()) {
+                        $city_state = '';
+                        if ($row['created_on'] == "0000-00-00 00:00:00") {
+                            $city_state = ", " . $row['city'] . ", " . $row['state'];
+                        }
+
+                        $location_string = round($row['distance'], 2) . " Km from " . $row['location'] . $city_state;
+                    }
+                    return $location_string;
+                } else {
+                    return "Unable to Pull Location";
+                }
+                return null;
+            }
+        }
+    }
+
+    public function get_city_bylatlong($lat, $long) {
+        $latint = floor($lat);
+        $longint = floor($long);
+
+        $LocQuery = "SELECT * , 3956 *2 * ASIN( SQRT( POWER( SIN( ( " . $lat . "- `lat` ) * PI( ) /180 /2 ) , 2 ) +
+        COS( " . $lat . " * PI( ) /180 ) * COS( `lat` * PI( ) /180 ) * POWER( SIN( ( " . $long . " - `long` ) * PI( ) /180 /2 ) , 2 ) ) )
+        AS distance FROM " . DB_PARENT . ".geotest WHERE `latfloor` = " . $latint . " AND `longfloor` = " . $longint . " HAVING distance <1 AND customerno = " . $this->_Customerno . " ORDER BY distance LIMIT 0,1 ";
+        $geoloc_query = sprintf($LocQuery);
+        $this->_databaseManager->executeQuery($geoloc_query);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $location_string = $row['city'] . ", " . $row['state'];
+            }
+            return $location_string;
+        } else {
+            $Query = "SELECT * , 3956 *2 * ASIN( SQRT( POWER( SIN( ( " . $lat . "- `lat` ) * PI( ) /180 /2 ) , 2 ) +
+            COS( " . $lat . " * PI( ) /180 ) * COS( `lat` * PI( ) /180 ) * POWER( SIN( ( " . $long . " - `long` ) * PI( ) /180 /2 ) , 2 ) ) )
+            AS distance FROM " . DB_PARENT . ".geotest WHERE `latfloor` = " . $latint . " AND `longfloor` = " . $longint . " HAVING distance <10 AND customerno = 0 ORDER BY distance LIMIT 0,1 ";
+            $geolocation_query = sprintf($Query);
+            $this->_databaseManager->executeQuery($geolocation_query);
+
+            if ($this->_databaseManager->get_rowCount() > 0) {
+                while ($row = $this->_databaseManager->get_nextRow()) {
+                    $location_string = $row['city'] . ", " . $row['state'];
+                }
+                return $location_string;
+            } else {
+                return "Unable to Pull Location";
+            }
+            return null;
+        }
+    }
+
+    public function get_all_location() {
+        $locations = array();
+        //$Query = "SELECT cname,checkpointid,cgeolat, cgeolong, crad FROM `checkpoint` where customerno=%d AND isdeleted=0";
+        $Query = "SELECT * FROM " . DB_PARENT . ".`geotest` where customerno=%d ";
+
+        $checkpointQuery = sprintf($Query, $this->_Customerno);
+        $this->_databaseManager->executeQuery($checkpointQuery);
+
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $location = new VOVehicle();
+                $location->geotestid = $row['geotestid'];
+                $location->location = $row['location'];
+                $location->city = $row['city'];
+                $location->state = $row['state'];
+                $location->lat = $row['lat'];
+                $location->long = $row['long'];
+                $locations[] = $location;
+            }
+
+            return $locations;
+        }
+        return null;
+    }
+
+    public function get_location($geotestid) {
+        $Query = "SELECT * FROM " . DB_PARENT . ".`geotest` where geotestid =%d AND customerno=%d ";
+        $locationQuery = sprintf($Query, Sanitise::Long($geotestid), $this->_Customerno);
+        $this->_databaseManager->executeQuery($locationQuery);
+
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $location = new VOVehicle();
+                $location->geotestid = $row['geotestid'];
+                $location->location = $row['location'];
+                $location->city = $row['city'];
+                $location->state = $row['state'];
+                $location->lat = $row['lat'];
+                $location->long = $row['long'];
+            }
+
+            return $location;
+        }
+        return null;
+    }
+
+    public function SaveLocation($location, $userid) {
+        $lat = floor($location->geolat);
+        $long = floor($location->geolong);
+        $Query = "INSERT INTO " . DB_PARENT . ".geotest(`location`,`city`,`state`,`lat`,`long`,`latfloor`,`longfloor`,`customerno`) VALUES ('%s','%s','%s',%f,%f,%d,%d,%d)";
+        $SQL = sprintf($Query, Sanitise::String($location->location), Sanitise::String($location->city), Sanitise::String($location->state), Sanitise::Float($location->geolat), Sanitise::Float($location->geolong), Sanitise::Long($lat), Sanitise::Long($long), $this->_Customerno);
+        $this->_databaseManager->executeQuery($SQL);
+    }
+
+    public function EditLocation($location, $userid) {
+        $lat = floor($location->geolat);
+        $long = floor($location->geolong);
+        $Query = "Update " . DB_PARENT . ".geotest Set `location`='%s',`city`='%s',`state`='%s',`lat`='%f',`long`='%f',`latfloor`=%d,`longfloor`=%d WHERE geotestid = %d AND customerno = %d";
+        $SQL = sprintf($Query, Sanitise::String($location->location), Sanitise::String($location->city), Sanitise::String($location->state), Sanitise::Float($location->geolat), Sanitise::Float($location->geolong), Sanitise::Long($lat), Sanitise::Long($long), Sanitise::Long($location->geotestid), $this->_Customerno);
+        $this->_databaseManager->executeQuery($SQL);
+    }
+
+    public function delete_location($delid) {
+        $Query = "DELETE FROM " . DB_PARENT . ".`geotest` WHERE geotestid = %d AND customerno = %d";
+        $SQL = sprintf($Query, Sanitise::Long($delid), $this->_Customerno);
+        $this->_databaseManager->executeQuery($SQL);
+    }
+
+    public function get_use_geolocation() {
+        $Query = "SELECT use_geolocation FROM " . DB_PARENT . ".`customer` where customerno=%d ";
+        $locationQuery = sprintf($Query, $this->_Customerno);
+        $this->_databaseManager->executeQuery($locationQuery);
+
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $use_geolocation = $row['use_geolocation'];
+            }
+
+            return $use_geolocation;
+        }
+        return null;
+    }
+
+    public function checkLocationAddress($location, $lat, $long) {
+        $location1 = '';
+        $location = probablyAlreadyEscaped($location);
+        $sqlQuery = "SELECT * FROM " . DB_PARENT . ".geotest WHERE (lat =$lat and `long` =$long) limit 1";
+        //$locationQuery = sprintf($sqlQuery);
+        $this->_databaseManager->executeQuery($sqlQuery);
+        if ($this->_databaseManager->get_rowCount() > 0) {
+            while ($row = $this->_databaseManager->get_nextRow()) {
+                $location1 = $row['location'];
+            }
+
+            return $location1;
+        }
+    }
+
+    public function insertGeoLocation($location, $lat, $long) {
+        $road = '';
+        $city = '';
+        $state = '';
+        $country = '';
+        $today = date('Y-m-d h:i:s');
+        if (isset($location->results[0]->address_components)) {
+            foreach ($location->results[0]->address_components as $add) {
+                if ($add->types[0] == 'country') {
+                    $country = $add->long_name;
+                }
+                if ($add->types[0] == 'administrative_area_level_1') {
+                    $state = $add->long_name;
+                }
+                if ($add->types[0] == 'administrative_area_level_2') {
+                    $city = $add->long_name;
+                }
+                if ($add->types[0] == 'route') {
+                    $road = $add->long_name;
+                }
+            }
+        }
+
+        $objLocation = new stdClass();
+        $objLocation->lat = $lat;
+        $objLocation->long = $long;
+        $objLocation->location = $location->results[0]->formatted_address;
+        if ($road == "Unnamed Road") {
+            $fomattedAddress = str_replace($road, "", $location->results[0]->formatted_address);
+            $objLocation->location = $fomattedAddress;
+        }
+        $objLocation->city = $city;
+        $objLocation->state = $state;
+        $objLocation->country = $country;
+        $objLocation->latfloor = floor($lat);
+        $objLocation->longfloor = floor($long);
+        $objLocation->customerno = 0;
+
+        $Query = "INSERT INTO " . DB_PARENT . ".geotest(`location`,`city`,`state`,`country`,`lat`,`long`,`latfloor`,`longfloor`,`customerno`,`created_on`) VALUES ('%s','%s','%s','%s',%f,%f,%d,%d,%d,'%s')";
+        $SQL = sprintf($Query, Sanitise::String($objLocation->location), Sanitise::String($objLocation->city), Sanitise::String($objLocation->state), Sanitise::String($objLocation->country), Sanitise::Float($objLocation->lat), Sanitise::Float($objLocation->long), Sanitise::Long($objLocation->latfloor), Sanitise::Long($objLocation->longfloor), Sanitise::String($objLocation->customerno), $today);
+        $this->_databaseManager->executeQuery($SQL);
+    }
+
+    public function getLatLngByAddress($objData) {
+        $lat = "";
+        $lng = "";
+        $accuracy = 0;
+        $address = urlencode($objData->address);
+        $key = "";
+        $googleApi_1 = signLocationUrl("http://maps.google.com/maps/api/geocode/json?address=$address&region=in&sensor=false&key=" . GOOGLE_MAP_API_KEY, '');
+
+        $curlExecute_1 = curl_init();
+        //echo $googleApi_1."<br />";
+        curl_setopt($curlExecute_1, CURLOPT_URL, $googleApi_1);
+        curl_setopt($curlExecute_1, CURLOPT_RETURNTRANSFER, 1); // return into a variable
+        $arrResult_1 = curl_exec($curlExecute_1);
+        $arrData_1 = json_decode($arrResult_1);
+        $partial_match = retval_issetor($arrData_1->results[0]->partial_match, 0);
+
+        if (isset($arrData_1->status) && $arrData_1->status === 'OK') {
+            $location = $arrData_1->results[0]->geometry->location;
+            $lat = $location->lat;
+            $lng = $location->lng;
+            $accuracy = 1;
+        }
+        curl_close($curlExecute_1);
+
+        $locationData = new stdClass();
+        $locationData->lat = $lat;
+        $locationData->lng = $lng;
+        $locationData->accuracy = $accuracy;
+        return $locationData;
+    }
+}

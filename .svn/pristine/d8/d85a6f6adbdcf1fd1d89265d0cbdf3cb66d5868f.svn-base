@@ -1,0 +1,54 @@
+<script type="text/javascript">
+function getChkHistAllReport(){
+    jQuery('#centerDiv').html('');
+    jQuery('#pageloaddiv').show();
+    var data = jQuery("#ChkHistAllForm").serialize();
+    jQuery.ajax({
+        url:"chkhist_all_ajax.php",
+        type: 'POST',
+        data: data,
+        success:function(result){
+            jQuery("#centerDiv").html(result);
+        },
+        complete: function(){
+            jQuery('#pageloaddiv').hide();
+        }
+    });
+}
+</script>
+<form action="reports.php?id=32" method="POST" id='ChkHistAllForm' onsubmit="getChkHistAllReport();return false;">
+<?php
+    $title = "Checkpoint Report";
+    $today = date('d-m-Y');
+    include 'panels/chkhist.php';
+?>
+<?php
+    if (isset($_SESSION['ecodeid'])) {
+    ?>
+<input type="hidden" name="s_start" id="s_start" value="<?php echo $_SESSION['startdate']; ?>" />
+<input type="hidden" name="e_end" id="e_end" value="<?php echo $_SESSION['enddate']; ?>" />
+<?php
+    }
+?>
+    <tr>
+        <td>Start Date</td>
+        <td>Start Hour</td>
+        <td>End Date</td>
+        <td>End Hour</td>
+    </tr>
+    <tr>
+        <td><input id="SDate" name="STdate" type="text" value="<?php echo $today; ?>" required/></td>
+        <td><input id="STime" name="STime" type="text" class="input-mini" data-date="00:00" /></td>
+        <td><input id="EDate" name="EDdate" type="text" value="<?php echo $today; ?>" required/></td>
+        <td><input id="ETime" name="ETime" type="text" class="input-mini" data-date2="23:59"/></td>
+        <td><input type="submit" value="Get Report" class="g-button g-button-submit" name="GetReport"></td>
+        <td>
+            <a href='javascript:void(0)' onclick="get_pdfreportchk_all(<?php echo $_SESSION['customerno']; ?>,<?php echo $_SESSION['temp_sensors']; ?>);"><img src="../../images/pdf_icon.png" alt="Export to PDF" class='exportIcons' title="Export to PDF" /></a>
+            <a href='javascript:void(0)' onclick="html2xlschk_all(<?php echo $_SESSION['customerno']; ?>,<?php echo $_SESSION['temp_sensors']; ?>); return false;"><img src="../../images/xls.gif" alt="Export to Excel" class='exportIcons' title="Export to Excel" /></a>
+        </td>
+    </tr>
+    </tbody>
+    </table>
+</form>
+<br/><br/>
+<center id='centerDiv'></center>

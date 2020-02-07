@@ -1,0 +1,1045 @@
+<?php
+include_once("session.php");
+include_once("../../lib/system/utilities.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/system/DatabaseManager.php");
+include_once("../../lib/bo/CustomerManager.php");
+include_once("../../lib/system/Date.php");
+include_once("../../lib/system/Sanitise.php");
+include_once("../../lib/components/gui/objectdatagrid.php");
+include_once("../../lib/model/VODevices.php");
+
+$deviceid = GetSafeValueString( isset($_GET["id"])?$_GET["id"]:$_POST["deviceid"], "long");
+$teamid = GetLoggedInUserId();
+$db = new DatabaseManager();
+class testing{
+    
+}
+
+if(isset($_POST["updateunit"]))
+{
+    // Populate Devices
+    $cexpiry = GetSafeValueString($_POST["ucexpiry"], "string");                    
+    $cexpiry = date("Y-m-d", strtotime($cexpiry));
+    $cinstall = GetSafeValueString($_POST["cinstall"], "string");                    
+    $cinstall = date("Y-m-d", strtotime($cinstall));    
+    $cinvoiceno = GetSafeValueString($_POST["cinvoiceno"], "string");                        
+    $deviceid = GetSafeValueString($_POST["deviceid"], "string");                            
+
+    // AC Sensor
+    $pdigital=1;
+    if (!isset($_POST["cdigital"])) {
+     $pdigital=0;
+    }    
+	// AC Opposite
+    $pdigitalopp=1;
+    if (!isset($_POST["cdigitalopp"])) {
+     $pdigitalopp=0;
+    }  
+    
+    $SQL = sprintf("UPDATE unit SET acsensor=%d, is_ac_opp=%d where uid='%s'",$pdigital, $pdigitalopp, $deviceid);
+    $db->executeQuery($SQL);
+    
+    
+    // Temperature Sensor 1   
+    $ctempsen = GetSafeValueString($_POST["canalog"], "long");     
+    $ctempsen2 = GetSafeValueString($_POST["canalog2"], "long");         
+    $oldanalog1 = GetSafeValueString($_POST["oldanalog1"], "long");         
+    $oldanalog2 = GetSafeValueString($_POST["oldanalog2"], "long");             
+    
+    if($oldanalog1 != 0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$oldanalog1."_sen=0 where uid='%s'",$deviceid);
+        $db->executeQuery($SQL);        
+    }
+    if($oldanalog2 != 0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$oldanalog2."_sen=0 where uid='%s'",$deviceid);
+        $db->executeQuery($SQL);        
+    }    
+    if($ctempsen!=0 && $ctempsen2!=0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen."_sen=1,analog".$ctempsen2."_sen=1 where uid='%s'",$deviceid);
+        $db->executeQuery($SQL);
+    }
+    elseif($ctempsen==0 && $ctempsen2!=0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen2."_sen=1 where uid='%s'",$deviceid);                        
+        $db->executeQuery($SQL);
+    }
+    elseif($ctempsen!=0 && $ctempsen2==0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen."_sen=1 where uid='%s'",$deviceid);            
+        $db->executeQuery($SQL);
+    }    
+    else
+    {
+        $SQL = sprintf("UPDATE unit SET analog1_sen=0,analog2_sen=0,analog3_sen=0,analog4_sen=0 where uid='%s'",$deviceid);
+        $db->executeQuery($SQL);        
+    }
+        
+    $SQL = sprintf("UPDATE devices SET expirydate ='%s', invoiceno ='%s', installdate ='%s' where uid='%s'",$cexpiry, $cinvoiceno, $cinstall, $deviceid);
+    $db->executeQuery($SQL);
+    
+    $customerno = GetSafeValueString($_POST["customerid"], "string");            
+        
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 0, '%s','%s','%s','%s')",
+    $deviceid, GetLoggedInUserId(), Sanitise::DateTime($today), "Unit Updated: Expiry Date: ".$cexpiry."; Install Date: ".$cinstall."; Invoice No.: ".$cinvoiceno,"",$cinvoiceno,$cexpiry);
+    $db->executeQuery($SQLunit);
+    
+    
+    header("Location: modifycustomer.php?cid=$customerno");    
+    
+}
+
+if(isset($_POST["ureactivate"]))
+{
+    $deviceid = GetSafeValueString($_POST["deviceid"], "string");                            
+    $simcardid = GetSafeValueString($_POST["simcardid"], "string");                            
+    $did = GetSafeValueString($_POST["did"], "string");                            
+    
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 5 where uid='.$deviceid);
+    $db->executeQuery($SQL);
+    
+    $cexpiry = GetSafeValueString($_POST["cexpirydate"], "string"); 
+    $cexpiry = date("Y-m-d", strtotime($cexpiry));
+    $cinvoiceno = GetSafeValueString($_POST["cinvoiceno"], "string");                            
+    $SQL = sprintf("UPDATE devices SET simcardid=%d, expirydate ='%s', invoiceno ='%s' where deviceid='%d'", $simcardid, $cexpiry, $cinvoiceno, $did);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 13 where id='.$simcardid);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$deviceid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $unitno = $row["unitno"];
+        }    
+    }
+    
+    $SQL = sprintf('SELECT simcardno FROM simcard WHERE id = '.$simcardid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $simcardno = $row["simcardno"];
+        }    
+    }
+    
+    $customerno = GetSafeValueString($_POST["customerid"], "string");            
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 5, '%s','%s','%s','%s')",
+    $deviceid, GetLoggedInUserId(), Sanitise::DateTime($today), "Reactivated",$simcardno,$cinvoiceno,$cexpiry);
+    $db->executeQuery($SQLunit);
+    
+    $today = date("Y-m-d H:i:s");
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 1, '%s', 13, '%s','%s','%s','%s')",
+    $simcardid, GetLoggedInUserId(), Sanitise::DateTime($today), "Reactivated","","","");
+    $db->executeQuery($SQLsim);                    
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+     GetLoggedInUserId(), Sanitise::DateTime($today), "Reactivated Unit # : ".$unitno.". and Sim # ".$simcard,"", "", "");
+    $db->executeQuery($SQLunit);
+    
+    header("Location: modifycustomer.php?cid=$customerno");    
+}
+
+
+if(isset($_POST["umakeitfresh"]))
+{
+    $cunitno = GetSafeValueString($_POST["deviceid"], "string");                            
+    
+    $SQL = sprintf('UPDATE unit SET customerno=1, trans_statusid = 1 where uid='.$cunitno);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf("UPDATE devices SET customerno=1, simcardid = 0, expirydate='0000-00-00', invoiceno='', installdate='0000-00-00' where uid='%d'",$cunitno);
+    $db->executeQuery($SQL);
+    
+    // Populate Vehicles
+    
+    $SQL = sprintf('UPDATE vehicle SET customerno=1 where uid ='.$cunitno);    
+    $db->executeQuery($SQL);
+
+    $SQL = sprintf('SELECT vehicleid FROM vehicle WHERE uid = '.$cunitno);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $vehicleid = $row["vehicleid"];
+        }    
+    }
+    
+    $SQL = sprintf('UPDATE driver SET customerno=1 where vehicleid='.$vehicleid);    
+    $db->executeQuery($SQL);
+
+    $SQL = sprintf('UPDATE eventalerts SET customerno=1 where vehicleid='.$vehicleid);    
+    $db->executeQuery($SQL);
+
+    $SQL = sprintf('UPDATE ignitionalert SET customerno=1 where vehicleid='.$vehicleid);    
+    $db->executeQuery($SQL);
+
+    $SQL = sprintf('UPDATE acalerts SET customerno=1 where vehicleid='.$vehicleid);    
+    $db->executeQuery($SQL);
+    
+    // Create unit directory
+    $relativepath = "../..";
+    if(!is_dir( $relativepath.'/customer/1/unitno/'.$cunitno ))
+    {
+        // Directory doesn't exist.
+        mkdir($relativepath.'/customer/1/unitno/'.$cunitno,0777, true ) or die("Could not create directory");
+    }
+    
+    if(!is_dir( $relativepath.'/customer/1/unitno/'.$cunitno.'/sqlite' ))
+    {
+        // Directory doesn't exist.
+        mkdir($relativepath.'/customer/1/unitno/'.$cunitno.'/sqlite',0777, true ) or die("Could not create directory");
+    }            
+        
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', 1, '%s','%s','%s','%s')",
+    $cunitno, GetLoggedInUserId(), Sanitise::DateTime($today), "Refreshed","","","");
+    $db->executeQuery($SQLunit);
+    
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$deviceid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $unitno = $row["unitno"];
+        }    
+    }
+
+    $customerno = GetSafeValueString($_POST["customerid"], "string");            
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+     GetLoggedInUserId(), Sanitise::DateTime($today), "Removed Unit # : ".$unitno,"", "", "");
+    $db->executeQuery($SQLunit);
+    
+    header("Location: modifycustomer.php?cid=$customerno");        
+}
+if(isset($_POST["renewal"]))
+{    
+    // Populate Devices
+    $cexpiry = GetSafeValueString($_POST["cexpiry"], "string");                    
+    $cexpiry = date("Y-m-d", strtotime($cexpiry));
+    $cinvoiceno = GetSafeValueString($_POST["cinvoiceno"], "string");                        
+    $deviceid = GetSafeValueString($_POST["deviceid"], "string");                            
+    $simcardid = GetSafeValueString($_POST["simcardid"], "string");                            
+    
+    $SQL = sprintf("UPDATE devices SET expirydate ='%s', invoiceno ='%s' where uid=%d",  Sanitise::Date($cexpiry), Sanitise::String($cinvoiceno), Sanitise::Long($deviceid));
+    $db->executeQuery($SQL);
+
+    $customerno = GetSafeValueString($_POST["customerid"], "string");    
+    
+    $SQL = sprintf('SELECT simcardno FROM simcard WHERE id = '.$simcardid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $simcard = $row["simcardno"];
+        }    
+    }
+
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$deviceid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $unitno = $row["unitno"];
+        }    
+    }
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 0, '%s','%s','%s','%s')",
+    $deviceid, GetLoggedInUserId(), Sanitise::DateTime($today), "Renewed",$simcard,$cinvoiceno,$cexpiry);
+    $db->executeQuery($SQLunit);
+        
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+     GetLoggedInUserId(), Sanitise::DateTime($today), "Renewed Unit # : ".$unitno.". with Sim # ".$simcard,"", "", "");
+    $db->executeQuery($SQLunit);
+    
+    header("Location: modifycustomer.php?cid=$customerno");            
+}    
+
+
+if(isset($_POST["switchlock"])){
+    $customerno = GetSafeValueString($_POST["customerid"], "string");
+    $uid = GetSafeValueString($_POST["deviceid"], "string");
+    $vehicleid = GetSafeValueString($_POST["vehicleid"], "string");
+    $chk_val = GetSafeValueString($_POST["chk_val"], "string");
+    $cm = new CustomerManager();
+    if($chk_val==0){
+        $cm->setlock($vehicleid, $customerno) ;
+    }  elseif($chk_val == 1) {
+        $cm->removelock($vehicleid, $customerno);
+    }
+    
+        header("Location: modifycustomer.php?cid=$customerno");
+    
+    
+}
+
+
+if(isset($_POST["ususpect"]))
+{
+    $deviceid = GetSafeValueString($_POST["deviceid"], "string");                            
+    $simcardid = GetSafeValueString($_POST["simcardid"], "string");                            
+    
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 6 where uid='.$deviceid);
+    $db->executeQuery($SQL);
+
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 14 where id='.$simcardid);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf('SELECT simcardno FROM simcard WHERE id = '.$simcardid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $simcardno = $row["simcardno"];
+        }    
+    }
+    
+    $customerno = GetSafeValueString($_POST["customerid"], "string");    
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 6, '%s','%s','%s','%s')",
+    $deviceid, GetLoggedInUserId(), Sanitise::DateTime($today), "Suspected",$simcardno,"","");
+    $db->executeQuery($SQLunit);
+
+    $today = date("Y-m-d H:i:s");
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 1, '%s', 14, '%s','%s','%s','%s')",
+    $simcardid, GetLoggedInUserId(), Sanitise::DateTime($today), "Suspected","","","");
+    $db->executeQuery($SQLsim);                    
+    
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$deviceid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $unitno = $row["unitno"];
+        }    
+    }
+
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+     GetLoggedInUserId(), Sanitise::DateTime($today), "Suspected Unit # : ".$unitno." and Suspected Sim # ".$simcardno,"", "", "");
+    $db->executeQuery($SQLunit);
+    
+    header("Location: modifycustomer.php?cid=$customerno");        
+}
+
+if(isset($_POST["uresolve"]))
+{
+    $deviceid = GetSafeValueString($_POST["deviceid"], "string");                            
+    $simcardid = GetSafeValueString($_POST["simcardid"], "string");                            
+    
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 5 where uid='.$deviceid);
+    $db->executeQuery($SQL);
+
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 13 where id='.$simcardid);
+    $db->executeQuery($SQL);
+        
+    $SQL = sprintf('SELECT simcardno FROM simcard WHERE id = '.$simcardid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $simcardno = $row["simcardno"];
+        }    
+    }
+    
+    $customerno = GetSafeValueString($_POST["customerid"], "string");    
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 5, '%s','%s','%s','%s')",
+    $deviceid, GetLoggedInUserId(), Sanitise::DateTime($today), "Resolved",$simcardno,"","");
+    $db->executeQuery($SQLunit);
+    
+    $today = date("Y-m-d H:i:s");
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 1, '%s', 13, '%s','%s','%s','%s')",
+    $simcardid, GetLoggedInUserId(), Sanitise::DateTime($today), "Resolved","","","");
+    $db->executeQuery($SQLsim);                    
+    
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$deviceid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $unitno = $row["unitno"];
+        }    
+    }
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+     GetLoggedInUserId(), Sanitise::DateTime($today), "Resolved Unit # : ".$unitno." and Resolved Sim # ".$simcardno,"", "", "");
+    $db->executeQuery($SQLunit);
+    
+    header("Location: modifycustomer.php?cid=$customerno");        
+}
+
+
+if(isset($_POST["uterminate"]))
+{
+    $deviceid = GetSafeValueString($_POST["deviceid"], "string");                            
+    $simcardid = GetSafeValueString($_POST["simcardid"], "string");                            
+    $did = GetSafeValueString($_POST["did"], "string");                            
+    
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 10 where uid='.$deviceid);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf('UPDATE devices SET simcardid= 0 where deviceid='.$did);
+    $db->executeQuery($SQL);
+    
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 12 where id='.$simcardid);
+    $db->executeQuery($SQL);
+    
+    $customerno = GetSafeValueString($_POST["customerid"], "string");        
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 10, '%s','%s','%s','%s')",
+    $deviceid, GetLoggedInUserId(), Sanitise::DateTime($today), "Terminated","","","");
+    $db->executeQuery($SQLunit);
+    
+    $today = date("Y-m-d H:i:s");
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 1, '%s', 15, '%s','%s','%s','%s')",
+    $simcardid, GetLoggedInUserId(), Sanitise::DateTime($today), "Applied for Disconnection","","","");
+    $db->executeQuery($SQLsim);                        
+    
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$deviceid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $unitno = $row["unitno"];
+        }    
+    }
+    
+    $SQL = sprintf('SELECT simcardno FROM simcard WHERE id = '.$simcardid);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $simcardno = $row["simcardno"];
+        }    
+    }
+    
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+     GetLoggedInUserId(), Sanitise::DateTime($today), "Terminated Unit # : ".$unitno." and Return Bad Sim # ".$simcardno,"", "", "");
+    $db->executeQuery($SQLunit);
+    
+    
+    header("Location: modifycustomer.php?cid=$customerno");    
+}
+
+
+if(isset($_POST["save"]))
+{
+    // Attempting to save changes now.
+    $command = GetSafeValueString($_POST["command"], "string");
+    $uid = GetSafeValueString($_POST["uid"], "string");
+    $customerno = GetSafeValueString($_POST["customerno"], "string");
+    
+    $SQL = sprintf( "UPDATE unit SET
+            `command`='%s',
+            `setcom`=1            
+            WHERE customerno = %d AND uid = %d" ,
+                $command,
+                $customerno,
+                $uid);
+    $db->executeQuery($SQL);
+
+    date_default_timezone_set("Asia/Calcutta");                             
+    $today = date("Y-m-d H:i:s");
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    $customerno, '%d', '%s', 0, '%s', 0, '%s','%s','%s','%s')",
+    $uid, GetLoggedInUserId(), Sanitise::DateTime($today), "Command Pushed: ".$command,"","","");
+    $db->executeQuery($SQLunit);
+    
+    header("Location: modifycustomer.php?cid=$customerno");
+}
+
+
+$SQL = sprintf("SELECT unit.is_ac_opp, unit.acsensor, unit.analog1_sen, unit.analog2_sen, unit.analog3_sen, unit.analog4_sen, unit.vehicleid, devices.deviceid, devices.installdate, devices.simcardid, unit.uid, unit.trans_statusid, unit.unitno, unit.acsensor, unit.is_ac_opp, devices.expirydate, devices.invoiceno, devices.customerno from unit
+    INNER JOIN devices ON unit.uid = devices.uid
+WHERE unit.uid = '%d' LIMIT 1 ",$deviceid);
+$db->executeQuery($SQL);
+while($row = $db->get_nextRow())
+{
+    $uid = $row["uid"];
+    $customerno = $row["customerno"];
+    $unitno = $row["unitno"];
+    $transstatus = $row["trans_statusid"];
+    $expirydate = $row["expirydate"];
+    $invoiceno = $row["invoiceno"];
+    $simcardid = $row["simcardid"];
+    $installdate = $row["installdate"];
+    $vehicleid = $row['vehicleid'];
+    $analog = 0;
+    $analog2 = 0;
+    if($row["analog1_sen"] == 1)
+    {
+        $analog = 1;
+    }
+    elseif($row["analog2_sen"] == 1)
+    {
+        $analog = 2;
+    }
+    elseif($row["analog3_sen"] == 1)
+    {
+        $analog = 3;
+    }
+    elseif($row["analog4_sen"] == 1)
+    {
+        $analog = 4;
+    }
+    
+    if($row["analog1_sen"] == 1 && $analog != 1)
+    {
+        $analog2 = 1;                
+    }
+    elseif($row["analog2_sen"] == 1 && $analog != 2)
+    {
+        $analog2 = 2;                
+    }
+    elseif($row["analog3_sen"] == 1 && $analog != 3)
+    {
+        $analog2 = 3;                
+    }
+    elseif($row["analog4_sen"] == 1 && $analog != 4)
+    {
+        $analog2 = 4;                
+    }        
+
+    if($row["acsensor"] == 1)
+    {
+        $digital = 1;
+    }
+    else
+    {
+        $digital = 0;
+    }
+    if($row["is_ac_opp"] == 1)
+    {
+        $digitalopp = 1;
+    }
+    else
+    {
+        $digitalopp = 0;
+    }
+    $did = $row["deviceid"];    
+    
+}
+
+include("header.php");
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno, trans_status.status FROM simcard INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE trans_statusid IN (11)");
+$db->executeQuery($SQL);
+$simcards = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $simcard = new testing();
+        $simcard->simcardno  = $row["simcardno"]."[ ".$row["status"]." ]";
+        $simcard->id = $row["simid"];        
+        $simcards[] = $simcard;        
+    }    
+}
+
+$QUERY = sprintf('SELECT sms_lock FROM vehicle WHERE vehicleid=%d', Sanitise::Long($vehicleid));
+$db->executeQuery($QUERY);
+if($db->get_rowCount() > 0){
+    while($data = $db->get_nextRow()){
+        $smslock = $data['sms_lock'];
+    }
+}
+
+if(IsHead())
+{
+?>
+<div class="panel">
+<div class="paneltitle" align="center">Push Command</div>
+<div class="panelcontents">
+
+<form method="post" action="pushcommand.php"  enctype="multipart/form-data">
+<input type="hidden" name="uid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="customerno" value="<?php echo( $customerno ); ?>"/>
+<table width="100%">
+    <tr>
+    <td>Unit Number</td><td><input name="unitno" type="text" value="<?php echo($unitno); ?>" readonly /> </td>
+    </tr>
+    <tr>
+    <td>Command</td><td><input name="command" type="text"/></td>
+    </tr>
+</table>
+<input type="submit" name="save" value="Set" />
+</form>
+</div>
+</div>
+
+<div class="panel">
+<div class="paneltitle" align="center">Renewal</div>
+<div class="panelcontents">    
+<form method="post" action="pushcommand.php"  enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="simcardid" value="<?php echo( $simcardid ); ?>"/>
+    <table width="40%">
+
+        <?php
+        $expiry = date('d-m-Y', strtotime($expirydate));    
+        ?>
+        <tr>
+        <td>Expiry Date </td>
+        <td> <input name="cexpiry" id="cexpiry" type="text" value="<?php echo $expiry; ?>"/><button id="trigger">...</button>
+        </td>
+        </tr>            
+        <tr>
+        <td>Invoice No. </td>
+        <td> <input name="cinvoiceno" id="cinvoiceno" type="text" value="<?php echo $invoiceno; ?>"/>
+        </td>
+        </tr>            
+    </table>
+<input type="submit" name="renewal" value="Renewal" />
+</form>
+</div>
+</div>    
+
+<script>
+Calendar.setup(
+{
+    inputField : "cexpiry", // ID of the input field
+    ifFormat : "%d-%m-%Y", // the date format
+    button : "trigger" // ID of the button
+});
+    
+</script>
+<?php
+}
+if(!IsData())
+{
+?>
+<div class="panel">
+<div class="paneltitle" align="center">Update Unit</div>
+<div class="panelcontents">    
+<form method="post" action="pushcommand.php"  enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+    <table width="40%">
+
+        <?php
+        $expiry = date('d-m-Y', strtotime($expirydate));    
+        ?>
+        <tr>
+        <td>Expiry Date </td>
+        <td> <input name="ucexpiry" id="ucexpiry" type="text" value="<?php echo $expiry; ?>"/><button id="trigger4">...</button>
+        </td>
+        </tr>            
+        <?php
+        $install = date('d-m-Y', strtotime($installdate));    
+        ?>
+        <tr>
+        <td>Install Date </td>
+        <td> <input name="cinstall" id="cinstall" type="text" value="<?php echo $install; ?>"/><button id="trigger3">...</button>
+        </td>
+        </tr>                    
+        <tr>
+        <td>Invoice No. </td>
+        <td> <input name="cinvoiceno" id="cinvoiceno" type="text" value="<?php echo $invoiceno; ?>"/>
+        </td>
+        </tr>   
+         <tr>
+        <td>Analog Sensor 1</td>
+        <input type="hidden" name="oldanalog1" value="<?php echo($analog); ?>">
+        <td><select name="canalog">
+                <?php
+                if($analog != 0)
+                {
+                ?>
+                <option value="<?php echo($analog); ?>">Analog <?php echo($analog); ?></option>
+                <?php
+                }
+                if($analog == 1)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+                <?php
+                }
+                elseif($analog == 2)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="1">Analog 1</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+                <?php
+                }
+                elseif($analog == 3)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="2">Analog 2</option>
+                <option value="1">Analog 1</option>
+                <option value="4">Analog 4</option>
+                <?php
+                }
+                elseif($analog == 4)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="1">Analog 1</option>
+                <?php
+                }
+                else
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="1">Analog 1</option>                
+                <option value="2">Analog 2</option>                
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>                
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        </tr>
+
+         <tr>
+        <td>Analog Sensor 2</td>
+        <input type="hidden" name="oldanalog2" value="<?php echo($analog2); ?>">        
+        <td><select name="canalog2">
+                <?php
+                if($analog2 != 0)
+                {
+                ?>
+                <option value="<?php echo($analog2); ?>">Analog <?php echo($analog2); ?></option>
+                <?php
+                }
+                if($analog2 == 1)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+                <?php
+                }
+                elseif($analog2 == 2)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="1">Analog 1</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+                <?php
+                }
+                elseif($analog2 == 3)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="2">Analog 2</option>
+                <option value="1">Analog 1</option>
+                <option value="4">Analog 4</option>
+                <?php
+                }
+                elseif($analog2 == 4)
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="1">Analog 1</option>
+                <?php
+                }
+                else
+                {
+                ?>
+                <option value="0">Select Analog</option>                
+                <option value="1">Analog 1</option>                
+                <option value="2">Analog 2</option>                
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>                
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        </tr>
+        
+        <tr>
+            <td>Digital</td>
+            <td><input name="cdigital" id="cdigital" type="checkbox" <?php if($digital == 1) { ?> checked <?php } ?>/>Is Digital Opposite? <input name="cdigitalopp" id="cdigitalopp" type="checkbox" <?php if($digitalopp == 1) { ?> checked <?php } ?>/></td>
+        </tr>        
+    </table>
+<input type="submit" name="updateunit" value="Update" />
+</form>
+</div>
+</div>   
+
+
+<div class="panel">
+<div class="paneltitle" align="center">Set / Reset SMS Lock</div>
+<div class="panelcontents">    
+
+    <form method="post" action="pushcommand.php"  enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="vehicleid" value="<?php echo( $vehicleid ); ?>"/>
+
+    <table width="40%">
+        <tr>
+            <td ><?php if($smslock==1){?>SMS Is Loked For This Unit.<?php } else{ ?> SMS Is Opend For This Unit <?php }?></td>
+         </tr>            
+        <tr>
+        <td>Change The Lock. <input name="chk_val" id="cinvoiceno" type="checkbox" value="<?php if($smslock==1){?>1<?php } else{ ?> 0 <?php }?>"  checked="<?php if($smslock==1){ ?> checked <?php  } ?>"        /> </td>
+        
+        </tr>            
+    </table>
+<input type="submit" name="switchlock" value="Switch Lock" />
+</form>
+
+</div>
+</div>
+
+
+
+<?php
+if($transstatus == 5)
+{
+?>
+<!--  Suspect Unit-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Suspect - Device</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="pushcommand.php" enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>        
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="simcardid" value="<?php echo( $simcardid ); ?>"/>
+    <div><input type="submit" id="ususpect" name="ususpect" value="Suspect"/></div>
+    </form>
+    </div>
+    </div>
+<?php
+}
+if($transstatus == 6)
+{
+?>
+<!--  Resolve Unit-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Resolve - Device</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="pushcommand.php" enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>        
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="simcardid" value="<?php echo( $simcardid ); ?>"/>
+    <div><input type="submit" id="uresolve" name="uresolve" value="Resolve"/></div>
+    </form>
+    </div>
+    </div>
+<?php
+}
+}
+if(IsHead())
+{
+if($transstatus == 10)
+{
+?>
+
+<!--  Reactivate Unit-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Reactivate - Device</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="pushcommand.php" enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>        
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="did" value="<?php echo( $did ); ?>"/>
+    <table width="40%">
+         <tr>
+        <td>Sim Card No. </td>
+        <td><select name="simcardid">
+                <?php
+                foreach($simcards as $thiscard)
+                {
+                ?>
+                <option value="<?php echo($thiscard->id); ?>"><?php echo($thiscard->simcardno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Activated Sim Card List)
+        </td>
+        </tr>
+
+        <?php
+        $expiry = date('d-m-Y', strtotime('+1 year'));    
+        ?>
+        <tr>
+        <td>Expiry Date </td>
+        <td> <input name="cexpirydate" id="cexpirydate" type="text" value="<?php echo $expiry; ?>"/><button id="trigger1">...</button>
+        </td>
+        </tr>            
+        <tr>
+        <td>Invoice No. </td>
+        <td> <input name="cinvoiceno" id="cinvoiceno" type="text"/>
+        </td>
+        </tr>            
+    </table>
+
+    <input type="submit" id="ureactivate" name="ureactivate" value="Reactivate"/>
+    </form>
+    </div>
+    </div>
+<script>
+Calendar.setup(
+{
+    inputField : "cexpirydate", // ID of the input field
+    ifFormat : "%d-%m-%Y", // the date format
+    button : "trigger1" // ID of the button
+});    
+    
+</script>
+<!--  Refresh Unit-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Refresh - Device</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="pushcommand.php" enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>        
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="submit" id="umakeitfresh" name="umakeitfresh" value="Refresh "/><font size="1">This will unmap the Unit and the Customer</font>
+    </form>
+    </div>
+    </div>
+
+<?php
+}
+ else 
+     {     
+?>
+<!--  Terminate Unit-->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Terminate - Device</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="pushcommand.php" enctype="multipart/form-data">
+<input type="hidden" name="customerid" value="<?php echo( $customerno ); ?>"/>        
+<input type="hidden" name="deviceid" value="<?php echo( $uid ); ?>"/>
+<input type="hidden" name="simcardid" value="<?php echo( $simcardid ); ?>"/>
+<input type="hidden" name="did" value="<?php echo( $did ); ?>"/>
+    <input type="submit" id="uterminate" name="uterminate" value="Terminate"/> <font size="1">All mapped sim cards will automatically move to "Apply for Disconnection"</font>
+    </form>
+    </div>
+    </div>
+
+<br/>
+
+<?php
+}
+}
+
+include("footer.php");
+?>
+
+<script>
+
+Calendar.setup(
+{
+    inputField : "cinstall", // ID of the input field
+    ifFormat : "%d-%m-%Y", // the date format
+    button : "trigger3" // ID of the button
+});
+
+Calendar.setup(
+{
+    inputField : "ucexpiry", // ID of the input field
+    ifFormat : "%d-%m-%Y", // the date format
+    button : "trigger4" // ID of the button
+});
+
+</script>   

@@ -1,0 +1,28 @@
+input{  
+    padding: 9px;  
+    border: solid 1px #E5E5E5;  
+    outline: 0;  
+    font: normal 13px/100% Arial, Helvetica;  
+    width: 80%;  
+    background: #FFFFFF;  
+}
+
+input:hover,input:focus{  
+    border-color: #C9C9C9;  
+}  
+input[type=submit],input[type=button], input[type=reset] {  
+    width: auto;  
+    padding: 4px 27px;  
+    background: #617798;  
+    border: none;  
+    font-size: 14px;  
+    color: #FFFFFF;
+	font-weight:700;
+    text-transform: uppercase;
+	background-color: #0193CC;
+    background-image: -moz-linear-gradient(center top , #0193CC, #0193C0);
+    border: 1px solid #3079ED;
+    color: #FFFFFF;
+    text-shadow: 0 1px rgba(0, 0, 0, 0.1);
+}/* CSS Document */
+

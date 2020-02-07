@@ -1,0 +1,191 @@
+
+#editclientmasterform table{width:50%;}
+#editclientmasterform .frmlblTd{text-align:center}
+
+#editproductmasterform table{width:50%;}
+#editproductmasterform .frmlblTd{text-align:center}
+
+#editstagemasterform table{width:50%;}
+#editstagemasterform .frmlblTd{text-align:center}
+
+#editlostmasterform table{width:50%;}
+#editlostmasterform .frmlblTd{text-align:center}
+
+#editremindermasterform table{width:50%;}
+#editremindermasterform .frmlblTd{text-align:center}
+
+#editproductform table{width:50%;}
+#editproductform .frmlblTd{text-align:center}
+
+#editorderform table{width:50%;}
+#editorderform .frmlblTd{text-align:center}
+
+#edittemplatemasterform table{width:50%;}
+#edittemplatemasterform .frmlblTd{text-align:center}
+
+
+#editactivitymasterform table{width:50%;}
+#editactivitymasterform .frmlblTd{text-align:center}
+
+#editsalesmasterform table{width:50%;}
+#editsalesmasterform .frmlblTd{text-align:center}
+
+#editsourceordform table{width:50%;}
+#editsourceordform .frmlblTd{text-align:center}
+
+#clientfileupload table{width:50%;}
+#clientfileupload .frmlblTd{text-align:center}
+
+
+.tdnone{
+    border: none;
+}
+.tdnone:hover{
+    background-color: transparent;
+}
+
+.backtextstyle{
+    font-size: 12px;
+    font-weight: bolder;
+     text-decoration: underline;
+}
+
+#ajaxstatus{text-align:center;font-weight:bold;display:none}
+#ajaxBstatus{text-align:center;font-weight:bold;display:none;font-size:12px;}
+.mandatory{color:red;font-weight:bold;}
+
+
+/*timeline css*/
+.SDtr th{background-color: #B9C9FD;}
+#scorderdtls td{background-color: #E8EDFF;}
+#SOD tfoot td{background-color: #E8EDFF;}
+#SESTT td{background-color: #D7F2F7;}
+#cdResponse{table-layout: fixed}
+#cdResponse .ftd{
+    background-color: #555555;
+    color: #fff;
+    font-weight:bold;
+    width:35%;
+    word-wrap: break-word;
+}
+#cdResponse td{background-color: #F1F1F1;}
+#clientHistory{background-color: #EAE3E0;}
+.SngleHist{margin-bottom:0px !important}
+.allDataCell{
+    float:left;color:#777777;border:2px solid #9FC6E7;/*height:20px !important;*/
+}
+.allDataCell:hover{
+    cursor:pointer;
+}
+.bubbleclose{
+    text-align:right;
+}
+.bubbleclose:hover{
+    cursor:pointer;
+}
+.bubble {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: fixed;visibility: hidden;width:400px; left:35%; top:112px;
+}
+
+.bubble_tms {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: fixed;visibility: hidden;width:600px; left:25%; top:112px;
+}
+
+.Statlabel{
+    color:#FFF;padding:3px;font-weight:bold;
+}
+
+/**/
+input, textarea, select{
+    height: auto !important;
+
+}
+/*added bcoz of new bootstrap*/
+#footer{box-sizing:unset;}
+
+.timeline_footer{
+    position: fixed;
+    bottom: 0pt;
+}   
+.timeline_footer_contents {
+
+}
+.call-err{background:#fce7e7;border:1px solid #b00;color:#b00;padding:5px;text-align:left}
+.call-success{background:#BAFFBA;border:1px solid #009900;color:#009900;font-weight:bold;padding:5px;text-align:left}
+
+
+#viewservice th{
+    background-color: #EEEEEE;
+    text-align: left;
+    width: 200px;
+}
+
+
+.table-hover > tbody > tr.select-row:hover > td,
+.select-row > td {
+    background-color:#5581D2;
+    color: #fff;
+}
+
+.chlinkcolor{
+    color:#e31c72;
+}
+
+.chlinkcolor:hover{
+    color:#e31c72;
+}
+
+
+ /*  CSS FOR TMS  
+Css For Search As You Type For Vehicle
+*/
+.listzone{
+    width: 180px;
+    background-color: #fff;
+    position: absolute;
+    z-index:999;
+    min-height: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    left:250px;
+    display: none;
+    
+}
+.listzone li{
+    list-style: none;
+    padding: 3px;
+    border: 1px solid #ccc;
+}
+.listzone  li:hover
+{
+    background-color: #0193cc;
+    color:#fff;
+}
+
+.listlocation{
+    width: 180px;
+    background-color: #fff;
+    position: absolute;
+    z-index:999;
+    min-height: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+    
+}
+.listlocation li{
+    list-style: none;
+    padding: 3px;
+    border: 1px solid #ccc;
+}
+.listlocation  li:hover
+{
+    background-color: #0193cc;
+    color:#fff;
+}

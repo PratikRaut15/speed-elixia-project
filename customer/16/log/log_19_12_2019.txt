@@ -1,0 +1,435 @@
+#Time: 2019-12-19 14:29:53
+ #User_Name: elixir16 
+ #Action: Select c.customerno, customername, customercompany,userid,userkey
+                  FROM user
+                  INNER JOIN customer c on c.customerno = user.customerno
+                  WHERE username LIKE '%elixir%' and user.isdeleted=0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:29:53
+ #User_Name: elixir16 
+ #Action:   SELECT  groupman.`groupid`
+                            , `group`.`groupname`
+                    FROM    `groupman`
+                    left join `group` on `group`.groupid = `groupman`.groupid
+                    WHERE   groupman.customerno = 16
+                    AND     groupman.userid = 37
+                    AND     groupman.isdeleted = 0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:29:53
+ #User_Name: elixir16 
+ #Action:   SELECT  groupman.`groupid`
+                            , `group`.`groupname`
+                    FROM    `groupman`
+                    left join `group` on `group`.groupid = `groupman`.groupid
+                    WHERE   groupman.customerno = 16
+                    AND     groupman.userid = 37
+                    AND     groupman.isdeleted = 0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:29:53
+ #User_Name: elixir16 
+ #Action:   SELECT  groupman.`groupid`
+                            , `group`.`groupname`
+                    FROM    `groupman`
+                    left join `group` on `group`.groupid = `groupman`.groupid
+                    WHERE   groupman.customerno = 16
+                    AND     groupman.userid = 37
+                    AND     groupman.isdeleted = 0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:29:54
+ #User_Name: elixir16 
+ #Action:   SELECT   u.userid
+                                ,u.username
+                                ,u.userkey
+                                ,u.erpUserToken
+                                ,u.realname
+                                ,c.customercompany
+                                ,u.role
+                                ,u.roleid
+                                ,u.email
+                                ,u.password
+                                ,u.phone
+                                ,u.lastvisit
+                                ,u.visited
+                                ,u.mess_email
+                                ,u.mess_sms
+                                ,u.mess_telephone
+                                ,u.mess_mobilenotification
+                                ,u.speed_email
+                                ,u.speed_sms
+                                ,u.speed_telephone
+                                ,u.speed_mobilenotification
+                                ,u.power_email
+                                ,u.power_sms
+                                ,u.power_telephone
+                                ,u.power_mobilenotification
+                                ,u.tamper_email
+                                ,u.tamper_sms
+                                ,u.tamper_telephone
+                                ,u.tamper_mobilenotification
+                                ,u.chk_email
+                                ,u.chk_sms
+                                ,u.chk_telephone
+                                ,u.chk_mobilenotification
+                                ,u.ac_email
+                                ,u.ac_sms
+                                ,u.ac_telephone
+                                ,u.ac_mobilenotification
+                                ,u.ignition_email
+                                ,u.ignition_sms
+                                ,u.ignition_telephone
+                                ,u.ignition_mobilenotification
+                                ,u.aci_email
+                                ,u.aci_sms
+                                ,u.aci_telephone
+                                ,u.aci_mobilenotification
+                                ,c.aci_time
+                                ,u.temp_email
+                                ,u.temp_sms
+                                ,u.temp_telephone
+                                ,u.temp_mobilenotification
+                                ,u.groupid
+                                ,u.start_alert
+                                ,u.stop_alert
+                                ,u.heirarchy_id
+                                ,u.fuel_alert_sms
+                                ,u.fuel_alert_email
+                                ,u.fuel_alert_telephone
+                                ,u.fuel_alert_mobilenotification
+                                ,u.fuel_alert_percentage
+                                ,u.dailyemail
+                                ,u.dailyemail_csv
+                                ,u.harsh_break_sms
+                                ,u.harsh_break_mail
+                                ,u.harsh_break_telephone
+                                ,u.harsh_break_mobilenotification
+                                ,u.high_acce_sms
+                                ,u.high_acce_mail
+                                ,u.high_acce_telephone
+                                ,u.high_acce_mobilenotification
+                                ,u.sharp_turn_sms
+                                ,u.sharp_turn_mail
+                                ,u.sharp_turn_telephone
+                                ,u.sharp_turn_mobilenotification
+                                ,u.towing_sms
+                                ,u.towing_mail
+                                ,u.towing_telephone
+                                ,u.towing_mobilenotification
+                                ,u.panic_sms
+                                ,u.panic_email
+                                ,u.panic_telephone
+                                ,u.panic_mobilenotification
+                                ,u.immob_sms
+                                ,u.immob_email
+                                ,u.immob_telephone
+                                ,u.immob_mobilenotification
+                                ,u.door_sms
+                                ,u.door_email
+                                ,u.door_telephone
+                                ,u.door_mobilenotification
+                                ,u.delivery_vehicleid
+                                ,u.tempinterval
+                                ,u.igninterval
+                                ,u.speedinterval
+                                ,u.acinterval
+                                ,u.doorinterval
+                                ,u.hum_sms
+                                ,u.hum_email
+                                ,u.hum_telephone
+                                ,u.hum_mobilenotification
+                                ,u.huminterval
+                                ,u.vehicle_movement_alert
+                                ,u.refreshtime
+                                ,u.customerno
+                                ,u.isdeleted
+                                ,u.isTempInrangeAlertRequired
+                                ,u.isAdvTempConfRange
+                                ,c.use_tracking
+                                ,c.maintenance_limit
+                                ,c.use_maintenance
+                                ,c.use_hierarchy
+                                ,c.use_delivery
+                                ,c.use_msgkey
+                                ,c.temp_sensors
+                                ,c.use_portable
+                                ,c.use_buzzer
+                                ,c.use_immobiliser
+                                ,c.use_freeze
+                                ,c.use_door_sensor
+                                ,c.use_ac_sensor
+                                ,c.use_genset_sensor
+                                ,c.use_fuel_sensor
+                                ,c.use_routing
+                                ,c.use_advanced_alert
+                                ,c.use_panic
+                                ,c.use_mobility
+                                ,c.use_secondary_sales
+                                ,c.use_sales
+                                ,c.use_tms
+                                ,c.use_immobiliser
+                                ,c.use_extradigital
+                                ,c.use_warehouse
+                                ,c.use_pickup
+                                ,c.use_trip
+                                ,c.use_humidity
+                                ,c.timezone
+                                ,c.use_toggle_switch
+                                ,c.multiauth
+                                ,c.use_elixiadoc
+                                ,c.rel_manager
+                                ,c.isoffline
+                                ,c.use_geolocation
+                                ,rm.manager_name
+                                ,rm.manager_email
+                                ,rm.manager_mobile
+                                ,tri.`interval` as trinterval
+                                ,veh.`interval` as vehinterval
+                                ,setting.`use_location_summary`
+                                ,setting.`use_vehicle_type`
+                                ,setting.`use_checkpoint_settings`
+                                ,timezone.timediff
+                                ,timezone.timezone as timezonename
+                                ,g.groupname
+                        FROM    `user` u
+                        INNER JOIN speed.customer c ON c.customerno = u.customerno
+                        LEFT JOIN speed.relationship_manager rm on rm.rid = c.rel_manager
+                        LEFT OUTER JOIN speed.`tempreportinterval` as tri on tri.userid = u.userid
+                        LEFT OUTER JOIN speed.`vehrepinterval` as veh on veh.userid = u.userid
+                        LEFT OUTER JOIN speed.`setting` ON setting.customerno = u.customerno
+                        LEFT OUTER JOIN speed.`timezone` ON c.timezone = timezone.tid
+                        LEFT OUTER JOIN speed.`group` g ON u.groupid = g.groupid AND u.groupid != 0 and g.customerno = u.customerno
+                        WHERE   u.customerno=16
+                        AND     u.userid='37'
+                        AND     u.isdeleted=0
+                        AND     c.isoffline = 0
+                        LIMIT   1
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:29:54
+ #User_Name: elixir16 
+ #Action: call insert_login_history('1','0','16','2019-12-19 14:29:54','37',@logHistoryId);
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:07
+ #User_Name: elixir16 
+ #Action: Select c.customerno, customername, customercompany,userid,userkey
+                  FROM user
+                  INNER JOIN customer c on c.customerno = user.customerno
+                  WHERE username LIKE '%elixir%' and user.isdeleted=0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:07
+ #User_Name: elixir16 
+ #Action:   SELECT  groupman.`groupid`
+                            , `group`.`groupname`
+                    FROM    `groupman`
+                    left join `group` on `group`.groupid = `groupman`.groupid
+                    WHERE   groupman.customerno = 16
+                    AND     groupman.userid = 37
+                    AND     groupman.isdeleted = 0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:07
+ #User_Name: elixir16 
+ #Action:   SELECT  groupman.`groupid`
+                            , `group`.`groupname`
+                    FROM    `groupman`
+                    left join `group` on `group`.groupid = `groupman`.groupid
+                    WHERE   groupman.customerno = 16
+                    AND     groupman.userid = 37
+                    AND     groupman.isdeleted = 0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:07
+ #User_Name: elixir16 
+ #Action:   SELECT  groupman.`groupid`
+                            , `group`.`groupname`
+                    FROM    `groupman`
+                    left join `group` on `group`.groupid = `groupman`.groupid
+                    WHERE   groupman.customerno = 16
+                    AND     groupman.userid = 37
+                    AND     groupman.isdeleted = 0
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:07
+ #User_Name: elixir16 
+ #Action:   SELECT   u.userid
+                                ,u.username
+                                ,u.userkey
+                                ,u.erpUserToken
+                                ,u.realname
+                                ,c.customercompany
+                                ,u.role
+                                ,u.roleid
+                                ,u.email
+                                ,u.password
+                                ,u.phone
+                                ,u.lastvisit
+                                ,u.visited
+                                ,u.mess_email
+                                ,u.mess_sms
+                                ,u.mess_telephone
+                                ,u.mess_mobilenotification
+                                ,u.speed_email
+                                ,u.speed_sms
+                                ,u.speed_telephone
+                                ,u.speed_mobilenotification
+                                ,u.power_email
+                                ,u.power_sms
+                                ,u.power_telephone
+                                ,u.power_mobilenotification
+                                ,u.tamper_email
+                                ,u.tamper_sms
+                                ,u.tamper_telephone
+                                ,u.tamper_mobilenotification
+                                ,u.chk_email
+                                ,u.chk_sms
+                                ,u.chk_telephone
+                                ,u.chk_mobilenotification
+                                ,u.ac_email
+                                ,u.ac_sms
+                                ,u.ac_telephone
+                                ,u.ac_mobilenotification
+                                ,u.ignition_email
+                                ,u.ignition_sms
+                                ,u.ignition_telephone
+                                ,u.ignition_mobilenotification
+                                ,u.aci_email
+                                ,u.aci_sms
+                                ,u.aci_telephone
+                                ,u.aci_mobilenotification
+                                ,c.aci_time
+                                ,u.temp_email
+                                ,u.temp_sms
+                                ,u.temp_telephone
+                                ,u.temp_mobilenotification
+                                ,u.groupid
+                                ,u.start_alert
+                                ,u.stop_alert
+                                ,u.heirarchy_id
+                                ,u.fuel_alert_sms
+                                ,u.fuel_alert_email
+                                ,u.fuel_alert_telephone
+                                ,u.fuel_alert_mobilenotification
+                                ,u.fuel_alert_percentage
+                                ,u.dailyemail
+                                ,u.dailyemail_csv
+                                ,u.harsh_break_sms
+                                ,u.harsh_break_mail
+                                ,u.harsh_break_telephone
+                                ,u.harsh_break_mobilenotification
+                                ,u.high_acce_sms
+                                ,u.high_acce_mail
+                                ,u.high_acce_telephone
+                                ,u.high_acce_mobilenotification
+                                ,u.sharp_turn_sms
+                                ,u.sharp_turn_mail
+                                ,u.sharp_turn_telephone
+                                ,u.sharp_turn_mobilenotification
+                                ,u.towing_sms
+                                ,u.towing_mail
+                                ,u.towing_telephone
+                                ,u.towing_mobilenotification
+                                ,u.panic_sms
+                                ,u.panic_email
+                                ,u.panic_telephone
+                                ,u.panic_mobilenotification
+                                ,u.immob_sms
+                                ,u.immob_email
+                                ,u.immob_telephone
+                                ,u.immob_mobilenotification
+                                ,u.door_sms
+                                ,u.door_email
+                                ,u.door_telephone
+                                ,u.door_mobilenotification
+                                ,u.delivery_vehicleid
+                                ,u.tempinterval
+                                ,u.igninterval
+                                ,u.speedinterval
+                                ,u.acinterval
+                                ,u.doorinterval
+                                ,u.hum_sms
+                                ,u.hum_email
+                                ,u.hum_telephone
+                                ,u.hum_mobilenotification
+                                ,u.huminterval
+                                ,u.vehicle_movement_alert
+                                ,u.refreshtime
+                                ,u.customerno
+                                ,u.isdeleted
+                                ,u.isTempInrangeAlertRequired
+                                ,u.isAdvTempConfRange
+                                ,c.use_tracking
+                                ,c.maintenance_limit
+                                ,c.use_maintenance
+                                ,c.use_hierarchy
+                                ,c.use_delivery
+                                ,c.use_msgkey
+                                ,c.temp_sensors
+                                ,c.use_portable
+                                ,c.use_buzzer
+                                ,c.use_immobiliser
+                                ,c.use_freeze
+                                ,c.use_door_sensor
+                                ,c.use_ac_sensor
+                                ,c.use_genset_sensor
+                                ,c.use_fuel_sensor
+                                ,c.use_routing
+                                ,c.use_advanced_alert
+                                ,c.use_panic
+                                ,c.use_mobility
+                                ,c.use_secondary_sales
+                                ,c.use_sales
+                                ,c.use_tms
+                                ,c.use_immobiliser
+                                ,c.use_extradigital
+                                ,c.use_warehouse
+                                ,c.use_pickup
+                                ,c.use_trip
+                                ,c.use_humidity
+                                ,c.timezone
+                                ,c.use_toggle_switch
+                                ,c.multiauth
+                                ,c.use_elixiadoc
+                                ,c.rel_manager
+                                ,c.isoffline
+                                ,c.use_geolocation
+                                ,rm.manager_name
+                                ,rm.manager_email
+                                ,rm.manager_mobile
+                                ,tri.`interval` as trinterval
+                                ,veh.`interval` as vehinterval
+                                ,setting.`use_location_summary`
+                                ,setting.`use_vehicle_type`
+                                ,setting.`use_checkpoint_settings`
+                                ,timezone.timediff
+                                ,timezone.timezone as timezonename
+                                ,g.groupname
+                        FROM    `user` u
+                        INNER JOIN speed.customer c ON c.customerno = u.customerno
+                        LEFT JOIN speed.relationship_manager rm on rm.rid = c.rel_manager
+                        LEFT OUTER JOIN speed.`tempreportinterval` as tri on tri.userid = u.userid
+                        LEFT OUTER JOIN speed.`vehrepinterval` as veh on veh.userid = u.userid
+                        LEFT OUTER JOIN speed.`setting` ON setting.customerno = u.customerno
+                        LEFT OUTER JOIN speed.`timezone` ON c.timezone = timezone.tid
+                        LEFT OUTER JOIN speed.`group` g ON u.groupid = g.groupid AND u.groupid != 0 and g.customerno = u.customerno
+                        WHERE   u.customerno=16
+                        AND     u.userid='37'
+                        AND     u.isdeleted=0
+                        AND     c.isoffline = 0
+                        LIMIT   1
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:08
+ #User_Name: elixir16 
+ #Action: call insert_login_history('1','0','16','2019-12-19 14:30:07','37',@logHistoryId);
+-----------------------------------------------------------------------------------------------------------------
+
+#Time: 2019-12-19 14:30:15
+ #User_Name: elixir16 
+ #Action: Logged Out
+-----------------------------------------------------------------------------------------------------------------
+

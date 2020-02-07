@@ -1,0 +1,75 @@
+<html>
+<head>
+    <title>Monthly OverSpeed Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type='text/css'>
+        body{
+          font-family:Arial;
+          font-size: 11pt;
+        }
+        table{
+          text-align: center;
+          border-right:1px solid black;
+          border-bottom:1px solid black;
+          border-collapse:collapse;
+          font-family:Arial;
+          font-size: 10pt;
+          width: 45%;
+        }
+        td, th{
+          border-left:1px solid black;
+          border-top:1px solid black;
+        }
+        .green{
+          background-color: green;
+        }
+        .yellow{
+          background-color: yellow;
+        }
+        .red{
+          background-color: red;
+        }
+        span{
+          font-weight:bold;
+        }
+    </style>
+</head>
+<body>Dear {{REALNAME}},
+    <br/><br/>
+    Greetings from I&S Team!
+    <br/><br/>Please be informed that for the subject period {{REPORT_DATE}} To {{REPORT_DATE_TOM}} It was observed that the vehicle Number {{VEHICLENUMBER}} used by you for Branch {{BRANCHNAME}}, Region {{REGIONNAME}} and Zone {{ZONENAME}} have recorded {{TOTAL_NUMBER}} over speed exceptions i.e. crossed the speed limit of 90 Km/hr.
+    <br/><br/>It has been recorded that Vehicle over speeded to {{TOPSPEED}}km/hr at {{LOCATION}} on {{DATETIME}}
+    <br/><br/>We advise precaution as driving the vehicle at high speed, excessive acceleration or
+    travelling at late part of the night is a risk to you as well as company asset. Request
+    you to refrain from it.
+    <br/><br/>High Speed Exception: Company Vehicle Plying over 80 Km/Hr. is an Over Speed/High Speed Exception. +10 Km/Hr. is Grace Exception.
+    <br/>
+    <br/>
+
+    <table>
+      <th class="green">Green Zone</th><th class="yellow">Yellow Zone</th><th class="red">Red Zone</th>
+      <tr>
+        <td>
+        Green Zone: Contains Vehicle that has over speed less than equal to 40 times in a
+        calendar month.
+        </td>
+        <td>Yellow Zone: Contains Vehicle that has over speed more than 40 times and less than equal to 55 times in a calendar month.</td>
+        <td>
+          Red Zone: Contains Vehicle that has over speed more than 55 times in a calendar
+          Month.
+        </td>
+      </tr>
+    </table>
+    <br/>
+    <br/>
+
+      In case of further queries kindly call /write the undersigned.<br/>
+      Thanking you<br/>
+      Regards,<br/>
+      Regional I&S<br/>
+      Mr. {{REGIONAL_USERNAME}}<br/>
+      Mobile: {{REGIONAL_USERMOBILE}}<br/>
+      Email Id: {{REGIONAL_USEREMAIL}}
+</body>
+</html>

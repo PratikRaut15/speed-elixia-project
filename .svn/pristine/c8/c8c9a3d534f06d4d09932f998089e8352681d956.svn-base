@@ -1,0 +1,1836 @@
+<?php
+include_once '../../lib/bo/DeviceManager.php';
+include_once '../../lib/bo/VehicleManager.php';
+include_once '../../lib/bo/GeoCoder.php';
+include_once '../../lib/bo/CheckpointManager.php';
+include_once '../../lib/bo/GeofenceManager.php';
+include_once '../../lib/bo/GroupManager.php';
+include_once '../../lib/bo/DriverManager.php';
+include_once '../../lib/bo/PaginationManager.php';
+include_once '../../lib/bo/ElixiaCodeManager.php';
+include_once '../../lib/comman_function/reports_func.php';
+
+set_time_limit(0);
+date_default_timezone_set('Asia/Calcutta');
+function getdevices()
+{
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devicedata = $devicemanager->getdevicesforrtd();
+    return $devicedata;
+}
+function getmisc()
+{
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devicedata = $devicemanager->getmiscforrtd();
+    return $devicedata;
+}
+function getsim()
+{
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devicedata = $devicemanager->getsimforrtd();
+    return $devicedata;
+}
+
+function getvehicles()
+{
+
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->getvehiclesforrtd();
+    return $vehicledata;
+}
+
+function getvehicles_withpagination()
+{
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->getvehiclesforrtdwithpagination();
+    return $vehicledata;
+}
+function getvehiclesforstatus()
+{
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->getvehiclesforrtd();
+    return $vehicledata;
+}
+
+function get_filter_vehicles($sel_status, $sel_stoppage)
+{
+
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->get_filter_vehiclesforrtd($sel_status, $sel_stoppage);
+    return $vehicledata;
+}
+
+function getManager()
+{
+
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->getManager();
+    return $vehicledata;
+}
+
+function get_chks_for_vehicle($vehicleid)
+{
+    $checkpointmanager = new CheckpointManager($_SESSION['customerno']);
+    $checkpoints = $checkpointmanager->getchksforvehicle($vehicleid);
+    return $checkpoints;
+}
+function get_fences_for_vehicle($vehicleid)
+{
+    $geofencemanager = new GeofenceManager($_SESSION['customerno']);
+    $geofences = $geofencemanager->getfencesforvehicle($vehicleid);
+    return $geofences;
+}
+function getgroupname($groupid)
+{
+    $groupmanager = new GroupManager($_SESSION['customerno']);
+    $group = $groupmanager->getgroupname($groupid);
+    return $group;
+}
+function get_ecode_for_vehicle($vehicleid)
+{
+    $elixiacodemanager = new ElixiaCodeManager($_SESSION['customerno']);
+    $elixiacode = $elixiacodemanager->get_ecode_vehicles($vehicleid);
+    return $elixiacode;
+}
+function getdistance($unitno,$date)
+{
+    $date = date("Y-m-d", strtotime($date));
+    $totaldistance = 0;
+    $lastodometer = GetOdometer($date,$unitno,'DESC');
+    $firstodometer = GetOdometer($date,$unitno,'ASC');
+    if($lastodometer < $firstodometer)
+    {
+        $lastodometermax = GetOdometerMax($date,$unitno) ;
+        $lastodometer = $lastodometermax + $lastodometer;
+    }
+    $totaldistance = $lastodometer - $firstodometer;
+    if($totaldistance!=0)
+        return $totaldistance/1000;
+    return $totaldistance;
+}
+function getdistance_all($customerno,$unitno,$date)
+{
+    $date = date("Y-m-d", strtotime($date));
+    $totaldistance = 0;
+    $lastodometer = GetOdometer_all($customerno,$date,$unitno,'DESC');
+    $firstodometer = GetOdometer_all($customerno,$date,$unitno,'ASC');
+    $totaldistance = $lastodometer - $firstodometer;
+    if($totaldistance!=0)
+        return $totaldistance/1000;
+    return $totaldistance;
+}
+function GetOdometer($date,$unitno,$order)
+{
+    $date = substr($date, 0,11);
+    $customerno = $_SESSION['customerno'];
+    $location = "../../customer/$customerno/unitno/$unitno/sqlite/$date.sqlite";
+    $ODOMETER = 0;
+    if(file_exists($location))
+    {
+        $path = "sqlite:$location";
+        $db = new PDO($path);
+        $query = "SELECT odometer from vehiclehistory ORDER BY vehiclehistory.lastupdated $order LIMIT 0,1";
+        $result = $db->query($query);
+        foreach ($result as $row)
+        {
+            $ODOMETER = $row['odometer'];
+        }
+    }
+    return $ODOMETER;
+}
+function GetOdometerMax($date,$unitno)
+{
+    $date = substr($date, 0,11);
+    $customerno = $_SESSION['customerno'];
+    $location = "../../customer/$customerno/unitno/$unitno/sqlite/$date.sqlite";
+    $ODOMETER = 0;
+    if(file_exists($location))
+    {
+        $path = "sqlite:$location";
+        $db = new PDO($path);
+        $query = "SELECT max(odometer) as odometerm from vehiclehistory";
+        $result = $db->query($query);
+        foreach ($result as $row)
+        {
+            $ODOMETER =  $row['odometerm'];
+        }
+    }
+    return $ODOMETER;
+
+}
+function getLastDigital($location, $unitno, $lastupdated, $flag)
+{
+   if($flag == 0)
+   {
+       $new_flag = 1;
+   }else{
+       $new_flag = 0;
+   }
+    if(file_exists($location))
+    {
+        $path = "sqlite:$location";
+        $db = new PDO($path);
+        $query = "SELECT lastupdated from unithistory where unitno = $unitno AND lastupdated < '$lastupdated' and digitalio = $new_flag Order by lastupdated DESC limit 1";
+        $result = $db->query($query);
+        foreach ($result as $row)
+        {
+             $query1 = "SELECT lastupdated from unithistory where unitno = $unitno AND lastupdated > '".$row['lastupdated']."' and digitalio = $flag Order by lastupdated ASC limit 1";
+            $result1 = $db->query($query1);
+            foreach ($result1 as $row1)
+            {
+                return $row1['lastupdated'];
+            }
+        }
+
+    }
+}
+
+function GetOdometer_all($customerno,$date,$unitno,$order)
+{
+    $date = substr($date, 0,11);
+    $customerno = $customerno;
+    $location = "../../customer/$customerno/unitno/$unitno/sqlite/$date.sqlite";
+    $ODOMETER = 0;
+    if(file_exists($location))
+    {
+        $path = "sqlite:$location";
+        $db = new PDO($path);
+        $query = "SELECT odometer from vehiclehistory ORDER BY vehiclehistory.lastupdated $order LIMIT 0,1";
+        $result = $db->query($query);
+        foreach ($result as $row)
+        {
+            $ODOMETER = $row['odometer'];
+        }
+    }
+    return $ODOMETER;
+}
+function row_highlight($lastupdated)
+{
+    $ServerIST_less1 = new DateTime();
+    $ServerIST_less1->modify('-60 minutes');
+    $lastupdated = new DateTime($lastupdated);
+    if($lastupdated<$ServerIST_less1)
+    {
+       // echo "<tr  style = 'background-color: rgba(224,27,27,0.25);'>";
+		//echo "<tr style='background:#FFD5D5;'>";
+		echo "<tr  style='background:#FFE0CC;'>";
+    }
+    else
+    {
+        echo "<tr>";
+    }
+    return $lastupdated;
+}
+function row_highlight_by_id($lastupdated,$row_id)
+{
+//    $ServerIST_less1 = new DateTime();
+ //   $ServerIST_less1->modify('-60 minutes');
+    $lastupdated = new DateTime($lastupdated);
+ //   if($lastupdated<$ServerIST_less1)
+  //  {
+       // echo "<tr  style = 'background-color: rgba(224,27,27,0.25);'>";
+		//echo "<tr style='background:#FFD5D5;'>";
+//		echo "<tr id='".$row_id."' class='edit_tr' style='background:#FFE0CC;height:10px;'>";
+   // }
+   // else
+   // {
+        echo "<tr id='".$row_id."' style='height:10px;cursor:pointer;' >";
+   // }
+    return $lastupdated;
+}
+
+function location($lat,$long, $usegeolocation)
+{
+    $address = NULL;
+    if($lat !='0' && $long!='0')
+    {
+        if($usegeolocation == 1)
+        {
+            $API = "http://www.speed.elixiatech.com/location.php?lat=".$lat."&long=".$long."";
+            $location = json_decode(file_get_contents("$API&sensor=false"));
+            @$address = "Near ".$location->results[0]->formatted_address;
+				if($location->results[0]->formatted_address==""){
+					$GeoCoder_Obj = new GeoCoder($_SESSION['customerno']);
+					$address=$GeoCoder_Obj->get_location_bylatlong($lat,$long);
+				}
+        }
+        else
+        {
+            $GeoCoder_Obj = new GeoCoder($_SESSION['customerno']);
+            $address=$GeoCoder_Obj->get_location_bylatlong($lat,$long);
+        }
+    }
+    return $address;
+}
+function locationtest($lat,$long, $usegeolocation)
+{
+    $address = NULL;
+    if($lat !='0' && $long!='0')
+    {
+        if($usegeolocation == 1)
+        {
+            $API = "http://www.speed.elixiatech.com/location.php?lat=".$lat."&long=".$long."";
+            $location = json_decode(file_get_contents("$API&sensor=false"));
+            @$address = "Near ".$location->results[0]->formatted_address;
+
+        }
+
+    }
+    return $address;
+}
+
+function getimage($lastupdated,$stoppage_flag,$ignition,$type,$curspeed,$overspeed_limit,$stoppage_transit_time,$igstatus)
+{
+     $ServerIST_less1 = new DateTime();
+    $ServerIST_less1->modify('-60 minutes');
+    $lastupdated = new DateTime($lastupdated);
+    $diff = getduration($stoppage_transit_time);
+    if($type=='Truck' || $type=='Bus'){
+        $image = "<img class='imgcl'  src='../../images/RTD/Vehicles/";
+        $image .= "Bus/Bus";
+        }
+        elseif($type=='Car')
+        {
+            $image = "<img class='imgcl'  src='../../images/RTD/Vehicles/";
+            $image .= "Car/Car";
+        }
+
+    if($_SESSION['portable']!='1')
+    {
+        if($lastupdated<$ServerIST_less1)
+        {
+             $image .= "I.png'>";
+
+        }
+        else
+        {
+            if ($ignition=='0')
+            {
+                $image .= "IOn.png'>";
+            }
+            else
+            {
+                if($curspeed > $overspeed_limit)
+                {
+                    $image .= "O.png'>";
+                }
+                else
+                {
+                    if($stoppage_flag == '0')
+                    {
+                        $image .= "N.png'>";
+                    }
+                    else
+                    {
+                        $image .= "R.png'>";
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        $image .= "R.png'>";
+    }
+
+    echo $image;
+}
+
+function getstatus($stoppage_flag,$stoppage_transit_time,$lastupdated_store)
+{
+    $ServerIST_less1 = new DateTime();
+    $ServerIST_less1->modify('-60 minutes');
+    $lastupdated = new DateTime($lastupdated_store);
+    if($lastupdated < $ServerIST_less1)
+    {
+        $status = "Inactive";
+
+    }
+    else
+    {
+        $diff = getduration_status($stoppage_transit_time);
+        if ($stoppage_flag=='0')
+        {
+            $status = "Idle since<br> ".$diff;
+        }
+        else
+        {
+            $status .= "Running since<br> ".$diff;
+        }
+    }
+    return $status;
+}
+
+function vehicleimage($device)
+{
+
+    $basedir = "../../images/vehicles/";
+    $directionfile = round($device->directionchange/10);
+    if($device->type=='Car' || $device->type=='Cab')
+    {
+        $device->type='Car';
+
+        $ServerIST_less1 = new DateTime();
+        $ServerIST_less1->modify('-60 minutes');
+        $lastupdated = new DateTime($device->lastupdated_store);
+        if($lastupdated < $ServerIST_less1)
+        {
+            $image = $device->type."/Idle/".$device->type.$directionfile.".png";
+        }
+        elseif ($device->ignition=='0')
+        {
+            $image = $device->type."/IdleIgnOff/".$device->type.$directionfile.".png";
+        }
+        else
+        {
+            if($device->curspeed > $device->overspeed_limit)
+            {
+                $image = $device->type."/Overspeed/".$device->type.$directionfile.".png";
+            }
+            else
+            {
+                if($device->stoppage_flag == '0')
+                {
+                    $image = $device->type."/Normal/".$device->type.$directionfile.".png";
+                }
+                else
+                {
+                    $image = $device->type."/Running/".$device->type.$directionfile.".png";
+                }
+            }
+        }
+    }
+    else if($device->type=='Bus' || $device->type=='Truck')
+    {
+        $device->type='Bus';
+
+        $ServerIST_less1 = new DateTime();
+        $ServerIST_less1->modify('-60 minutes');
+        $lastupdated = new DateTime($device->lastupdated_store);
+        if($lastupdated < $ServerIST_less1)
+        {
+            $image = $device->type."/Idle/".$device->type.$directionfile.".png";
+        }
+        elseif ($device->ignition=='0')
+        {
+            $image = $device->type."/IdleIgnOff/".$device->type.$directionfile.".png";
+        }
+        else
+        {
+            if($device->curspeed > $device->overspeed_limit)
+            {
+                $image = $device->type."/Overspeed/".$device->type.$directionfile.".png";
+            }
+            else
+            {
+                if($device->stoppage_flag == '0')
+                {
+                    $image = $device->type."/Normal/".$device->type.$directionfile.".png";
+                }
+                else
+                {
+                    $image = $device->type."/Running/".$device->type.$directionfile.".png";
+                }
+            }
+        }
+    }
+    else
+    {
+        if ($device->ignition=='0')
+        {
+            $image = $device->type."/".$device->type."I.png";
+        }
+        else
+        {
+            if($device->curspeed > $device->overspeed_limit)
+            {
+                $image = $device->type."/".$device->type."O.png";
+            }
+            else
+            {
+                $image = $device->type."/".$device->type."N.png";
+            }
+        }
+    }
+    $image = $basedir.$image;
+    return $image;
+}
+
+function signal_strength($gsmstrength, $vehicleid)
+{
+    $network = round($gsmstrength/31*100);
+    if($network>70)
+        echo "<td><img class = 'gsmcl_$vehicleid' src = '../../images/RTD/Network/best.png' title='Excellent: ".$network."%'></td>";
+    else if($network>30)
+        echo "<td><img class = 'gsmcl_$vehicleid'src = '../../images/RTD/Network/on.png' title='Good:".$network."%'></td>";
+    else if($network>=0)
+        echo "<td><img class = 'gsmcl_$vehicleid'src = '../../images/RTD/Network/off.png' title='Bad:".$network."%'></td>";
+}
+function powercut($powercut)
+{
+    if ($powercut==0)
+        echo "<td><img class = 'pccl' src = '../../images/RTD/PowerCut/off.png' title = 'PowerCut'></td>";
+    else
+        echo "<td><img class = 'pccl' src = '../../images/RTD/PowerCut/on.png' title = 'Normal'></td>";
+}
+function tamper($tamper)
+{
+    if ($tamper==1 && $_SESSION['customerno'] == 135){
+        echo "<td><img class = 'tampercl' src = '../../images/RTD/Tamper/on.png' title = 'Normal'></td>";
+
+    }else if($tamper==1 && $_SESSION['customerno'] != 135){
+        echo "<td><img class = 'tampercl' src = '../../images/RTD/Tamper/off.png' title = 'Tampered'></td>";
+    }
+    else
+        echo "<td><img class = 'tampercl' src = '../../images/RTD/Tamper/on.png' title = 'Normal'></td>";
+}
+function display_vehicledata()
+{
+    include 'pages/vehicle.php';
+
+    $vehicledata = getvehicles_withpagination();
+//    $vehiclestatusdata = getvehiclesforstatus();
+    if(isset($vehicledata))
+    {
+       print_vehicledata($vehicledata);
+    }
+    else
+    {
+        echo "<tr><td colspan=100%>No Data Avialable</td></tr>";
+    }
+    echo "</tbody></table>";
+
+}
+
+function display_filter_vehicledata($sel_status, $sel_stoppage){
+    include 'pages/vehicle.php';
+
+    $vehicledata = get_filter_vehicles($sel_status, $sel_stoppage);
+//    $vehiclestatusdata = getvehiclesforstatus();
+    if(isset($vehicledata))
+    {
+        print_vehicledata($vehicledata);
+    }
+    else
+    {
+        echo "<tr><td colspan=100%>No Data Avialable</td></tr>";
+    }
+    echo "</tbody></table>";
+
+ }
+
+function display_vehicle_status(){
+
+    $vehiclestatusdata = groupBased_vehicles_cron($_SESSION['customerno'], $_SESSION['userid']);//getvehiclesforstatus();
+
+    $a=0;
+    $b=0;
+    $c=0;
+    $d=0;
+    $e=0;
+    if(isset($vehiclestatusdata))
+    {
+        foreach($vehiclestatusdata as $vehicle)
+        {
+            // Pull Details for Count
+            $ServerIST_less1 = new DateTime();
+            $ServerIST_less1->modify('-60 minutes');
+            $lastupdated = new DateTime($vehicle->lastupdated_store);
+            if($lastupdated < $ServerIST_less1)
+            {
+                $e++;
+            }
+            else
+            {
+                if ($vehicle->ignition=='0')
+                {
+                    $d++;
+                }
+                else
+                {
+                    if($vehicle->curspeed > $vehicle->overspeed_limit)
+                    {
+                        $a++;
+                    }
+                    elseif($vehicle->stoppage_flag == '0')
+                    {
+                        $c++;
+                    }
+                    else
+                    {
+                        $b++;
+                    }
+                }
+            }
+        }
+    }
+        ?>
+<div class="lGb" id="mapdetails search_table" style="margin-left: 2%; text-align: left;">
+    <div class="b-s-t Ye"><div class="zc bn ID-tooltipcontent-0"><font color="#FF0000">Overspeed</font></div>
+        <div class="zt"><div><div class="eK" ><font color="#FF0000" id="overspeed_val"><?php echo $a; ?></font><img style="padding-left: 10px;" src="../../images/RTD/Vehicles/Car/CarO.png"></img></div></div></div>
+    </div>
+    <div class="b-s-t Ye"><div class="zc bn ID-tooltipcontent-0"><font color="#009900">Running</font></div>
+        <div class="zt"><div><div class="eK" ><font color="#009900" id="running_val"><?php echo $b; ?></font><img style="padding-left: 10px;" src="../../images/RTD/Vehicles/Car/CarR.png"></img></div></div></div>
+    </div>
+    <div class="b-s-t Ye"><div class="zc bn ID-tooltipcontent-0"><font color="#0066FF">Idle - Ign On</font></div>
+        <div class="zt"><div><div class="eK" ><font color="#0066FF" id="idle_ign_on"><?php echo $c; ?></font><img style="padding-left: 10px;" src="../../images/RTD/Vehicles/Car/CarN.png"></img></div></div></div>
+    </div>
+    <div class="b-s-t Ye"><div class="zc bn ID-tooltipcontent-0"><font color="#FF9900">Idle - Ign Off</font></div>
+        <div class="zt"><div><div class="eK" ><font color="#FF9900" id="idle_ign_off"><?php echo $d; ?></font><img style="padding-left: 10px;" src="../../images/RTD/Vehicles/Car/CarIOn.png"></img></div></div></div>
+    </div>
+        <div class="b-s-t Ye"><div class="zc bn ID-tooltipcontent-0"><font color="#707070">Inactive</font></div>
+        <div class="zt"><div><div class="eK" ><font color="#707070" id="inactive_val"><?php echo $e; ?></font><img style="padding-left: 10px;" src="../../images/RTD/Vehicles/Car/CarI.png"></img></div></div></div>
+    </div>
+
+</div>
+    <?php
+}
+
+
+
+function getvehicles_all()
+{
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->getvehiclesforrtd_all();
+    return $vehicledata;
+}
+function getvehicles_all_inactive()
+{
+    $customerno = isset($_SESSION['customerno']) ? $_SESSION['customerno'] : null;
+    $vehiclemanager = new VehicleManager($customerno);
+    $vehicledata = $vehiclemanager->getvehiclesforrtd_all_inactive();
+    return $vehicledata;
+}
+
+function getvehicles_pending_inv()
+{
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->getvehiclesforrtd_all_pending();
+    return $vehicledata;
+}
+//pending renewals
+function getvehicles_pending_inv1()
+{
+    $vehiclemanager1 = new VehicleManager($_SESSION['customerno']);
+    $vehicledata1 = $vehiclemanager1->getvehiclesforrtd_all_pending1();
+    return $vehicledata1;
+}
+
+
+function display_vehicledata_all()
+{
+    include 'pages/vehicle_all.php';
+
+    $vehicledata = getvehicles_all();
+
+    if(isset($vehicledata))
+    {
+        print_vehicledata_all($vehicledata);
+
+        include '../common/locationmessage.php';
+
+    }
+    else
+    {
+        echo "<tr><td colspan=100%>No Data Avialable</td></tr>";
+    }
+    echo "</table>";
+
+}
+
+function display_vehicledata_all_inactive()
+{
+    include 'pages/vehicle_all_inactive.php';
+
+    $vehicledata = getvehicles_all_inactive();
+
+    if(isset($vehicledata))
+    {
+        print_vehicledata_all_inactive($vehicledata);
+
+        include '../common/locationmessage.php';
+
+    }
+    else
+    {
+        echo "<tr><td colspan=100%>No Data Avialable</td></tr>";
+    }
+    echo "</table>";
+
+}
+
+function display_pending_vehicles()
+{
+    include 'pages/pending_invoices.php';
+
+    $vehicledata = getvehicles_pending_inv();
+
+    if(isset($vehicledata))
+    {
+        print_vehicledata_pending_inv($vehicledata);
+
+        include '../common/locationmessage.php';
+
+    }
+    else
+    {
+        echo "<tr><td colspan=100%>No Data Avialable</td></tr>";
+    }
+    echo "</table>";
+
+}
+
+function display_pending_renewals()
+{
+    include 'pages/pending_renewals.php';
+
+    $vehicledata1 = getvehicles_pending_inv1();
+
+    if(isset($vehicledata1))
+    {
+        print_vehicledata_pending_inv1($vehicledata1);
+
+        include '../common/locationmessage.php';
+
+    }
+    else
+    {
+        echo "<tr><td colspan=100%>No Data Avialable</td></tr>";
+    }
+    echo "</table>";
+
+}
+
+
+function getduration($StartTime)
+{
+    $EndTime = date('Y-m-d H:i:s');
+//                echo $EndTime.'_'.$StartTime.'<br>';
+                $idleduration = strtotime($EndTime) - strtotime($StartTime);
+                $years = floor($idleduration / (365 * 60 * 60 * 24));
+                $months = floor(($idleduration - $years * 365 * 60 * 60 * 24) / (30 * 60 * 60 * 24));
+                $days = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24) / (60 * 60 * 24));
+                $hours = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24) / (60 * 60));
+                $minutes = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24 - $hours * 60 * 60) / 60);
+                if($years >= '1' || $months >= '1'){
+                    $diff = date('d-m-Y', strtotime($StartTime));
+                }
+                else if($days>0){
+                    $diff = $days.' days '.$hours.' hrs ago';
+                }
+                else if($hours>0){
+                    $diff = $hours.' hrs and '.$minutes.' mins ago';
+                }
+                else if($minutes>0){
+                    $diff = $minutes.' mins ago';
+                }
+                else{
+                    $seconds = strtotime($EndTime) - strtotime($StartTime);
+                    $diff = $seconds.' sec ago';
+                }
+                return $diff;
+}
+
+function getduration_digitalio($StartTime, $EndTime)
+{
+    //$EndTime = date('Y-m-d H:i:s');
+//                echo $EndTime.'_'.$StartTime.'<br>';
+                $idleduration = strtotime($EndTime) - strtotime($StartTime);
+                $years = floor($idleduration / (365 * 60 * 60 * 24));
+                $months = floor(($idleduration - $years * 365 * 60 * 60 * 24) / (30 * 60 * 60 * 24));
+                $days = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24) / (60 * 60 * 24));
+                $hours = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24) / (60 * 60));
+                $minutes = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24 - $hours * 60 * 60) / 60);
+                if($years >= '1' || $months >= '1'){
+                    $diff = date('d-m-Y', strtotime($StartTime));
+                }
+                else if($days>0){
+                    $diff = $days.' days '.$hours.' hrs ';
+                }
+                else if($hours>0){
+                    $diff = $hours.' hrs and '.$minutes.' mins ';
+                }
+                else{
+                    $diff = $minutes.' mins ';
+                }
+                return $diff;
+}
+
+function getduration_status($StartTime)
+{
+    $EndTime = date('Y-m-d H:i:s');
+//                echo $EndTime.'_'.$StartTime.'<br>';
+                $idleduration = strtotime($EndTime) - strtotime($StartTime);
+                $years = floor($idleduration / (365 * 60 * 60 * 24));
+                $months = floor(($idleduration - $years * 365 * 60 * 60 * 24) / (30 * 60 * 60 * 24));
+                $days = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24) / (60 * 60 * 24));
+                $hours = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24) / (60 * 60));
+                $minutes = floor(($idleduration - $years * 365 * 60 * 60 * 24 - $months * 30 * 60 * 60 * 24 - $days * 60 * 60 * 24 - $hours * 60 * 60) / 60);
+                if($years >= '1' || $months >= '1'){
+                    $diff = date('d-m-Y', strtotime($StartTime));
+                }
+                else if($days>0){
+                    $diff = $days.' days '.$hours.' hrs';
+                }
+                else if($hours>0){
+                    $diff = $hours.' hrs and '.$minutes.' mins';
+                }
+                else if($minutes>0){
+                    $diff = $minutes.' mins';
+                }
+                else{
+                    $seconds = strtotime($EndTime) - strtotime($StartTime);
+                    $diff = $seconds.' sec';
+                }
+                return $diff;
+}
+
+function print_vehicledata($vehicledata)
+{
+    $i=1;
+    $j = 1;
+    foreach($vehicledata as $vehicle)
+    {
+        $totaldistance = round(getdistance($vehicle->unitno,$vehicle->lastupdated),2);
+        if($_SESSION['customerno'] == 97 && ($j == 10|| $j==20 || $j==30)){
+        $location = location($vehicle->devicelat, $vehicle->devicelong, $vehicle->use_geolocation);
+        sleep (1);
+        }else{
+         $location = location($vehicle->devicelat, $vehicle->devicelong, $vehicle->use_geolocation);
+        }
+        $j++;
+
+        $vehicle->lastupdated = row_highlight_by_id($vehicle->lastupdated,$vehicle->vehicleid);
+		echo "<td><input type='hidden' id='latlong".$vehicle->vehicleid."' value='".$vehicle->devicelat.",".$vehicle->devicelong."'/><a>".$i++."</a></td>";
+         $image = vehicleimage($vehicle);
+
+        echo "<td>"; getimage($vehicle->lastupdated_store, $vehicle->stoppage_flag,$vehicle->ignition,$vehicle->type,$vehicle->curspeed,$vehicle->overspeed_limit,$vehicle->stoppage_transit_time,$vehicle->igstatus);echo "</td>";
+        if($_SESSION['buzzer']==1 && $vehicle->is_buzzer ==1){
+             echo "<td><a href='javascript:void(0);' onclick='click_buzzer($vehicle->vehicleid, $vehicle->unitno);'><img class = 'buzzer' src = '../../images/buzzer.png' title = 'Buzzer'></a></td>";
+         }else if($_SESSION['buzzer']==1 && $vehicle->is_buzzer ==0){
+              echo "<td><a href='javascript:void(0);' onclick='click_buzzer1($vehicle->vehicleid, $vehicle->unitno);'><img class = 'rt' src = '../../images/buzzer.png' title = 'Buzzer'></a></td>";
+         }
+         if($_SESSION['immobiliser']==1 && ( $vehicle->mobiliser_flag == 0 && $vehicle->is_mobiliser == 0)){
+             echo "<td><a href='javascript:void(0);' onclick='click_immobiliser($vehicle->vehicleid, $vehicle->unitno, $vehicle->is_mobiliser, 1);'><img class = 'rt' src = '../../images/immobiliser1.png' title = 'Immobilizer'></a></td>";
+         }
+         elseif($_SESSION['immobiliser']==1 && ( $vehicle->mobiliser_flag == 0 )){
+             echo "<td><a href='javascript:void(0);' onclick='click_immobiliser($vehicle->vehicleid, $vehicle->unitno, $vehicle->is_mobiliser, 1);'><img class = 'buzzer' src = '../../images/immobiliser1.png' title = 'Immobilizer'></a></td>";
+         }
+         else if($_SESSION['immobiliser']==1 && ($vehicle->mobiliser_flag == 1)){
+             echo "<td><a href='javascript:void(0);' onclick='click_immobiliser($vehicle->vehicleid, $vehicle->unitno, $vehicle->is_mobiliser, 2);'><img class = 'buzzer' src = '../../images/immobiliser.png' title = 'Immobilizer'></a></td>";
+         }else if($_SESSION['immobiliser']==1 && $vehicle->is_mobiliser == 1){
+             echo "<td><a href='javascript:void(0);' onclick='click_immobiliser($vehicle->vehicleid, $vehicle->unitno, $vehicle->is_mobiliser, 1);'><img class='buzzer'  src = '../../images/immobiliser1.png' title = 'Immobilizer' ></a></td>";
+         }
+         else if($_SESSION['immobiliser']==1 && $vehicle->is_mobiliser == 0){
+             echo "<td><a href='javascript:void(0);' onclick='click_immobiliser($vehicle->vehicleid, $vehicle->unitno, $vehicle->is_mobiliser, 1);'><img class='rt'  src = '../../images/immobiliser1.png' title = 'Immobilizer' ></a></td>";
+         }
+        $diff = getduration($vehicle->lastupdated->format('Y-m-d H:i:s'));
+        echo "<td class='lupd'>".$diff."</td>";
+        if($_SESSION['groupid'] == 0){
+            if($vehicle->groupid == 0){
+                echo "<td class='grpid' id=".$vehicle->groupid." >Ungrouped</td>";}
+            else{
+                $group = getgroupname($vehicle->groupid);
+                $temp_solution = isset($group->groupname) ? $group->groupname : '';
+                echo "<td class='grpid'>".$temp_solution."</td>";
+            }
+        }
+    $veh_status = getstatus($vehicle->stoppage_flag,$vehicle->stoppage_transit_time,$vehicle->lastupdated_store);
+    if($_SESSION['portable']!='1')
+    echo "<td class='status'>$veh_status </td>";
+
+    if($_SESSION["Session_UserRole"]=='Administrator' || $_SESSION["Session_UserRole"]=='elixir')
+    {
+        echo "<td class='edit_td tooltip-right' id='".$vehicle->vehicleid."' title='Double Click To Edit' style='cursor: pointer;'>
+            <span id='vehicleno_".$vehicle->vehicleid."' class='text'>".$vehicle->vehicleno."</span>
+            <input type='text' class='editbox' id='vehicleno_input_".$vehicle->vehicleid."' value='".$vehicle->vehicleno."' style='display:none;'/>
+            <input type='hidden' id='vehicle".$vehicle->vehicleid."' value='".$vehicle->vehicleno."'/>
+            <input type='hidden' id='vehicleimage".$vehicle->vehicleid."' class='gimg' value='".$image."'/>
+            </td>";
+        echo "<td class='tooltip-right' id='".$vehicle->vehicleid."' title='Double Click To Edit' style='cursor: pointer;' onclick='add_driver($vehicle->vehicleid, $vehicle->unitno, $vehicle->driverid);'><span id='drivername_".$vehicle->vehicleid."' class='text'>".$vehicle->drivername."</span>";
+        echo "<input type='text' class='editbox' id='drivername_input_".$vehicle->vehicleid."' value='".$vehicle->drivername."'  style='display:none;' /><br>";
+	echo "<span id='driverno_".$vehicle->vehicleid."' class='text'>(".$vehicle->driverphone.")</span>";
+	echo "<input type='text' class='editbox' id='driverno_input_".$vehicle->vehicleid."' value='".$vehicle->driverphone."' style='display:none;'/></td>";
+    }
+    else
+    {
+        echo "<td>".$vehicle->vehicleno."<input type='hidden' id='vehicle".$vehicle->vehicleid."' value='".$vehicle->vehicleno."'/><input type='hidden' id='vehicleimage".$vehicle->vehicleid."' value='".$image."'/></td>";
+        echo "<td>".$vehicle->drivername."<br>(".$vehicle->driverphone.")";
+		echo "<input type='text' class='editbox' id='driverno_input_".$vehicle->vehicleid."' value='".$vehicle->driverphone."' style='display:none;' /></td>";
+    }
+        if($_SESSION['Session_UserRole']=='elixir')
+            echo "<td>$vehicle->unitno</td>";
+//        if($location!=NULL && $location != "Temporarily Unavailable")
+//            echo '<td class="loccl" onclick="call_row('.$vehicle->vehicleid.');" style="cursor: pointer;">'.$location.'</td>';
+ //       elseif($location == "Temporarily Unavailable")
+            echo '<td class="loccl tooltip-right" title="Click To Open" onclick="call_row('.$vehicle->vehicleid.');" style="cursor: pointer;"><a style="text-decoration:underline;">'.$location.'</a></td>';
+ //       else
+ //           echo '<td></td>';
+         if($_SESSION['portable']!='1') {
+        if($vehicle->curspeed > $vehicle->overspeed_limit)
+            echo "<td class='speedcl' id=off>$vehicle->curspeed</td>";
+        else
+            echo "<td class='speedcl'>$vehicle->curspeed</td>";
+        if($_SESSION['userid'] != 391 && $_SESSION['userid'] != 392)
+        {
+            echo "<td class = 'distcl'>".$totaldistance."</td>";
+        }
+        //$vehicle->extbatt = round($vehicle->extbatt/100,2);
+        //echo "<td>$vehicle->extbatt</td>";
+
+        // Internal Battery
+        //if($vehicle->inbatt!="" && $vehicle->inbatt!=NULL)
+       // {
+        //    echo "<td>".($vehicle->inbatt/1000)."</td>";
+       // }
+        //else echo '<td>0</td>';
+
+        // Network Strength
+        //signal_strength($vehicle->gsmstrength);
+        //echo "<td>$vehicle->phone</td>";
+
+        // Tamper
+        tamper($vehicle->tamper);
+        // Powercut
+        powercut($vehicle->powercut);
+
+        if($_SESSION['userid'] != 391 && $_SESSION['userid'] != 392)
+        {
+        //echo "<td><a href='#fuelpost_$vehicle->vehicleid' id='fueladd' data-toggle='modal'><img class = 'fuel' src = '../../images/RTD/Fuel/fuel.png' title = 'Fuel'></a></td>";
+
+        if($_SESSION['use_fuel_sensor']==1)
+        {
+            echo "<td><a href='javascript:void(0);' onclick='add_fulecon($vehicle->vehicleid,$vehicle->average,$vehicle->fuelcapacity,$vehicle->fuel_balance);'><img class = 'fuel' src = '../../images/RTD/Fuel/fuel.png' title = 'Fuel'></a></td>";
+        }
+        // Load Status
+        if($_SESSION['use_loading'] == 1)
+        {
+            if($vehicle->msgkey == 1)
+            {
+                echo "<td class='loadcl'>Loading</td>";
+            }
+            elseif($vehicle->msgkey == 2)
+            {
+                echo "<td class='loadcl'>Unloading</td>";
+
+            }
+            else
+            {
+                echo "<td class='loadcl'>Normal</td>";
+            }
+        }
+        }
+        // AC Sensor
+        if($_SESSION['use_ac_sensor'] == 1 || $_SESSION['use_genset_sensor'] == 1)
+        {
+
+        if($vehicle->acsensor == 1)
+        {
+            if($vehicle->digitalioupdated != '0000-00-00 00:00:00')
+            {
+              $digitaldiff = getduration_digitalio($vehicle->digitalioupdated, $vehicle->lastupdated->format('Y-m-d H:i:s'));
+            }
+            if($vehicle->digitalio == 0)
+            {
+                if($vehicle->isacopp == 0)
+                {
+                     if($vehicle->digitalioupdated != '0000-00-00 00:00:00')
+                     {
+                         echo "<td class='accl'>On <br/>since ".$digitaldiff." </td>";
+                     }
+                     else
+                     {
+                         echo "<td class='accl'>On </td>";
+                     }
+                }
+                else
+                {
+                    if($vehicle->digitalioupdated != '0000-00-00 00:00:00')
+                     {
+                         echo "<td class='accl'>Off <br/>since ".$digitaldiff." </td>";
+                     }
+                     else
+                     {
+                         echo "<td class='accl'>Off </td>";
+                     }
+                }
+            }
+            else
+                if($vehicle->isacopp == 0)
+                {
+
+                    if($vehicle->digitalioupdated != '0000-00-00 00:00:00')
+                     {
+                         echo "<td class='accl'>Off <br/>since ".$digitaldiff." </td>";
+                     }
+                     else
+                     {
+                         echo "<td class='accl'>Off </td>";
+                     }
+                }
+                else
+                {
+
+                    if($vehicle->digitalioupdated != '0000-00-00 00:00:00')
+                    {
+                        echo "<td class='accl'>On <br/>since ".$digitaldiff." </td>";
+                    }
+                    else
+                    {
+                         echo "<td class='accl'>On </td>";
+                    }
+                }
+        }
+        else
+            echo "<td class='accl'>Not Active</td>";
+        }
+        if($_SESSION['use_door_sensor']){
+            $digitaldiff = 'Not Active';
+            if($vehicle->digitalioupdated != '0000-00-00 00:00:00'){
+                $digitaldiff = getduration_digitalio($vehicle->digitalioupdated, $vehicle->lastupdated->format('Y-m-d H:i:s'));
+                $door_status = door_status($vehicle->is_door_opp, $vehicle->digitalio);
+                if(!$door_status){
+                    $digitaldiff = "Open <br/>since $digitaldiff";
+                }
+                else{
+                    $digitaldiff = "Closed <br/>since $digitaldiff";
+                }
+            }
+            echo "<td class='doorCl'>$digitaldiff</td>";
+        }
+        // Temperature Sensor
+            if(isset($_SESSION['temp_sensors']) && $_SESSION['temp_sensors'] == 1)
+            {
+                $temp = 'Not Active';
+                if(isset($vehicle->analog1_sen))
+                {
+                    if($vehicle->analog1_sen==1)
+                    {
+                        if($vehicle->analog1!=0)
+                            $temp = gettemp($vehicle->analog1);
+                        else
+                            $temp = '-';
+                    }
+                }
+                if(isset($vehicle->analog2_sen))
+                {
+                    if($vehicle->analog2_sen==1)
+                    {
+                        if($vehicle->analog2!=0)
+                            $temp = gettemp($vehicle->analog2);
+                        else
+                            $temp = '-';
+                    }
+                }
+                if(isset($vehicle->analog3_sen))
+                {
+                    if($vehicle->analog3_sen==1)
+                    {
+                        if($vehicle->analog3!=0)
+                            $temp = gettemp($vehicle->analog3);
+                        else
+                            $temp = '-';
+                    }
+                }
+                if(isset($vehicle->analog4_sen))
+                {
+                    if($vehicle->analog4_sen==1)
+                    {
+                        if($vehicle->analog4!=0)
+                            $temp = gettemp($vehicle->analog4);
+                        else
+                            $temp = '-';
+                    }
+                }
+
+                if($temp!='-' && $temp != "Not Active")
+                    echo "<td class='tempcl'>$temp <sup>0</sup>C</td>";
+                else
+                    echo "<td class='tempcl'>$temp</td>";
+            }
+
+            if(isset($_SESSION['temp_sensors']) && $_SESSION['temp_sensors'] == 2)
+            {
+                $temp1 = 'Not Active';
+                $temp2 = 'Not Active';
+
+                if(isset($vehicle->analog1_sen) && isset($vehicle->analog2_sen) && isset($vehicle->analog3_sen) && isset($vehicle->analog4_sen))
+                {
+                    if($vehicle->analog1_sen==1)
+                    {
+                        if($vehicle->analog1!=0)
+                        {
+                            $temp1 = gettemp($vehicle->analog1);
+                        }
+                        else
+                        {
+                            $temp1 = '-';
+                        }
+                    }
+                    if($vehicle->analog2_sen==1 && $temp1 != "Not Active")
+                    {
+                        if($vehicle->analog2!=0)
+                        {
+                            $temp2 = gettemp($vehicle->analog2);
+                        }
+                        else
+                        {
+                            $temp2 = '-';
+                        }
+                    }
+                    elseif($vehicle->analog2_sen==1 && $temp1 == "Not Active")
+                    {
+                        if($vehicle->analog2!=0)
+                        {
+                            $temp1 = gettemp($vehicle->analog2);
+                        }
+                        else
+                        {
+                            $temp1 = '-';
+                        }
+                    }
+                    if($vehicle->analog3_sen==1 && $temp1 != "Not Active")
+                    {
+                        if($vehicle->analog3!=0)
+                        {
+                            $temp2 = gettemp($vehicle->analog3);
+                        }
+                        else
+                        {
+                            $temp2 = '-';
+                        }
+                    }
+                    elseif($vehicle->analog3_sen==1 && $temp1 == "Not Active")
+                    {
+                        if($vehicle->analog3!=0)
+                        {
+                            $temp1 = gettemp($vehicle->analog3);
+                        }
+                        else
+                        {
+                            $temp1 = '-';
+                        }
+                    }
+                    if($vehicle->analog4_sen==1 && $temp1 != "Not Active")
+                    {
+                        if($vehicle->analog4!=0)
+                        {
+                            $temp2 = gettemp($vehicle->analog4);
+                        }
+                        else
+                        {
+                            $temp2 = '-';
+                        }
+                    }
+                    elseif($vehicle->analog4_sen==1 && $temp1 == "Not Active")
+                    {
+                        if($vehicle->analog4!=0)
+                        {
+                            $temp1 = gettemp($vehicle->analog4);
+                        }
+                        else
+                        {
+                            $temp1 = '-';
+                        }
+                    }
+                }
+
+                if($temp1!='-' && $temp1 != "Not Active")
+                {
+                    echo "<td class='tempcl'>$temp1 <sup>0</sup>C</td>";
+                }
+                else
+                {
+                    echo "<td class='tempcl'>$temp1</td>";
+                }
+
+                if($temp2!='-' && $temp2 != "Not Active")
+                {
+                    echo "<td class='tempc2'>$temp2 <sup>0</sup>C</td>";
+                }
+                else
+                {
+                    echo "<td class='tempc2'>$temp2</td>";
+                }
+            }
+         }
+        echo "<td class='helper' onclick='call_row(".$vehicle->vehicleid.");' title='Click Here For Detail View' style='cursor: pointer;'><img class='iv_all' id='iv_".$vehicle->vehicleid."' src='../../images/show.png' style='width: 16px; height:16px' /></td>";
+        }
+        echo "</tr>";
+
+
+
+        ?>
+
+    <?php
+}
+
+function getdate_IST() {
+    $ServerDate_IST = strtotime(date("Y-m-d H:i:s"));
+    return $ServerDate_IST;
+}
+
+function print_vehicledata_all($vehicledata)
+{
+    $x = 1;
+    foreach($vehicledata as $vehicle)
+    {
+        $totaldistance = round(getdistance_all($vehicle->customerno,$vehicle->unitno,$vehicle->lastupdated),2);
+       //echo  $location = location($vehicle->devicelat, $vehicle->devicelong);
+        $vehicle->lastupdated_store = $vehicle->lastupdated;
+        $vehicle->lastupdated = row_highlight($vehicle->lastupdated);
+//        getimage($vehicle->lastupdated_store, $vehicle->stoppage_flag,$vehicle->ignition,$vehicle->type,$vehicle->curspeed,$vehicle->overspeed_limit,$vehicle->stoppage_transit_time,$vehicle->igstatus);
+        echo "<td>".$x."</td>";
+        echo "<td>"; getimage($vehicle->lastupdated_store, $vehicle->stoppage_flag,$vehicle->ignition,$vehicle->type,$vehicle->curspeed,$vehicle->overspeed_limit,$vehicle->stoppage_transit_time,$vehicle->igstatus);echo "</td>";
+        echo "<td>".$vehicle->lastupdated->format('d-M-Y H:i')."</td>";
+        echo "<td>".$vehicle->vehicleno."</td>";
+        echo "<td>".$vehicle->customerno."</td>";
+        echo "<td>".$vehicle->unitno."</td>";
+
+        //if($location == "Temporarily Unavailable")
+           // echo '<td>'.$location.'</td>';
+       // else
+          //  echo '<td></td>';
+        if($vehicle->curspeed > $vehicle->overspeed_limit)
+            echo "<td id=off>$vehicle->curspeed</td>";
+        else
+            echo "<td>$vehicle->curspeed</td>";
+        echo "<td>".$totaldistance."</td>";
+        $vehicle->extbatt = round($vehicle->extbatt/100,2);
+        echo "<td>$vehicle->extbatt</td>";
+
+        // Internal Battery
+        if($vehicle->inbatt!="" && $vehicle->inbatt!=NULL)
+        {
+            echo "<td>".($vehicle->inbatt/1000)."</td>";
+        }
+        else echo '<td>0</td>';
+
+        // Network Strength
+        signal_strength($vehicle->gsmstrength, $vehicle->vehicleid);
+        echo "<td>$vehicle->phone</td>";
+
+        // Tamper
+        tamper($vehicle->tamper);
+        // Powercut
+        powercut($vehicle->powercut);
+
+        // Fuel Sensor
+       // echo "<td>Not Active</td>";
+
+        // AC Sensor
+        if($vehicle->acsensor == 1)
+        {
+            if($vehicle->digitalio == 0)
+                echo "<td>ON</td>";
+            else
+                echo "<td>OFF</td>";
+        }
+        else
+            echo "<td>Not Active</td>";
+
+        // Temperature Sensor
+        $temp = 'Not Active';
+        if(isset($vehicle->analog1_sen))
+        {
+            if($vehicle->analog1_sen==1)
+            {
+                if($vehicle->analog1!=0)
+                    $temp = gettemp($vehicle->analog1);
+                else
+                    $temp = '-';
+            }
+        }
+        if(isset($vehicle->analog2_sen))
+        {
+            if($vehicle->analog2_sen==1)
+            {
+                if($vehicle->analog2!=0)
+                    $temp = gettemp($vehicle->analog2);
+                else
+                    $temp = '-';
+            }
+        }
+        $swv = isset($vehicle->swv) ? $vehicle->swv : '';
+        echo "<td>$swv</td>";
+        //if($temp!='-' && $temp != "Not Active")
+           // echo "<td>$temp <sup>0</sup>C</td>";
+       // else
+          //  echo "<td>$temp</td>";
+        echo "</tr>";
+        $x++;
+    }
+    echo "</tbody>";
+}
+function print_vehicledata_all_inactive($vehicledata)
+{
+    $x = 1;
+    foreach($vehicledata as $vehicle)
+    {
+        $totaldistance = round(getdistance_all($vehicle->customerno,$vehicle->unitno,$vehicle->lastupdated),2);
+       //echo  $location = location($vehicle->devicelat, $vehicle->devicelong);
+        $vehicle->lastupdated_store = $vehicle->lastupdated;
+        $vehicle->lastupdated = row_highlight($vehicle->lastupdated);
+//        getimage($vehicle->lastupdated_store, $vehicle->stoppage_flag,$vehicle->ignition,$vehicle->type,$vehicle->curspeed,$vehicle->overspeed_limit,$vehicle->stoppage_transit_time,$vehicle->igstatus);
+        echo "<td>".$x."</td>";
+        /*
+        echo "<td>"; getimage($vehicle->lastupdated_store, $vehicle->stoppage_flag,$vehicle->ignition,$vehicle->type,$vehicle->curspeed,$vehicle->overspeed_limit,$vehicle->stoppage_transit_time,$vehicle->igstatus);echo "</td>";
+         *
+         */
+        echo "<td>".$vehicle->lastupdated->format('d-M-Y H:i')."</td>";
+        echo "<td>".$vehicle->vehicleno."</td>";
+        echo "<td>".$vehicle->customerno."</td>";
+        echo "<td>".$vehicle->unitno."</td>";
+
+        //if($location == "Temporarily Unavailable")
+           // echo '<td>'.$location.'</td>';
+       // else
+          //  echo '<td></td>';
+
+        echo "<td>$vehicle->phone</td>";
+        signal_strength($vehicle->gsmstrength, $vehicle->vehicleid);
+
+        // Tamper
+        tamper($vehicle->tamper);
+        // Powercut
+        powercut($vehicle->powercut);
+
+        // Fuel Sensor
+       // echo "<td>Not Active</td>";
+
+        // AC Sensor
+        if($vehicle->acsensor == 1)
+        {
+            if($vehicle->digitalio == 0)
+                echo "<td>ON</td>";
+            else
+                echo "<td>OFF</td>";
+        }
+        else
+            echo "<td>Not Active</td>";
+
+        // Temperature Sensor
+        $temp = 'Not Active';
+        if(isset($vehicle->analog1_sen))
+        {
+            if($vehicle->analog1_sen==1)
+            {
+                if($vehicle->analog1!=0)
+                    $temp = gettemp($vehicle->analog1);
+                else
+                    $temp = '-';
+            }
+        }
+        if(isset($vehicle->analog2_sen))
+        {
+            if($vehicle->analog2_sen==1)
+            {
+                if($vehicle->analog2!=0)
+                    $temp = gettemp($vehicle->analog2);
+                else
+                    $temp = '-';
+            }
+        }
+
+        if($vehicle->remark != '0'){
+            $vehicle->remark = getRemark($vehicle->remark, $vehicle->customerno);
+        }else{
+            $vehicle->remark = $vehicle->alterremark;
+        }
+
+
+        if($vehicle->remark == ''){
+         echo "<td><a href='addremark.php?vid=$vehicle->vehicleid&cno=$vehicle->customerno&uid=$vehicle->unitno' style='color:blue;'>Add Remark</a></td>";
+        }
+        else{
+            echo "<td>$vehicle->remark <br/><a href='addremark.php?vid=$vehicle->vehicleid&cno=$vehicle->customerno&uid=$vehicle->unitno'style='color:blue;'>Change Remark</a></td>";
+        }
+        //if($temp!='-' && $temp != "Not Active")
+           // echo "<td>$temp <sup>0</sup>C</td>";
+       // else
+          //  echo "<td>$temp</td>";
+        echo "</tr>";
+        $x++;
+    }
+    echo "</tbody>";
+}
+
+function print_vehicledata_pending_inv($vehicledata)
+{
+    $x = 1;
+    foreach($vehicledata as $vehicle)
+    {
+        echo "<tr style='background:#FFE0CC;'>";
+        echo "<td>".$x."</td>";
+        echo "<td>".$vehicle->vehicleno."</td>";
+        echo "<td>".$vehicle->customerno."</td>";
+        echo "<td>".$vehicle->unitno."</td>";
+        echo "<td>".$vehicle->install."</td>";
+        echo "<td>".$vehicle->expiry."</td>";
+        echo "<td>$vehicle->phone</td>";
+        echo "<td><a style='cursor:pointer; color:blue;' href='modify_pendinginvoice.php?uid=$vehicle->uid'>Invoice</a></td>";
+        echo "</tr>";
+        $x++;
+    }
+    echo "</tbody>";
+}
+
+function print_vehicledata_pending_inv1($vehicledata1)
+{
+    $x = 1;
+    foreach($vehicledata1 as $vehicle1)
+    {
+        echo "<tr style='background:#FFE0CC;'>";
+        echo "<td>".$x."</td>";
+        echo "<td>".$vehicle1->vehicleno."</td>";
+        echo "<td>".$vehicle1->customerno."</td>";
+        echo "<td>".$vehicle1->unitno."</td>";
+        echo "<td>".$vehicle1->install."</td>";
+        echo "<td>".$vehicle1->expiry."</td>";
+        echo "<td>$vehicle1->phone</td>";
+        echo "<td><a style='cursor:pointer; color:blue;' href='modify_renewals.php?uid=$vehicle1->uid'>Renewals</a></td>";
+        echo "</tr>";
+        $x++;
+    }
+    echo "</tbody>";
+}
+
+
+function getVehicleName($vehicleid){
+    $VehicleManager = new VehicleManager($_SESSION['customerno']);
+    $vehicleno = $VehicleManager->getVehicleName($vehicleid);
+    return $vehicleno;
+}
+
+function getRemark($remarkid, $customerno){
+    $VehicleManager = new VehicleManager($customerno);
+    $vehicleno = $VehicleManager->getRemark($remarkid);
+    return $vehicleno;
+}
+function display_simdata()
+{
+    include 'pages/sim.php';
+    $devicedata = getsim();
+    if(isset($devicedata))
+    {
+        print_simdata($devicedata);
+    }
+    else
+    {
+        echo "<tr><td colspan=7>No Data Avialable</td></tr>";
+    }
+    echo "</table>";
+}
+function print_simdata($devicedata)
+{
+    foreach($devicedata as $device)
+    {
+        $device->lastupdated = row_highlight($device->lastupdated);
+        echo "<td>".$device->lastupdated->format('d-M-Y H:i')."</td>";
+        echo "<td>".$device->vehicleno."</td>";
+        echo "<td>".$device->unitno."</td>";
+        echo "<td>".$device->phone."</td>";
+        echo "<td>".(int)($device->gsmstrength/31*100)."</td>";
+        if($_SESSION['Session_UserRole']=='elixir')
+        {
+            if ($device->gpsfixed=='A')
+                echo "<td>Valid</td>";
+            else if ($device->gpsfixed=='V')
+                echo "<td id=off>Invalid</td>";
+            if ($device->gsmregister==0)
+                echo "<td id=off>Not Registered</td>";
+            else if ($device->gsmregister==1)
+                echo "<td>Registered Home Network</td>";
+            else if ($device->gsmregister==2)
+                echo "<td id=off>Searching New Network</td>";
+            else if ($device->gsmregister==3)
+                echo "<td id=off>Registration Denied</td>";
+            else if ($device->gsmregister==4)
+                echo "<td id=off>Unknown</td>";
+            else if ($device->gsmregister==5)
+                echo "<td id=off>Roaming</td>";
+            if ($device->gprsregister==1)
+                echo "<td>OK</td>";
+            else if ($device->gprsregister==0)
+                echo "<td id=off>Not OK</td>";
+            else echo "<td>$device->gprsregister</td>";
+        }
+        echo "</tr>";
+    }
+    echo "</tbody>";
+}
+function display_misc()
+{
+    include 'pages/additional.php';
+    $devicedata = getmisc();
+    if(isset($devicedata))
+    {
+
+        print_misc($devicedata);
+    }
+    else
+    {
+        echo "<tr>
+                <td colspan=100%>No Data Avialable</td>
+            </tr>";
+    }
+    echo "</table>";
+}
+
+function print_misc($devicedata)
+{
+    foreach($devicedata as $device)
+    {
+        $device->lastupdated = row_highlight($device->lastupdated);
+        echo "<td>".$device->lastupdated->format('d-M-Y H:i')."</td>";
+        echo "<td>".$device->vehicleno."</td>";
+        if($_SESSION['Session_UserRole']=='elixir')
+            echo "<td>$device->unitno</td>";
+        echo "<td>";
+        if ($_SESSION['Session_UserRole']=='elixir')
+        {
+            include '../common/elixirreasons.php';
+        }
+        else
+        {
+            include '../common/userreasons.php';
+        }
+        echo "</td>";
+        if($_SESSION['Session_UserRole']=='elixir')
+        {
+            if($device->online_offline=='0')
+                echo "<td>Online";
+            else
+                echo "<td class='notok'>Offline</td>";
+        }
+        if($_SESSION['Session_UserRole']=='elixir')
+        {
+            echo "<td>$device->analog3</td>";
+            echo "<td>$device->analog4</td>";
+        }
+        if ($_SESSION['Session_UserRole']=='elixir')
+        {
+            echo "<td>".$device->commandkey."</td>";
+            echo "<td>".$device->commandkeyval."</td>";
+        }
+        echo "<td>".$device->phone."</td>";
+        echo "</tr>";
+    }
+    echo "</tbody>";
+}
+
+function gettemp($rawtemp)
+{
+    $temp = round((($rawtemp-1150)/4.45),1);
+    return $temp;
+}
+
+function vehicle_table($vehicleid)
+{
+
+        echo "<tr>";
+        //External Battery
+        $vehicle->extbatt = round($vehicle->extbatt/100,2);
+        echo "<td>$vehicle->extbatt</td>";
+        // Internal Battery
+        if($vehicle->inbatt!="" && $vehicle->inbatt!=NULL)
+        {
+            echo "<td>".($vehicle->inbatt/1000)."</td>";
+        }
+        else echo '<td>0</td>';
+
+        // Network Strength
+        echo "<td>signal_strength($vehicle->gsmstrength)</td>";
+        //Phone No.
+        echo "<td>$vehicle->phone</td>";
+
+        echo "</tr>";
+    echo "</tbody></table>";
+}
+
+function get_vehicledesc_by_vehicleid($vehicleid){
+
+    $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+    $vehicledata = $vehiclemanager->get_all_vehiclesbyid($vehicleid);
+
+    if(!isset($_SESSION['ecodeid'])) {
+   ?>
+
+    <div style="height: 330px; width: 100%; overflow-y: scroll;">
+    <table id="map_table" class="vehicletable_<?php echo $vehicledata->vehicleid; ?>">
+        <tbody>
+            <?php
+            if($_SESSION['userid'] != 391 && $_SESSION['userid'] != 392)
+            {
+              if($_SESSION['portable']!='1') {
+            ?>
+            <tr><th colspan="4">Fuel Meter </th></tr>
+            <tr><?php
+                    $tank = $vehiclemanager->get_Fuel_Tank($vehicledata->vehicleid);
+                    $fuel = $vehiclemanager->getFueledVehicle_byID($vehicledata->vehicleid);
+                    $fuelalert = $vehiclemanager->get_FuelAlert();
+
+                    $date = ('Y-m-d');
+                    $totaldistance = getdistance($fuel[0]->unitno,$date);
+                    if($totaldistance!=0){
+                        $consumedfule = round($totaldistance / $fuel[0]->average,2) ;
+                        $balancefuel = round($fuel[0]->fuel_balance - $consumedfule,2);
+                    }else{
+                        $balancefuel = round($fuel[0]->fuel_balance,2);
+                    }
+                    $alert = $tank[0]->fuelcapacity / 100 * $fuelalert;
+                    if($tank[0]->fuelcapacity != 0){
+                        $fueltank = $tank[0]->fuelcapacity;
+                    }else{
+                        $fueltank = 0;
+                    }
+                    if($fuel[0]->average!=0){
+                        $average = $fuel[0]->average;
+                    }else{
+                        $average = 0;
+                    }
+
+                    if($fuel[0]->fuel_balance!=0){
+                        $fuelbalance = $fuel[0]->fuel_balance;
+                    }else{
+                        $fuelbalance = 0;
+                    }
+                    /*
+                     * function to load js
+                    draw_fuel_gauge(<?php echo $tank[0]->fuelcapacity;?>, <?php echo $alert;?>);
+                     *
+                     */
+                    ?>
+                <td colspan="4">
+                    <input type="hidden" id="capacity_<?php echo $vehicledata->vehicleid; ?>" value="<?php echo $tank[0]->fuelcapacity; ?>"/>
+                    <input type="hidden" id="alert_<?php echo $vehicledata->vehicleid; ?>" value="<?php echo $alert; ?>"/>
+                    <input type="hidden" id="balance_<?php echo $vehicledata->vehicleid; ?>" value="<?php echo $balancefuel; ?>"/>
+                    <center>
+                    <?php
+                       if($tank[0]->fuelcapacity != 0 || $fuel[0]->avarage != 0){
+                        ?>
+                        <div id="chart_fuel_<?php echo $vehicledata->vehicleid; ?>">
+                        </div>
+                        <?php
+                       }
+                       else{
+                           echo "<img src='../../images/RTD/Fuel/gauge.png' alt='Inactive'/>";
+                           echo "</br>"; echo "<a href='javascript:void(0);' onclick='add_fulecon($vehicledata->vehicleid,$average,$fueltank,$fuelbalance);'><input type='button' name='activate' id='activate' value='Activate' class='btn btn-primary'/></a>";
+                       }
+                     ?>
+                    </center>
+                   </td>
+            </tr>
+            <?php
+            }
+            }
+            ?>
+            <tr><?php if($_SESSION['portable']!='1') { echo "<th>Ext Batt (V)</th><th>Int Batt (V) "; } else{ echo "<th colspan='2'>Int Batt</th>"; } ?></th><th>Network</th><th>Phone No</th></tr>
+
+                <tr>
+                    <?php
+                    //External Battery
+                    $vehicle->extbatt = round(($vehicledata->extbatt)/100,2);
+                    //echo "<td>$vehicle->extbatt</td>";
+                    if($_SESSION['portable']!='1'){
+                    ?>
+                    <td class="ebcl_<?php echo $vehicledata->vehicleid; ?>"><?php echo $vehicle->extbatt; ?></td>
+                    <td class="ibcl_<?php echo $vehicledata->vehicleid; ?>">
+                    <?php if($vehicledata->intbatt!="" && $vehicledata->intbatt!=NULL)
+                                { echo $vehicledata->intbatt/1000; }
+                                else echo '0'; ?>
+                    </td>
+                    <?php } else { ?>
+                    <td colspan="2" class="ibcl_<?php echo $vehicledata->vehicleid; ?>">
+                    <?php if($vehicledata->intbatt!="" && $vehicledata->intbatt!=NULL)
+                                { echo $vehicledata->intbatt/1000; }
+                                else echo '0'; ?>
+                    </td>
+                    <?php } ?>
+                    <?php signal_strength($vehicledata->gsmstrength, $vehicledata->vehicleid); ?>
+                    <td><?php echo substr($vehicledata->phone, 0, 3).'*******' ?></td>
+                </tr>
+                <tr>
+                    <th colspan="4" class="tooltip-top" title="Want to get an email / SMS when vehicle reaches a point?">Check Point
+                    <?php $checkpoints = get_chks_for_vehicle($vehicleid);
+                          if($_SESSION["role_modal"]=='Administrator' || $_SESSION["role_modal"]=='elixir')
+                          {
+                          ?>
+                            <a href="#addcheckpoint" onClick="addedcheckpoint();" class="add_checkpoint_<?php echo $vehicledata->vehicleid; ?> " data-toggle="modal" style="width: 16px; height:16px; vertical-align:middle; float: right;">
+                                <img class="tooltip-top" title="Click To Add Checkpoint" src="../../images/show.png" style="width: 16px; height:16px; vertical-align:middle; float: right;"></a>
+<!--                            <a href="#checkpt_popup1" onClick="addedcheckpoint();" id="checkpoint_pop" class="add_checkpoint_<?php //echo $vehicledata->vehicleid; ?>"><img class="tooltip-top" title="Click To Add Checkpoint" src="../../images/show.png" style="width: 16px; height:16px; vertical-align:middle; float: right;"></a>-->
+                    <?php }elseif(isset($_SESSION['ecodeid']))
+                        {
+                        ?>
+                        <a href="#addcheckpoint" onClick="addedcheckpoint();" class="add_checkpoint_<?php echo $vehicledata->vehicleid; ?> " data-toggle="modal" style="width: 16px; height:16px; vertical-align:middle; float: right;">
+                                <img class="tooltip-top" title="Click To Add Checkpoint" src="../../images/show.png" style="width: 16px; height:16px; vertical-align:middle; float: right;"></a>
+                        <?php
+                        }
+                        ?> </th>
+
+                </tr>
+                <tr>
+                    <th colspan="2">Check Point Name</th><th colspan="2">Radius (in KM)</th>
+                </tr>
+                    <?php
+                    if(isset($checkpoints))
+                    {
+                        foreach ($checkpoints as $checkpoint)
+                        {
+                          if($_SESSION["role_modal"]=='Administrator' || $_SESSION["role_modal"]=='elixir')
+                           {
+                            echo '<tr class="edit_chkname" id="c_'.$checkpoint->checkpointid.'" rel="'.$vehicledata->vehicleid.'"><td class="edit_chkname" id="'.$checkpoint->checkpointid.'" rel="'.$vehicledata->vehicleid.'" colspan="2"><span id="chkname_'.$vehicledata->vehicleid.'_'.$checkpoint->checkpointid.'"  class="text tooltip-top" title="Double Click To Edit">'.$checkpoint->cname.'</span><input id="chkname_input_'.$vehicledata->vehicleid.'_'.$checkpoint->checkpointid.'" size="10" class="editbox" type="text" value="'.$checkpoint->cname.'"></td>';
+                            echo "<input type='hidden' class='chk_latlong' value='".$checkpoint->cgeolat.",".$checkpoint->cgeolong.",".$checkpoint->crad.",".$checkpoint->cname."'/>";
+                            echo "<input type='hidden' id='".$checkpoint->checkpointid."' class='chk_id' value='".$checkpoint->checkpointid."'/>";
+                            echo '<td class="edit_chkname" id="'.$checkpoint->checkpointid.'" rel="'.$vehicledata->vehicleid.'" colspan="2"><span id="chkrad_'.$vehicledata->vehicleid.'_'.$checkpoint->checkpointid.'"  class="text tooltip-top" title="Double Click To Edit">'.$checkpoint->crad.'</span><input size="4" id="chkrad_input_'.$vehicledata->vehicleid.'_'.$checkpoint->checkpointid.'" class="editbox" type="text" value="'.$checkpoint->crad.'"><a href="#delete_chk" onClick="delete_chkpoint_by_id('.$checkpoint->checkpointid.');" id="delete_ckhpop" class="delete_chkpoint_'.$vehicledata->vehicleid.'" data-toggle="modal"><img class="del_chkpoint_'.$checkpoint->checkpointid.' tooltip-top" title="Click To Delete Checkpoint" src="../../images/delete1.png" style="width: 12px; height:12px; vertical-align:middle; float: right;"></td></tr>';
+                           }
+                          else
+                          {
+                            echo '<tr id="c_'.$checkpoint->checkpointid.'" rel="'.$vehicledata->vehicleid.'"><td id="'.$checkpoint->checkpointid.'" rel="'.$vehicledata->vehicleid.'" colspan="2">'.$checkpoint->cname.'</td>';
+                            echo "<input type='hidden' class='chk_latlong' value='".$checkpoint->cgeolat.",".$checkpoint->cgeolong.",".$checkpoint->crad.",".$checkpoint->cname."'/>";
+                            echo "<input type='hidden' class='chk_rad' value='".$checkpoint->crad."'/>";
+                            echo '<td id="'.$checkpoint->checkpointid.'" rel="'.$vehicledata->vehicleid.'" colspan="2">'.$checkpoint->crad.'</td></tr>';
+                          }
+                        }
+                    } ?>
+
+                <tr>
+                    <th colspan="4" class="tooltip-top" title="Want to get an email / SMS when vehicle breaches a fence?">Fence
+                    <?php if($_SESSION["role_modal"]=='Administrator' || $_SESSION["role_modal"]=='elixir')
+                          {    ?>
+                        <a href="#addfence" onClick="addedfence();" class="add_fencing_<?php echo $vehicledata->vehicleid; ?> " data-toggle="modal" style="width: 16px; height:16px; vertical-align:middle; float: right;"><img class="tooltip-top" title="Click To Add Fence" src="../../images/show.png" style="width: 16px; height:16px; vertical-align:middle; float: right;"></a>
+<!--                        <a href="#fence_popup1" onClick="addedfence();" id="fence_pop" class="add_fencing_<?php //echo $vehicledata->vehicleid; ?>"><img class="tooltip-top" title="Click To Add Fence" src="../../images/show.png" style="width: 16px; height:16px; vertical-align:middle; float: right;"></a>-->
+                    <?php } ?>
+                    </th>
+                </tr>
+                <?php
+                    $geofences = get_fences_for_vehicle($vehicleid);
+                    if(isset($geofences))
+                    {
+                        foreach ($geofences as $geofence)
+                        {
+                           if($_SESSION["role_modal"]=='Administrator' || $_SESSION["role_modal"]=='elixir')
+                           {
+                            echo '<tr class="edit_fences" id="f_'.$geofence->fenceid.'" rel="'.$vehicledata->vehicleid.'"><td class="edit_fence" id="'.$geofence->fenceid.'" rel="'.$vehicledata->vehicleid.'" colspan="4"><span id="fencename_'.$vehicledata->vehicleid.'_'.$geofence->fenceid.'"  class="text tooltip-top" title="Double Click To Edit">'.$geofence->fencename.'</span><input id="fencename_input_'.$vehicledata->vehicleid.'_'.$geofence->fenceid.'" class="editbox" type="text" value="'.$geofence->fencename.'"><a href="#delete_fence" onClick="delete_fence_by_id('.$geofence->fenceid.');" id="delete_pop" data-toggle="modal" class="delete_fencing_'.$vehicledata->vehicleid.'"><img class="tooltip-top" title="Click To Delete Fence" src="../../images/delete1.png" style="width: 12px; height:12px; vertical-align:middle; float: right;"></a>';
+                            echo "<input type='hidden' class='fence_latlong' value='".json_encode($geofence->geofencelatlong).",".$geofence->fencename."'/></td><tr>";
+                            echo "<input type='hidden' id='".$geofence->fenceid."' class='fence_id' value='".$geofence->fenceid."'/>";
+                           }
+                           else
+                           {
+                            echo '<tr id="f_'.$fence->fenceid.'" rel="'.$vehicledata->vehicleid.'"><td id="'.$fence->fenceid.'" rel="'.$vehicledata->vehicleid.'" colspan="4">'.$fence->fencename.'</td><tr>';
+                           }
+                        }
+                    }
+                    ?>
+<script>
+jQuery(document).ready(function(){
+//alert("hhrhrhr");
+jQuery('.tooltip-top').tipsy({gravity: 'se'});
+jQuery(".tipsy").each(function (){
+jQuery(this).hide();
+});
+
+
+});
+function delete_fence_by_id(key_fence){
+
+   jQuery('#del_fence').val(key_fence) ;
+}
+function delete_chkpoint_by_id(key_chkpoint){
+
+   jQuery('#del_chkpoint').val(key_chkpoint) ;
+}
+function delete_ecode_by_id(key_ecode){
+
+   jQuery('#del_ecode').val(key_ecode) ;
+}
+</script>
+                    <th colspan="4" class="tooltip-top" title="Want your clients to track your vehicles?">Client Code
+                    <?php if($_SESSION["role_modal"]=='Administrator' || $_SESSION["role_modal"]=='elixir')
+                          {    ?>
+                        <a href="#getecode" onClick="addedvehicle(<?php echo $vehicledata->vehicleid; ?>);" class="ecode_<?php echo $vehicledata->vehicleid; ?>" data-toggle="modal" style="width: 16px; height:16px; vertical-align:middle; float: right;"><img class="tooltip-top" title="Generate a Client Code" src="../../images/show.png" style="width: 16px; height:16px; vertical-align:middle; float: right;"></a>
+                    <?php } ?>
+                    </th>
+                </tr>
+                <tr><th colspan="2">Code</th><th colspan="2">Exp Date</th></tr>
+                <?php
+                    $codes = get_ecode_for_vehicle($vehicleid);
+
+                    if(isset($codes))
+                    {
+                        foreach ($codes as $ecode)
+                        {
+                          if($_SESSION["role_modal"]=='Administrator' || $_SESSION["role_modal"]=='elixir')
+                          {
+                            echo '<tr class="edit_ecode" id="e_'.$ecode->id.'" rel="'.$vehicledata->vehicleid.'"><td colspan="2">'.$ecode->ecode.'</td><td colspan="2">'.$ecode->expirydate.'<a href="#delete_ecode1" data-toggle="modal" onClick="delete_ecode_by_id('.$ecode->id.');" id="delete_ecodepop" class="delete_ecode_'.$vehicledata->vehicleid.'"><img class="tooltip-top" title="Click To Delete Client Code" src="../../images/delete1.png" style="width: 12px; height:12px; vertical-align:middle; float: right;"></a></td></tr>';
+                          }
+                          else
+                          {
+                            echo '<tr><td colspan="2">'.$ecode->ecode.'</td><td colspan="2">'.$ecode->expirydate.'</td></tr>';
+                          }
+                        }
+                    }
+                    ?>
+    </tbody>
+        </table>
+        </div>
+                    <?php
+                    echo '<input type="hidden" id="chk_vehid" value="'.$vehicleid.'">';
+                    include('modal_addcheckpoint.php');
+                    echo '<input type="hidden" id="fence_vehid" value="'.$vehicleid.'">';
+                    include('modal_addfence.php');
+                    $codes = get_ecode_for_vehicle($vehicleid);
+                    include('modal_createcode.php');
+                    echo '<input type="hidden" id="del_fence_vehid" value="'.$vehicleid.'">';
+                    include('delete.php');
+                    echo '<input type="hidden" id="del_chk_vehid" value="'.$vehicleid.'">';
+                    include('delete_chk.php');
+                    echo '<input type="hidden" id="del_ecode_vehid" value="'.$vehicleid.'">';
+                    include('delete_ecode.php');
+//                    echo '<input type="hidden" id="fence_vehid" value="'.$vehicleid.'">';
+//                    include('modal_fence_NEW.php');
+                    ?>
+            <a href="#x" class="overlay" id="fence_popup"></a>
+            <div class="popup"><?php
+                    echo '<input type="hidden" id="fence_vehid" value="'.$vehicleid.'">';
+                    include('modal_fence.php');
+                    ?>
+
+                <a class="close1" href="#close"></a>
+            </div>
+            <a href="#x" class="overlay" id="checkpt_popup"></a>
+            <div class="popup"><?php
+                    echo '<input type="hidden" id="chk_vehid" value="'.$vehicleid.'">';
+                    include('modal_checkpt.php');
+                    ?>
+
+                <a class="close1" href="#close"></a>
+            </div>
+   <?php    } } ?>
+   <?php
+   function getgroups(){
+
+    $groupmanager = new GroupManager($_SESSION['customerno']);
+    $allgroups = $groupmanager->getallgroups();
+    return $allgroups;
+
+    }
+    function getallvehicles()
+    {
+        $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+        $allvehicles = $vehiclemanager->Get_All_Vehicles_SQLite();
+
+        return $allvehicles;
+    }
+
+    function getallvehiclesbygroup($groupid)
+    {
+        $vehiclemanager = new VehicleManager($_SESSION['customerno']);
+        $allvehicles = $vehiclemanager->Get_All_Vehicles_SQLite_ByGroup($groupid);
+
+        return $allvehicles;
+    }
+
+
+   ?>
+

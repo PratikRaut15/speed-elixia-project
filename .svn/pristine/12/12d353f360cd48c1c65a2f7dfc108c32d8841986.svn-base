@@ -1,0 +1,48 @@
+DROP TABLE `servicecall`;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `servicecall` (
+  `serviceid` int(11) NOT NULL AUTO_INCREMENT,
+  `customerno` int(11) NOT NULL,
+  `clientid` int(11) NOT NULL,
+  `trackingno` varchar(50) NOT NULL,
+  `userid` int(11) NOT NULL,
+  `trackeeid` int(11) NOT NULL,
+  `createdon` datetime NOT NULL,
+  `isemail` tinyint(1) NOT NULL,
+  `timesdelay` int(11) NOT NULL,
+  `issms` tinyint(1) NOT NULL,
+  `sigreqd` tinyint(1) NOT NULL,
+  `signature` varchar(30) NOT NULL,
+  `closedon` datetime NOT NULL,
+  `contactperson` varchar(50) NOT NULL,
+  `phoneno` varchar(20) NOT NULL,
+  `add1` varchar(50) NOT NULL,
+  `add2` varchar(50) NOT NULL,
+  `devicekey` varchar(50) NOT NULL,
+  `remarkid` int(11) NOT NULL,
+  `isdeleted` tinyint(1) NOT NULL,
+  `warning1` datetime NOT NULL,
+  `warning2` datetime NOT NULL,
+  `uf1` varchar(150) NOT NULL,
+  `departtime` datetime NOT NULL,
+  `uf2` varchar(150) NOT NULL,
+  `callextra1` varchar(50) NOT NULL,
+  `callextra2` varchar(50) NOT NULL,
+  `starttime` datetime NOT NULL,
+  `endtime` datetime NOT NULL,
+  `totalbill` float NOT NULL,
+  `timeslot_start` datetime NOT NULL,
+  `timeslot_end` datetime NOT NULL,
+  `clientname` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `status` int(11) NOT NULL,
+  PRIMARY KEY (`serviceid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+
+
+ INSERT INTO `dbpatches` (  `patchdate`, `appliedby`, `patchdesc` ) 
+ VALUES (  NOW(), 'vishu','Some Fancy Patch');

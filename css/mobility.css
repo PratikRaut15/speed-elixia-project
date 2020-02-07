@@ -1,0 +1,122 @@
+#ajaxstatus{text-align:center;font-weight:bold;display:none}
+#ajaxBstatus{text-align:center;font-weight:bold;display:none;font-size:12px;}
+.mandatory{color:red;font-weight:bold;}
+#citymasterform table{width:50%;}
+#citymasterform .frmlblTd{text-align:center}
+#cityeditmasterform table{width:50%;}
+#cityeditmasterform .frmlblTd{text-align:center}
+#locationmasterform table{width:50%;}
+#locationmasterform .frmlblTd{text-align:center}
+#editlocationmasterform table{width:50%;}
+#editlocationmasterform .frmlblTd{text-align:center}
+#svlform table{width:50%;}
+#svlform .frmlblTd{text-align:center}
+#editsvlform table{width:50%;}
+#editsvlform .frmlblTd{text-align:center}
+#trackieform table{width:50%;}
+#trackieform .frmlblTd{text-align:center}
+#edittrackieform table{width:50%;}
+#edittrackieform .frmlblTd{text-align:center}
+#addclient table{width:50%;}
+#addclient .frmlblTd{text-align:center}
+#editclient table{width:50%;}
+#editclient .frmlblTd{text-align:center}
+
+#adddiscount table{width:50%;}
+#adddiscount .frmlblTd{text-align:center}
+#editdiscount table{width:50%;}
+#editdiscount .frmlblTd{text-align:center}
+
+#addfeedbackform table{width:50%;}
+#addfeedbackform .frmlblTd{text-align:center}
+#editfeedbackform table{width:50%;}
+#editfeedbackform .frmlblTd{text-align:center}
+
+#addcatform table{width:50%;}
+#addcatform .frmlblTd{text-align:center}
+#editcatform table{width:50%;}
+#editcatform .frmlblTd{text-align:center}
+
+#addpackageform table{width:50%;}
+#addpackageform .frmlblTd{text-align:center}
+#editpackageform table{width:50%;}
+#editpackageform .frmlblTd{text-align:center}
+
+
+/*timeline css*/
+.SDtr th{background-color: #B9C9FD;}
+#scorderdtls td{background-color: #E8EDFF;}
+#SOD tfoot td{background-color: #E8EDFF;}
+#SESTT td{background-color: #D7F2F7;}
+#cdResponse{table-layout: fixed}
+#cdResponse .ftd{
+    background-color: #555555;
+    color: #fff;
+    font-weight:bold;
+    width:35%;
+    word-wrap: break-word;
+}
+#cdResponse td{background-color: #F1F1F1;}
+#clientHistory{background-color: #EAE3E0;}
+.SngleHist{margin-bottom:0px !important}
+.allDataCell{
+float:left;color:#777777;border:2px solid #9FC6E7;/*height:20px !important;*/
+}
+.allDataCell:hover{
+    cursor:pointer;
+}
+.bubbleclose{
+text-align:right;
+}
+.bubbleclose:hover{
+    cursor:pointer;
+}
+.bubble {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: fixed;visibility: hidden;width:400px; left:35%; top:112px;
+}
+.Statlabel{
+    color:#FFF;padding:3px;font-weight:bold;
+}
+
+/**/
+input, textarea, select{
+    height: auto !important;
+    
+}
+/*added bcoz of new bootstrap*/
+#footer{box-sizing:unset;}
+
+.timeline_footer{
+position: fixed;
+bottom: 0pt;
+}   
+.timeline_footer_contents {
+
+}
+.call-err{background:#fce7e7;border:1px solid #b00;color:#b00;padding:5px;text-align:left}
+.call-success{background:#BAFFBA;border:1px solid #009900;color:#009900;font-weight:bold;padding:5px;text-align:left}
+
+
+#viewservice th{
+    background-color: #EEEEEE;
+    text-align: left;
+    width: 200px;
+}
+
+
+.table-hover > tbody > tr.select-row:hover > td,
+.select-row > td {
+    background-color:#5581D2;
+    color: #fff;
+}
+
+.chlinkcolor{
+    color:#e31c72;
+}
+
+.chlinkcolor:hover{
+    color:#e31c72;
+}

@@ -1,0 +1,87 @@
+//bs-product
+.bs-product {
+    padding: 35px;
+    background: $clr-root;
+    -webkit-box-shadow: 0px 0px 20px #dbdbdb;
+    -moz-box-shadow: 0px 0px 20px #dbdbdb;
+    box-shadow: 0px 0px 20px #dbdbdb;
+    text-align: left;
+    min-height: 360px;
+    position: relative;
+    transition: all 0.4s ease-in;
+    &:hover {
+        z-index: 1;
+        transform: scale(1.03);
+    }
+    .icon {
+        width: 100px;
+        height: 100px;
+        // background: #000000;
+        display: block;
+        margin: 0 auto 20px;
+        &.icon-monitor {
+            background: url('../images/product/logo-monitor.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+        &.icon-trace {
+            background: url('../images/product/logo-trace.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+        &.icon-speed {
+            background: url('../images/product/logo-speed.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+        &.icon-fleet {
+            background: url('../images/product/logo-fleet.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+        &.icon-trips {
+            background: url('../images/product/logo-trip.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+        &.icon-client {
+            background: url('../images/product/logo-client.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+        &.icon-book {
+            background: url('../images/product/logo-books.png')no-repeat 0 0 transparent;
+            background-size: contain;
+        }
+    }
+    .title {
+        font-size: 24px;
+        line-height: 26px;
+        text-transform: uppercase;
+        color: $clr-secondary;
+        margin-bottom: 20px;
+        font-weight: $fnt-bold;
+        text-align: center;
+    }
+    .desc {
+        p {
+            font-size: 14px;
+            line-height: 21px;
+            margin-bottom: 15px;
+            color: $clr-base;
+            text-align: center;
+        }
+        .btn {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .bs-product {
+        padding: 15px;
+        margin-bottom: 0px;
+        min-height: 300px;
+        .icon {
+            width: 65px;
+            height: 65px;
+        }
+    }
+}

@@ -1,0 +1,16 @@
+<?php include '../panels/header.php';
+error_reporting(0);
+
+?>
+
+<div class="entry">
+    <center>
+        <?php
+         include 'rtdtabs.php'; ?>
+    </center>
+</div>
+<script type="text/javascript">
+    var customerrefreshfrq =<?php echo $_SESSION['customerno']; ?>;
+    var refr_int_time ="<?php echo $_SESSION['refreshtime']; ?>";
+</script>
+<?php include '../panels/footer.php'; ?>

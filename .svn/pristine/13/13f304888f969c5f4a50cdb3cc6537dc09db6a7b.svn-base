@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>Monthly Distance Analysis Report</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type='text/css'>
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: center;
+                border-right:1px solid black;
+                border-bottom:1px solid black;
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 80%;
+            }
+            td, th{
+                border-left:1px solid black;
+                border-top:1px solid black;
+            }
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+            span{
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>
+        <p>Dated: {{MAILTIME}}</p>
+        <h4>Dear {{USER}},</h4>
+        <p>Cumulative Distance Travelled Report as under for the selected vehicle:  </p><br>
+        {{TABLE}}
+       
+        <p>Instructions:</p>
+        <ol>
+            <li>Report Contains Monthly distance Plied day wise.</li>
+            <li>This report may be used for distance travelled Claims.</li>
+            <li>**#N/A : Implies Vehicle was inactive. Those days claim shall be cleared by Regional I&S.</li>
+        </ol>
+        <p>Any Related Queries may be raised to Regional I&S : {{REGIONALInS}} {{REGIONALPHONE}} {{REGIONALEMAIL}} Or Mahindra Finance Head Office Sameer Chogale.
+        Any additional suggestion may be written at the undersigned email id.</p>
+    <p>With Regards,<br/>
+        Vehicle Management &Tracking Team<br/>
+        Mahindra Finance Head Office.</p>
+</body>
+</html>

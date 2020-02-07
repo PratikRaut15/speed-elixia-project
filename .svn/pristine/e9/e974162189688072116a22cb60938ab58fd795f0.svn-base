@@ -1,0 +1,82 @@
+<?php
+include_once("session.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/components/gui/objectdatagrid.php");
+include_once("../../lib/system/DatabaseManager.php");
+
+class unit{
+    
+}
+//Datagtrid
+
+$id = GetSafeValueString( isset($_GET["id"])?$_GET["id"]:$_POST["id"], "long");
+
+include("header.php");
+    
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT th.customerno, t.status, th.transaction, team.name, th.trans_time, th.thid, th.simcardno, th.invoiceno, th.expirydate FROM trans_history th LEFT OUTER JOIN trans_status t ON t.id = th.statusid INNER JOIN unit ON unit.uid = th.unitid INNER JOIN team ON team.teamid = th.teamid WHERE th.type=0 AND unitid = %d ORDER BY trans_time DESC",$id);
+
+$db->executeQuery($SQL);
+$history = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $device = new unit();
+        $device->status = $row["status"];
+        $device->customerno = $row["customerno"];
+        $device->transaction = $row["transaction"];        
+        $device->name = $row["name"];                
+        $device->trans_time = date("d-m-Y H:i",strtotime($row["trans_time"]));                        
+        $device->thid = $row["thid"];
+        $device->simcardno = $row["simcardno"];
+        $device->invoiceno = $row["invoiceno"];
+        if($row["expirydate"] == "0000-00-00")
+        {
+            $device->expirydate = "";
+        }
+        else 
+        {
+            $device->expirydate = date("d-m-Y",strtotime($row["expirydate"]));        
+        }
+        $history[] = $device;        
+    }    
+}
+
+$dg = new objectdatagrid( $history );
+$dg->AddColumn("Transaction", "transaction");
+$dg->AddColumn("Status", "status");
+$dg->AddColumn("Customer #", "customerno");
+$dg->AddColumn("Simcard #", "simcardno");
+$dg->AddColumn("Invoice #", "invoiceno");
+$dg->AddColumn("Expiry", "expirydate");
+$dg->AddColumn("Date", "trans_time");
+$dg->AddColumn("Done by", "name");
+$dg->SetNoDataMessage("No History");
+$dg->AddIdColumn("thid");
+
+$SQL = sprintf("SELECT unitno FROM unit WHERE uid = %d",$id);
+
+$db->executeQuery($SQL);
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unitno = $row["unitno"];
+    }    
+}
+
+
+?>
+<br/>
+<div class="panel">
+<div class="paneltitle" align="center">History for Unit # <?php echo $unitno; ?></div>
+<div class="panelcontents">
+<?php $dg->Render(); ?>
+</div>
+
+</div>
+
+<?php
+include("footer.php");
+?>

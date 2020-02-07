@@ -1,0 +1,44 @@
+//mod-newsletter
+.mod-newsletter {
+    margin: 60px auto 20px;
+    text-align: center;
+    width: 400px;
+    .title {
+        font-size: 24px;
+        line-height: 26px;
+        color: $clr-root;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+    }
+    .input-group {
+        margin: 0px auto;
+        .form-control {
+            border: 0px;
+            border-radius: 0px;
+            font-size: 14px;
+            line-height: 16px;
+            text-transform: none;
+        }
+        .input-group-btn {
+            .btn {
+                border-radius: 0px;
+                border: 0px;
+                padding: 15px 25px;
+                background: $clr-primary;
+                color: $clr-root;
+            }
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .mod-newsletter {
+        margin: 0;
+        width: auto;
+        padding: 0 15px;
+        .title {
+            font-size: 18px;
+            line-height: 20px;
+        }
+    }
+}

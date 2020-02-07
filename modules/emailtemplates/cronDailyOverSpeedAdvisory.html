@@ -1,0 +1,61 @@
+<html>
+<head>
+    <title>Advisoty Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type='text/css'>
+        body{
+          font-family:Arial;
+          font-size: 11pt;
+        }
+        table{
+          text-align: center;
+          border-right:1px solid black;
+          border-bottom:1px solid black;
+          border-collapse:collapse;
+          font-family:Arial;
+          font-size: 10pt;
+          width: 45%;
+        }
+        td, th{
+          border-left:1px solid black;
+          border-top:1px solid black;
+        }
+        .green{
+          background-color: green;
+        }
+        .yellow{
+          background-color: yellow;
+        }
+        .red{
+          background-color: red;
+        }
+        span{
+          font-weight:bold;
+        }
+    </style>
+</head>
+<body>Dear {{REALNAME}},
+    <br/>
+    <br/>It has been recorded that Vehicle Number {{VEHICLENUMBER}} allotted to you for Branch {{BRANCHNAME}}, Region {{REGIONNAME}} and Zone {{ZONENAME}} has crossed the Speed Limit of 80 Km/Hr for {{OVERSPEED}} times on Date {{REPORT_DATE}}.
+    <br/>You are advised to be cautious and follow the company norms for the acceptable use of vehicles.
+    <br/>Please stay safe!
+    <br/>
+    <br/>
+    <br/>
+
+
+
+    With Regards <br/>
+    Vehicle Safety Team<br/>
+    Infrastructure & Services Head Office<br/>
+
+    <br/>
+    <br/>
+    (This is a system generated mail and please don’t reply to this mail.<br/>
+     For any related queries and assistance please call Regional I&S or HO Vehicle Management Team: Sameer Chogale : 9987463503/ Akash Kanade: 8454055958<br/>
+     Write to management.vehicle@mahindra.com )
+
+    <br/>
+</body>
+</html>

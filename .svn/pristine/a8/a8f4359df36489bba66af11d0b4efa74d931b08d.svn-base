@@ -1,0 +1,17 @@
+<table>
+            <thead>
+                <tr>
+                    <th id="formheader" colspan="100%">Call Summary Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="100%">
+                        <span id="error" name="error" style="display: none;">Data Not Available</span>
+                        <span id="error1" name="error1" style="display: none;">Please Check The Date</span>
+                        <span id="error2" name="error2" style="display: none;">Please Select Dates With Difference Of Not More Than 30 Days</span>
+                        <span id="error5" name="error5" style="display: none;">Please select SR</span>
+                        <span id="error3" name="error3" style="display: none;">Please Select <?php echo $vehicle; ?></span>
+                        <span id="error4" name="error4" style="display: none;">Please Select Date Between  <?php echo date('Y-m-d', strtotime($_SESSION['startdate'])); ?> AND <?php echo date('Y-m-d', strtotime($_SESSION['enddate'])); ?></span>
+                    </td>
+                </tr>

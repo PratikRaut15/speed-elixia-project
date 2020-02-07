@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+    <head>
+        <title>Summary Report</title>
+
+        <style type="text/css">
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: center;
+                border-right:1px solid black;
+                border-bottom:1px solid black;
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 60%;
+            }
+            td, th{
+                border-left:1px solid black;
+                border-top:1px solid black;
+            }
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+            span{
+                font-weight:bold;
+            }
+            
+            hr.style-six { 
+                border: 0; 
+                height: 0; 
+                border-top: 1px solid rgba(0, 0, 0, 0.1); 
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3); 
+            }
+        </style>
+    </head>
+    <body>
+        <div style="width:1120px;">
+            <table style="width: 1120px;  border:1px solid;background-color:#CCCCCC;border-collapse:collapse;">
+                <tr><td colspan="4" style="width:1120px; text-align: center; text-transform:uppercase;"><h4 style="text-transform:uppercase;">SUMMARY REPORT</h4></td></tr>
+                <tr>
+                    <td colspan="2" style="text-align:left;font-weight:bold;">Date: {{DATE}}<br/>Company Name: {{CUSTOMERCOMPANY}}<br/>Customer No: {{CUSTOMERNO}}<br/></td>
+                    <td colspan="2" style="text-align:right;font-weight:bold;">Generated On: {{CURRDATE}}</td>
+                </tr>
+            </table>
+        </div><br/>
+        <br><br>
+        {{TABLE}}
+        
+       <br/>
+       <br/>
+       <table>
+           <tr>
+               <td><span style="text-align:left;font-weight:bold;">Disclaimer</span>: There could be a discrepancy in the distance shown in this report in case the device offline data is received after 12 am on a particular day. In such cases, please consider the distance in travel history / location history for that particular day.</td>
+           </tr>
+       </table>
+    </body>
+</html>

@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>Report Mail</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            body{
+                font-family:Arial;
+                font-size: 11pt;
+            }
+            table{
+                text-align: center;
+                border-right:1px solid black;
+                border-bottom:1px solid black;
+                border-collapse:collapse;
+                font-family:Arial;
+                font-size: 10pt;
+                width: 60%;
+            }
+            td, th{
+                border-left:1px solid black;
+                border-top:1px solid black;
+            }
+            .colHeading{
+                background-color: #D6D8EC;
+            }
+            span{
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>Dear {{REALNAME}},
+    <br/><br/>
+    Greetings from Elixia Tech!<br/><br/>
+    Customer No: <b>{{CUSTOMER}}</b><br/>
+    Please find the Temperature alert for the vehicle.<br/><br/>
+        <div>
+            <table>
+                <tr>
+                    <td>Sr No</td>
+                    <td>{{VEHICLEHEAD}}</td>
+                    <td>Alert</td>
+                </tr>
+                <tr>
+                    <td>1.</td>
+                    <td>{{VEHICLENO}}</td>
+                    <td>{{MESSAGE}}</td>
+                </tr>
+            </table>
+            {{TRIPDETAIL}}
+            <br><br>
+            Message sent at {{HOURMIN}}<br/>
+            {{LOCATION}}<br/>
+            Powered by Elixia Tech.<br/><br/><br/>
+            <font size='smaller'>
+            To unsubscribe, please uncheck your alerts
+            <a href='http://www.speed.elixiatech.com/modules/api/?action=login_userkey_unsub&key={{ENCODEKEY}}'>here</a>
+            or call us on 25137470 / 71.
+            </font>
+        </div>
+    </body>
+</html>

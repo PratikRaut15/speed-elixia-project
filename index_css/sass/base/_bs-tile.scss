@@ -1,0 +1,93 @@
+//.bs-tile
+.bs-tile {
+    background: $clr-secondary;
+    .tile-list {
+        margin: 0px;
+        counter-reset: section;
+        .item {
+            padding: 0;
+            position: relative;
+            &.typ-counter {
+                counter-increment: section;
+                .tile {
+                    .tile-count {
+                        &:before {
+                            content: counters(section, "", decimal-leading-zero);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .tile {
+        padding: 0px;
+        position: relative;
+        padding: 50px;
+        min-height: 260px;
+        .img-wrap {
+            img {
+                width: 100%;
+            }
+        }
+        .tile-info {
+            position: absolute;
+            top: 80px;
+            z-index: 10;
+            .desc {
+                color: $clr-root;
+                p {
+                    font-size: 24px;
+                    line-height: 32px;
+                    margin-bottom: 0;
+                    font-weight: $fnt-light;
+                }
+            }
+        }
+        &.typ-title {
+            .tile-info {
+                bottom: auto;
+                top: 50%;
+                transform: translateY(-50%);
+                .sec-title {
+                    // margin-bottom: 45px;
+                    color: $clr-root;
+                }
+                .sec-desc {
+                    color: $clr-root;
+                    line-height: 24px;
+                    font-weight: $fnt-light;
+                    padding-right: 65px;
+                }
+            }
+        }
+    }
+    &.typ-primary {
+        background: $clr-primary;
+        .tile {
+            .cm-overlay {
+                background: $clr-primary;
+            }
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .bs-tile {
+        .tile {
+            padding: 20px;
+            min-height: 200px;
+            .tile-info {
+                right: 20px;
+                left: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                .desc {
+                    p {
+                        font-size: 22px;
+                        line-height: 28px;
+                    }
+                }
+            }
+        }
+    }
+}

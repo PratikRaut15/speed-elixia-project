@@ -1,0 +1,207 @@
+<?php
+
+/*
+  Name            -    cronDuplicateTimeDeletion.php
+  Description     -    Pull data of a unit of particular customer and delete the record with same date time minute and lesser odometer
+  but lesser odometer
+  Parameters      -    customerno, unit, date
+  Module          -    VTS
+  Created By      -    Mrudang Vora
+  Created On      -    07 July, 2017
+  URL             -    http://speed.elixiatech.com/modules/cron/cronDuplicateTimeDeletion.php?customerno=64&unit=9804016&date=2017-06-12
+  Change details
+  1)
+  Updated By    -
+  Updated On    -
+  Reason        -
+  2)
+ */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+set_time_limit(0);
+$RELATIVE_PATH_DOTS = "../../";
+require_once $RELATIVE_PATH_DOTS . "lib/system/utilities.php";
+require_once $RELATIVE_PATH_DOTS . 'lib/autoload.php';
+if (!defined('DS')) {
+    define('DS', "/");
+}
+$serverPath = "http://speed.elixiatech.com/customer/";
+if (isset($IsDebugServer) && $IsDebugServer == TRUE) {
+    $serverPath = "http://localhost/elixia_speed/customer/";
+}
+$cm = new CronManager(2);
+$serverReadPath = "../../customer/";
+$localSaveToPath = "../../../ProductionBackup/odm-reset/customer/";
+if (isset($_REQUEST) && $_REQUEST['customerno']) {
+    $customerNo = $_REQUEST['customerno'];
+    $unitNo = $_REQUEST['unit'];
+    $sqliteDate = $_REQUEST['date'];
+    $sqliteDate = date(speedConstants::DATE_Ymd, strtotime($sqliteDate));
+
+    $file = $customerNo . DS . 'unitno' . DS . $unitNo . DS . 'sqlite' . DS . $sqliteDate . '.sqlite';
+    $filePath = $serverPath . $file;
+    $fileName = $sqliteDate . '.sqlite';
+    $sqlitePath = download($customerNo, $unitNo, $sqliteDate, $serverPath, $serverReadPath);
+    //echo $sqlitePath;
+    if (file_exists($sqlitePath)) {
+        echo "<br/>Sqlite File Downloaded";
+        $path = "sqlite:" . $sqlitePath;
+        $db = new PDO($path);
+        $Query = "  SELECT  vehiclehistoryid
+                    FROM    vehiclehistory
+                    GROUP BY strftime('%d-%m-%Y %H:%M' , lastupdated) HAVING count(*) > 1";
+        $result = $db->query($Query)->fetchAll(PDO::FETCH_ASSOC);
+        //prettyPrint($result);
+        $isIncorrectDataDeleted = 0;
+        if (isset($result) && !empty($result)) {
+            $vehicleQuery = "   DELETE  FROM vehiclehistory
+                                WHERE  vehiclehistoryid NOT IN (SELECT vehiclehistoryid
+                                                                FROM    vehiclehistory
+                                                                GROUP BY strftime('%d-%m-%Y %H:%M' , lastupdated) HAVING odometer = MAX(odometer));";
+
+            $deviceQuery = "   DELETE FROM devicehistory
+                                WHERE  id NOT IN (SELECT vehiclehistoryid
+                                                    FROM    vehiclehistory
+                                                    GROUP BY strftime('%d-%m-%Y %H:%M' , lastupdated) HAVING odometer = MAX(odometer));";
+
+            $unitQuery = "   DELETE FROM unithistory
+                                WHERE  uhid NOT IN (SELECT vehiclehistoryid
+                                                    FROM    vehiclehistory
+                                                    GROUP BY strftime('%d-%m-%Y %H:%M' , lastupdated) HAVING odometer = MAX(odometer));";
+            try {
+                $error = "";
+                $deviceResult = $db->exec($deviceQuery);
+                if ($deviceResult === false && $db->errorInfo() != null) {
+                    $error .= "<br/>Error occurred:" . implode(":", $db->errorInfo());
+                }
+                $unitResult = $db->exec($unitQuery);
+                if ($unitResult === false && $db->errorInfo() != null) {
+                    $error .= "<br/>Error occurred:" . implode(":", $db->errorInfo());
+                }
+                $vehicleResult = $db->exec($vehicleQuery);
+                if ($vehicleResult === false && $db->errorInfo() != null) {
+                    $error .= "<br/>Error occurred:" . implode(":", $db->errorInfo());
+                }
+                if ($error == "") {
+                    echo "<br/>Deleted multiple records";
+                } else {
+                    echo $error;
+                }
+            } catch (Exception $ex) {
+                echo "<br/ > Exception occured";
+                echo "<br/ > Exception: " . $ex;
+            }
+            $isIncorrectDataDeleted = 1;
+        } else {
+            echo '<br/>All Ok';
+        }
+        if ($isIncorrectDataDeleted) {
+            echo "<br/>Unit Sqlite Incorrect Data Is Deleted";
+            $arrDailyReportData = getFirstLastOdometers($db);
+            $isDailyReportUpdaeted = 0;
+            if (isset($arrDailyReportData) && !empty($arrDailyReportData)) {
+                $unit = new stdClass();
+                $unit->uid = $arrDailyReportData['uid'];
+                $unit->customerno = $customerNo;
+                $unit->date = $sqliteDate;
+                $cm->insertDuplicateSqliteData($unit);
+                $dailyReportPath = "sqlite:" . $serverReadPath . $customerNo . DS . "reports" . DS . "dailyreport.sqlite";
+                $dbDaily = new PDO($dailyReportPath);
+                $isDailyReportUpdaeted = updateDailyReport($dbDaily, $arrDailyReportData, $sqliteDate, $dailyReportPath);
+                if ($isDailyReportUpdaeted) {
+                    echo "<br/>DailyReport Sqlite Data Updated";
+                }
+            }
+        }
+        echo "<br/>Process Complete";
+    }
+}
+
+function download($customerNo, $unitNo, $sqliteDate, $serverPath, $serverReadPath) {
+    $returnPath = 0;
+    $file = $customerNo . DS . 'unitno' . DS . $unitNo . DS . 'sqlite' . DS . $sqliteDate . '.sqlite';
+    $filePath = $serverPath . $file;
+    $fileReadPath = $serverReadPath . $file;
+    $fileReadPathBck = $serverPath . DS . 'odmreset' . DS . 'unitno' . DS . $unitNo . DS . 'sqlite' . DS . $sqliteDate . '.sqlite';
+    $fileName = $sqliteDate . '.sqlite';
+
+    /* Prodauction BackUp */
+    $localCustomerDirBck = $serverReadPath . $customerNo . DS . 'odmreset' . DS;
+    $localUnitnoDirBck = $localCustomerDirBck . 'unitno' . DS;
+    $localUnitDirBck = $localUnitnoDirBck . $unitNo . DS;
+    $localSqliteDirBck = $localUnitDirBck . 'sqlite' . DS;
+    if (!file_exists($localCustomerDirBck)) {
+        mkdir($localCustomerDirBck, 0777);
+    }
+    if (!file_exists($localUnitnoDirBck)) {
+        mkdir($localUnitnoDirBck, 0777);
+    }
+    if (!file_exists($localUnitDirBck)) {
+        mkdir($localUnitDirBck, 0777);
+    }
+    if (!file_exists($localSqliteDirBck)) {
+        mkdir($localSqliteDirBck, 0777);
+    }
+
+    if (!empty($filePath)) {
+        if (!file_exists($localSqliteDirBck . $fileName)) {
+            file_put_contents(
+                    $localSqliteDirBck . $fileName, file_get_contents($filePath)
+            );
+        }
+
+        //echo $fileReadPath;
+        $returnPath = $fileReadPath;
+    }
+
+    return $returnPath;
+}
+
+function getFirstLastOdometers($db) {
+    $arrResult = null;
+    $QueryFirstOdometer = "SELECT vehicleid,uid,odometer FROM vehiclehistory ORDER BY lastupdated ASC LIMIT 1";
+    $resultFirstOdometer = $db->query($QueryFirstOdometer)->fetchAll(PDO::FETCH_ASSOC);
+    $arrResult['vehicleid'] = $resultFirstOdometer[0]['vehicleid'];
+    $arrResult['uid'] = $resultFirstOdometer[0]['uid'];
+    $arrResult['firstOdometer'] = $resultFirstOdometer[0]['odometer'];
+    $QueryLastOdometer = "SELECT odometer FROM vehiclehistory ORDER BY lastupdated DESC LIMIT 1";
+    $resultLastOdometer = $db->query($QueryLastOdometer)->fetchAll(PDO::FETCH_ASSOC);
+    $arrResult['lastOdometer'] = $resultLastOdometer[0]['odometer'];
+    $arrResult['totalDistance'] = ($arrResult['lastOdometer'] - $arrResult['firstOdometer']);
+    return $arrResult;
+}
+
+function updateDailyReport($db, $arrDailyReportData, $sqliteDate, $dbLocation) {
+    $isUpdated = 0;
+    $checkResult = NULL;
+    $tableName = "A" . date('dmy', strtotime($sqliteDate));
+    $columnName = 'uid';
+    if (IsColumnExistInSqlite($dbLocation, $tableName, $columnName)) {
+        $checkQuery = "SELECT uid FROM " . $tableName . " WHERE uid = " . $arrDailyReportData['uid'] . " and vehicleid=" . $arrDailyReportData['vehicleid'];
+//        echo '<br/>' . $checkQuery;
+        $checkResult = $db->query($checkQuery)->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($checkResult)) {
+            $Query = "UPDATE " . $tableName . " SET totaldistance=" . $arrDailyReportData['totalDistance'] . ",first_odometer=" . $arrDailyReportData['firstOdometer'] . ",last_odometer=" . $arrDailyReportData['lastOdometer'] . " WHERE uid=" . $arrDailyReportData['uid'] . " and vehicleid=" . $arrDailyReportData['vehicleid'];
+        } else {
+            $Query = "  INSERT INTO " . $tableName . "(uid
+                        ,vehicleid
+                        ,totaldistance
+                        ,first_odometer
+                        ,last_odometer)
+                    VALUES('" . $arrDailyReportData['uid'] . "'
+                        ,'" . $arrDailyReportData['vehicleid'] . "'
+                        ,'" . $arrDailyReportData['totalDistance'] . "'
+                        ,'" . $arrDailyReportData['firstOdometer'] . "'
+                        ,'" . $arrDailyReportData['lastOdometer'] . "');";
+        }
+    }
+    $db->exec('BEGIN IMMEDIATE TRANSACTION');
+    $db->exec($Query);
+    $isUpdated = 1;
+    $db->exec('COMMIT TRANSACTION');
+    return $isUpdated;
+}
+
+?>

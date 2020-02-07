@@ -1,0 +1,191 @@
+<?php
+$new = '<img src=' . $_SESSION['subdir'] . '/images/new_small.gif>';
+if (isset($_SESSION['Warehouse'])) {
+    $custom = $_SESSION['Warehouse'];
+} else {
+    $custom = "Warehouse";
+}
+if (isset($_SESSION['username'])) {
+    $customerno = $_SESSION['customerno'];
+    $company = $_SESSION['customercompany'];
+    ?>
+  <div class="bs-docs-example" style="height:41px;">
+    <div class="navbar navbar-static" id="navbar-example">
+      <div class="navbar-inner">
+        <div style="width: auto;" class="container">
+          <?php
+include_once '../../lib/bo/UserManager.php';
+    $umgr = new UserManager();
+    $accuser = $umgr->getUserForAccountSwitch($_SESSION['userid']);
+    //print_r($accuser);
+    if ($_SESSION["customerno"] == '116') {
+        ?>
+            <a href="" class="brand"><img style="width: 120px;" src="../../images/116/image001.png"></img>
+              <span style="color: black; text-transform: uppercase; font-style: italic; font-weight: bold; font-size:small;">
+                Track & Trace !!...
+              </span>
+            </a>
+          <?php } elseif ($_SESSION["customerno"] == '9') {?>
+            <a href="" class="brand"><img src="../../images/9/ttllogo.png"></img></a>
+          <?php } elseif ($_SESSION["role_modal"] == 'elixir') {
+        include_once '../../lib/bo/CustomerManager.php';
+
+        ?>
+            <a data-position="bottom" data-toggle="dropdown" class="brand dropdown dropdown-toggle" role="button" id="drop2" style="cursor: pointer;">
+              <span style="color: black; font-weight: bold; font-size: initial;">elixia</span>
+              <span style="color: #0193CC; font-weight: bolder; font-size: initial;">speed</span>
+              <span style="color: black; font-weight: bold; font-size:small;">for</span>
+              <span style="color: black; text-transform: uppercase; font-weight: bold; font-size:small;"><?php echo $company; ?> <b class="caret"></b></span>
+            </a>
+            <ul aria-labelledby="drop2" role="menu" class="dropdown-menu" style="margin-top: -9px; left: 10%; overflow-y: auto; height: 500px; ">
+              <?php
+$umgr = new UserManager();
+        $arrusers = $umgr->getAllCustomerElixir();
+        foreach ($arrusers as $user) {
+            ?>
+                    <li  role="presentation" onclick="changeaccount(<?php echo $user->userid; ?>)" style="color: black; text-transform: uppercase; font-weight: bold; font-size:small;"><a><?php echo $user->customerno; ?> - <?php echo $user->customercompany ?></a></li>
+                <?php
+}
+        ?>
+            </ul>
+            </ul>
+          <?php } elseif (!empty($accuser)) {
+        ?>
+            <a data-position="bottom" data-toggle="dropdown" class="brand dropdown dropdown-toggle" role="button" id="drop2" style="cursor: pointer;">
+              <span style="color: black; font-weight: bold; font-size: initial;">elixia</span>
+              <span style="color: #0193CC; font-weight: bolder; font-size: initial;">speed</span>
+              <span style="color: black; font-weight: bold; font-size:small;">for</span>
+              <span style="color: black; text-transform: uppercase; font-weight: bold; font-size:small;"><?php echo $company; ?> <b class="caret"></b></span>
+            </a>
+            <ul aria-labelledby="drop2" role="menu" class="dropdown-menu" style="margin-top: -9px; left: 10%;">
+              <?php
+foreach ($accuser as $user) {
+            ?>
+                <li  role="presentation" onclick="changeaccount(<?php echo $user->childid; ?>)" style="color: black; text-transform: uppercase; font-weight: bold; font-size:small;"><a><?php echo $user->customercompany ?></a></li>
+                <?php
+}
+        ?>
+            </ul>
+          <?php } else {
+        ?>
+            <a href="javascript:void(0);" class="brand">
+              <span style="color: black; font-weight: bold; font-size: initial;">elixia</span>
+              <span style="color: #0193CC; font-weight: bolder; font-size: initial;">speed</span>
+              <span style="color: black; font-weight: bold; font-size:small;">
+                <?php if ($_SESSION["customerno"] != '9') {
+            ?>
+                  for </span>
+                <span style="color: black; text-transform: uppercase; font-weight: bold; font-size:small;">
+                  <?php
+echo $company;
+        }
+        ?>
+              </span>
+            </a>
+          <?php }?>
+          <ul role="navigation" class="nav">
+            <?php
+include_once 'generatemenu.php';
+    echo '<li class="dropdown">
+                    <a data-intro="Analyze your data" data-position="left" data-toggle="dropdown" class="dropdown-toggle" role="button" id="droprealtime" href="javascript:void(0);
+                   ">Realtime <b class="caret"></b></a><ul aria-labelledby="droprealtime" role="menu" class="dropdown-menu">';
+
+    current_page_new("map/map.php", 'View ' . $custom . ' On Map', 'Map');
+    if ($_SESSION['role_modal'] != 'Viewer') {
+        current_page_new("warehouse/warehouse.php", 'View Recent ' . $custom . ' Data', 'Data');
+        echo '</ul> </li>';
+        //echo "<li role='presentation' class='current_page_item'><a href='" . $_SESSION['subdir'] . "/modules/warehouse/warehouse.php' tabindex='-1' role='menuitem'>Warehouse</a></li>";
+        ?>
+              <li class="dropdown">
+                <a data-intro="Analyze your reports" data-position="left" data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop2" href="javascript:void(0);">Reports <b class="caret"></b></a>
+                <ul aria-labelledby="drop2" role="menu" class="dropdown-menu">
+                  <?php
+echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=12' tabindex='-1' role='menuitem'>Alert History</a></li>";
+        if ($_SESSION['portable'] != '1') {
+            if ($_SESSION['temp_sensors'] > 0) {
+                ?>
+                      <li class="divider" role="presentation"></li>
+                      <?php
+echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=13' >Temperature Report</a></li>";
+                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=44' >Temperature Exception Report</a></li>";
+                if (isset($_SESSION['customerno']) && $_SESSION['customerno'] == speedConstants::CUSTNO_PHARM_EASY) {
+                    echo "<li role = 'presentation'><a href = '" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=72' >Group wise Temperature Report</a></li>";
+                }
+                if ($_SESSION['customerno'] == speedConstants::CUSTNO_CUREFIT) {
+                    echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=66' >Power Status Report</a></li>";
+                    echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=67' >Door Sensor Report</a></li>";
+                }
+            }
+            if ($_SESSION['use_humidity'] == 1) {
+                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=47' >Humidity Report</a></li>";
+                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=48' >Humidity & Temperature Report</a></li>";
+            }
+            if ($_SESSION['use_ac_sensor'] == 1 || $_SESSION['use_genset_sensor'] == 1) {
+                echo "<li class='dropdown-submenu'><a tabindex='-1' href='javascript:void(0);'>" . $_SESSION["digitalcon"] . " History</a>
+                                                    <ul class='dropdown-menu'>";
+                ?>
+                      <?php //  echo "<li role='presentation'><a href='".$_SESSION['subdir']."/modules/reports/reports.php?id=7' tabindex='-1' role='menuitem'>Full Report -Test</a></li>"; ?>
+                      <?php echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=45' tabindex='-1' role='menuitem'>Detail Report</a></li>"; ?>
+                      <?php echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=46' tabindex='-1' role='menuitem'>Summary Report</a></li>"; ?>
+
+                      <?php
+if ($_SESSION['use_fuel_sensor'] == 1) {
+                    ?>
+
+                    <li class="divider" role="presentation"></li>
+                    <?php
+echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=42' >Fuel Sensor Report</a></li>";
+                }
+                ?>
+                     </ul>
+
+
+              </li>
+                  <?php
+if (($_SESSION['customerno'] == speedConstants::CUSTNO_RKFOODLANDS || $_SESSION['customerno'] == speedConstants::CUSTNO_CUREFIT) && $_SESSION['switch_to'] == 3) {
+                    echo "<li role = 'presentation'><a href = '" . $_SESSION['subdir'] . "/modules/reports/reports.php?id=39' tabindex = '-1' role = 'menuitem'>Door Sensor History</a></li>";
+                }
+            }
+            ?>
+                <?php
+}
+        ?>
+            </ul>
+            </li>
+        <li>
+            <?php
+if ($_SESSION["role_modal"] == 'Administrator' || $_SESSION["role_modal"] == 'elixir' || $_SESSION["roleid"] == '1') {
+            ?>
+              <li class="dropdown">
+                <a data-intro="Manage your Masters" data-position="bottom" data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop2" href="javascript:void(0);">Masters <b class="caret"></b></a>
+                <ul aria-labelledby="drop2" role="menu" class="dropdown-menu">
+                  <?php
+echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/vehicle/vehicle.php?id=2' tabindex='-1' role='menuitem'>" . $custom . "s</a></li>";
+            if ($_SESSION["roleid"] != "8") {
+                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/account/users.php?id=2' tabindex='-1' role='menuitem'>Users</a></li>";
+            }
+            ?>
+                  <?php
+if ($_SESSION["use_hierarchy"] == '0') {
+                echo "<li role='presentation'><a href='" . $_SESSION['subdir'] . "/modules/group/group.php' tabindex='-1' role='menuitem'>Group <sup><font color='#FF0000'>beta</font></sup></a></li>";
+            }
+
+            ?>
+                  <?php
+echo "<li role = 'presentation'><a href = '" . $_SESSION['subdir'] . "/modules/nomenclature/nomenclature.php?id=2' tabindex = '-1' role = 'menuitem'>Nomenclature</a></li>";
+            ?>
+                </ul>
+              </li>
+              </li>
+            <?php }?>
+          <?php }?>
+          </ul>
+          <?php require_once 'right_panel.php';?>
+        </div>
+      </div>
+    </div> <!-- /navbar-example -->
+  </div>
+  <!-- end #menu -->
+  <?php
+}
+?>

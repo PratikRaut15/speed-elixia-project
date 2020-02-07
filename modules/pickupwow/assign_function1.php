@@ -1,0 +1,423 @@
+<?php
+include_once "../../deliveryapi/class/config.inc.php";
+include_once '../../lib/system/utilities.php';
+include_once '../../lib/bo/CustomerManager.php';
+include_once '../../lib/bo/MappingManager.php';
+include_once '../../lib/bo/VehicleManager.php';
+include_once '../../lib/bo/UserManager.php';
+include_once '../../lib/bo/DeliveryManager.php';
+include_once '../reports/map_popup.php';
+include_once '../../lib/comman_function/reports_func.php';
+
+$max_orders = 16;
+define("MAX_ORDERS", $max_orders);
+
+$distUrl = "http://www.speed.elixiatech.com/location.php";
+//$distUrl = "http://localhost/elixiaspeed_test/location.php";
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+function get_Mapped_Zone_Slot_pickup() {
+    $customerno = exit_issetor($_SESSION['customerno']);
+
+    $mm = new MappingManager($customerno);
+    $data = $mm->getVehZoneSlot_js_arr_pickup();
+    return $data;
+}
+
+function get_vehicles_arr() {
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $vehiclemanager = new UserManager($customerno);
+    $vehiclesbygroup = $vehiclemanager->get_all_pickup($customerno);
+    $vehicle_arr = pickup_array($vehiclesbygroup);
+
+    return $vehicle_arr;
+}
+
+function getOrderData() {
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $dm = new DeliveryManager($customerno);
+
+    return $dm->getCustOrders();
+}
+
+function get_startll_byvehSlot($vehid, $slot) {
+    $customerno = exit_issetor($_SESSION['customerno']);
+    $mm = new MappingManager($customerno);
+    $data = $mm->get_startll_pickup($vehid, $slot);
+    return $data;
+}
+
+function get_zones() {
+    $customerno = exit_issetor($_SESSION['customerno']);
+
+    $mm = new MappingManager($customerno);
+    $data = $mm->getCustomerZones_pickup();
+    return $data;
+}
+
+function get_areas() {
+    $customerno = exit_issetor($_SESSION['customerno']);
+
+    $mm = new MappingManager($customerno);
+    $data = $mm->getCustomerAreas_pickup();
+    return $data;
+}
+
+function latlong_arr($vehid, $slot, $date) {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $data = $dm->zoneSlotBasedOrders_pickup($vehid, $slot, $date);
+    return $data;
+}
+
+function get_last_slot_ll($vehid, $cur_slot, $odate) {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $slot = $cur_slot - 1;
+    $data = $dm->last_slot_ll($vehid, $slot, $odate);
+    return $data;
+}
+
+function getTimeRqrd($start_point, $ltlng) {
+    global $distUrl;
+
+    $mn_url = "$distUrl?startLoc=$start_point&endLoc=$ltlng";
+    //echo $mn_url;die();
+    $data = json_decode(file_get_contents($mn_url));
+    if (isset($data->rows[0]->elements[0]->duration)) {
+        return $data->rows;
+    } else {
+        return 'N/A';
+    }
+}
+
+function vehicle_order_count($veh_orders, $vid) {
+    $count = 0;
+    if (isset($veh_orders[$vid])) {
+        foreach ($veh_orders[$vid] as $clust) {
+            foreach ($clust as $orders) {
+                $count++;
+            }
+        }
+    }
+    return $count;
+}
+
+function remove_array($details, $delkey) {
+    $clean = array();
+    foreach ($details as $key => $test) {
+        unset($test->elements[$delkey]);
+        $clean[$key] = $test;
+    }
+    return $details;
+}
+
+function get_slots() {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $data = $dm->get_customer_slots();
+
+    if (!empty($data)) {
+        return $data;
+    } else {
+        return
+        array(
+            1 => array('timing' => '7:00 - 11:30')
+
+        );
+    }
+}
+
+function get_fenceid_by_latlong($mLat, $mLong, $customerno) {
+    include_once '../../lib/bo/GeofenceManager.php';
+    include_once '../../lib/bo/PointLocationManager.php';
+
+    $point = $mLat . " " . $mLong;
+    $pointLocation = new PointLocation($customerno);
+
+    $geofence = new GeofenceManager($customerno);
+    $fence_latLong = $geofence->get_customerfence_latLong();
+
+    $fenceid = 0;
+    foreach ($fence_latLong as $f_id => $polygon) {
+        if ($pointLocation->checkPointStatus($point, $polygon) == "inside") {
+            $fenceid = $f_id;
+            break;
+        }
+    }
+    return $fenceid;
+}
+
+function get_travel_history_report_pdf($customerno) {
+    $title = 'Order List';
+    $subTitle = array(
+        "Test"
+    );
+
+    $customer_details = null;
+    if (!isset($_SESSION['customerno'])) {
+        $cm = new CustomerManager($customerno);
+        $customer_details = $cm->getcustomerdetail_byid($customerno);
+    }
+    echo pdf_header($title, $subTitle, $customer_details);
+
+    get_travel_days_data($customerno);
+    //return $vehicleno;
+}
+
+function get_travel_days_data($customerno) {
+    $um = new UnitManager($customerno);
+    $vehicleid = GetSafeValueString($vehid, 'string');
+    $totaldays = gendays_cmn($SDate, $EDate);
+    $count = count($totaldays);
+    $endelement = end($totaldays);
+    $firstelement = $totaldays[0];
+    $unitno = $um->getunitnofromdeviceid($vehicleid);
+    $days = Array();
+
+    if (isset($totaldays)) {
+        foreach ($totaldays as $userdate) {
+            $lastday = new_travel_data($customerno, $unitno, $userdate, $count, $firstelement, $endelement, $vehicleid, $Shour, $Ehour);
+            if ($lastday != NULL) {
+                $days = array_merge($days, $lastday);
+            }
+        }
+    }
+
+    if (isset($days) && count($days) > 0) {
+        $STDate = $SDate . $Shour . ":00";
+        $ETDate = $EDate . $Ehour . ":00";
+
+        switch ($report_type) {
+            case 'pdf':
+                dispalytraveldata_pdf($days, $vehicleid, $unitno, $geocode, $STDate, $ETDate, $customerno);
+                break;
+            case 'excel':
+                dispalytraveldata_excel($customerno, $days, $vehicleid, $unitno, $geocode, $STDate, $ETDate);
+                break;
+        }
+    }
+}
+
+function reset_algo($vehicleid, $slotid, $lat, $lng, $dpd) {
+    $mm = new MappingManager($dpd['customerno']);
+
+    $zoneid = $mm->getzone_slotVeh($slotid, $vehicleid); //get zoneid of this vehicle from routing_map
+
+    if (!$zoneid) {
+        return false; //Not found in routing map
+    } else {
+        $date = date('Y-m-d');
+
+        $latlong_arr = $mm->Orders_by_vehicle($zoneid, $slotid, $date, $vehicleid);
+
+        if ($latlong_arr) {
+            /* params, to pass to google-API */
+            $ltlng = array();
+            $dats = array();
+            $main_start_point = "$lat,$lng"; //"19.06,72.89";
+            foreach ($latlong_arr as $key => $ltlngarr) {
+                $ltlng[] = "{$ltlngarr['lat']},{$ltlngarr['longi']}";
+                $dats[] = $ltlngarr['order_id']; //to store data in sorted form, and reteive on google-returns
+            }
+
+            $desti_str = implode('|', $ltlng);
+            $orgin_str = $main_start_point . '|' . $desti_str;
+            $details = getTimeRqrd($orgin_str, $desti_str);
+            /**/
+
+            if (!isset($details[0]->elements)) {
+                return false; //no data found;
+            } else {
+                $final_sequence = array();
+                $c = count($ltlng);
+                $next_key = 0;
+                while ($c) {
+                    $least_time = get_minimal_dist_data($details[$next_key]->elements);
+                    $oid = $dats[$least_time['key']];
+                    $final_sequence[] = $latlong_arr[$oid];
+
+                    unset($details[$next_key]);
+                    $details = remove_array($details, $least_time['key']);
+                    $next_key = $least_time['key'] + 1;
+                    $c--;
+                }
+                $am = new AlgoManager($dpd['customerno']);
+                $am->insertOrderSeq($final_sequence);
+                return true;
+            }
+        } else {
+            return false; //no orders found or default algo have not run
+        }
+    }
+}
+
+function dispalytraveldata_pdf($datarows, $customerno) {
+    ?>
+    <table id='search_table_2' style="width: auto; font-size:13px; text-align:center;border-collapse:collapse; border:1px solid #000;">
+        <tbody>
+
+    <?php
+
+    $t = 1;
+    $runningtime = 0;
+    $idletime = 0;
+    $idle_ign_on = 0;
+    $totaldistance = 0;
+    $lastdate = NULL;
+    $totalminute = 0;
+    $today = date('d-m-Y', strtotime('Now'));
+
+    if (isset($datarows)) {
+        foreach ($datarows as $change) {
+        }
+    }
+}
+
+function get_reasons() {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $reason = $dm->getreason();
+    return $reason;
+}
+
+function add_reason($status) {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $status = $dm->addreason($status);
+    return $status;
+}
+
+function get_reason_byid($statusid) {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $status = $dm->getreason_byid($statusid);
+    return $status;
+}
+
+function edit_reason_byid($status, $statusid) {
+    $dm = new DeliveryManager($_SESSION['customerno']);
+    $status = $dm->editreason($status, $statusid);
+    return $status;
+}
+
+function get_order_list($customerno, $userid, $deldate) {
+    $dm = new DeliveryManager($customerno);
+    $datarows = $dm->getOrdersAll($customerno, $deldate);
+    //print_r($datarows);
+    //die();
+    $title = 'Pickup List';
+    $subTitle = array(
+    );
+    if (!is_null($vgroupname)) {
+        $subTitle[] = "Group-name: $vgroupname";
+    }
+    $customer_details = null;
+    if (!isset($_SESSION['customerno'])) {
+        $cm = new CustomerManager($customerno);
+        $customer_details = $cm->getcustomerdetail_byid($customerno);
+    }
+    echo excel_header_pickup($title, $subTitle, $customer_details);
+    if (isset($datarows)) {
+        $start = 0;
+
+        ?>
+<table  id='search_table_2' style="width: 1120px; font-size:12px; text-align:center;border-collapse:collapse; border:1px solid #000;">
+                        <tr style="background-color:#CCCCCC;font-weight:bold;">
+			<td style='width:20px; text-align: center;'>Sr.No</td>
+			<td style='width:50px;height:auto; text-align: center;'>Bill No</td>
+			<td style='width:50px;height:auto; text-align: center;'>Zone</td>
+			<td style='width:300px;height:auto; text-align: center;'>Area</td>
+			<td style='width:300px;height:auto; text-align: center;'>Flat</td>
+			<td style='width:100px;height:auto; text-align: center;'>Building</td>
+			<td style='width:50px;height:auto; text-align: center;'>City</td>
+			<td style='width:100px;height:auto; text-align: center;'>Landmark</td>
+			<td style='width:100px;height:auto; text-align: center;'>Slot</td>
+			<td style='width:100px;height:auto; text-align: center;'>Delivery Date</td>
+			<td style='width:100px;height:auto; text-align: center;'>Order Date</td>
+			<td style='width:50px;height:auto; text-align: center;'>Status</td>
+
+                        </tr>
+                        <tr style="width:335px;height:auto; text-align: center;background-color:#D8D5D6;"><td align="center" colspan="10"><b><?php echo $eachdate; ?></b></td></tr>
+
+        <?php
+foreach ($datarows as $change) {
+            echo "<tr>";
+            echo "<td  width='20px' style=' text-align: center;' >" . $i++ . "</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->orderid</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->zonename</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->areaname</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->flat</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->building</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->city</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->landmark</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->slot</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->delivery_date</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->created_on</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->statusname</td>";
+
+            echo "</tr>";
+        }
+        echo "</table>";
+    }
+}
+
+function get_order_list_pdf($customerno, $userid, $deldate) {
+    $dm = new DeliveryManager($customerno);
+    $datarows = $dm->getOrdersAll($customerno, $deldate);
+    //print_r($datarows);
+    //die();
+    $title = 'Order List';
+    $subTitle = array(
+    );
+    if (!is_null($vgroupname)) {
+        $subTitle[] = "Group-name: $vgroupname";
+    }
+    $customer_details = null;
+    if (!isset($_SESSION['customerno'])) {
+        $cm = new CustomerManager($customerno);
+        $customer_details = $cm->getcustomerdetail_byid($customerno);
+    }
+    echo pdf_header($title, $subTitle, $customer_details);
+    if (isset($datarows)) {
+        $start = 0;
+
+        ?>
+<table  id='search_table_2' style="width: 1120px; font-size:12px; text-align:center;border-collapse:collapse; border:1px solid #000;">
+                        <tr style="background-color:#CCCCCC;font-weight:bold;">
+			<td style='width:20px; text-align: center;'>Sr.No</td>
+			<td style='width:50px;height:auto; text-align: center;'>Bill No</td>
+			<td style='width:50px;height:auto; text-align: center;'>Zone</td>
+			<td style='width:300px;height:auto; text-align: center;'>Area</td>
+			<td style='width:300px;height:auto; text-align: center;'>Flat</td>
+			<td style='width:100px;height:auto; text-align: center;'>Building</td>
+			<td style='width:50px;height:auto; text-align: center;'>City</td>
+			<td style='width:100px;height:auto; text-align: center;'>Landmark</td>
+			<td style='width:100px;height:auto; text-align: center;'>Slot</td>
+			<td style='width:100px;height:auto; text-align: center;'>Delivery Date</td>
+			<td style='width:100px;height:auto; text-align: center;'>Order Date</td>
+			<td style='width:50px;height:auto; text-align: center;'>Status</td>
+
+                        </tr>
+                        <tr style="width:335px;height:auto; text-align: center;background-color:#D8D5D6;"><td align="center" colspan="10"><b><?php echo $eachdate; ?></b></td></tr>
+
+        <?php
+foreach ($datarows as $change) {
+            echo "<tr>";
+            echo "<td  width='20px' style=' text-align: center;' >" . $i++ . "</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->orderid</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->zonename</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->areaname</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->flat</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->building</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->city</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->landmark</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->slot</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->delivery_date</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->created_on</td>";
+            echo "<td style='width:50px;height:auto; text-align: center;'>$change->statusname</td>";
+
+            echo "</tr>";
+        }
+        echo "</table>";
+    }
+}
+
+?>

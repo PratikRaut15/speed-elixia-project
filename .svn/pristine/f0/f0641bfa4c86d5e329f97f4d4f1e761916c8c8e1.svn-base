@@ -1,0 +1,452 @@
+<?php
+set_time_limit(0);
+date_default_timezone_set("Asia/Calcutta");
+//error_reporting(E_ALL ^ E_STRICT);
+//ini_set('display_errors', 'On');
+$cust_no = (int) $_REQUEST['customerno'];
+$mail_type = isset($_REQUEST['mailType']) ? $_REQUEST['mailType'] : 'pdf';
+$report_name = isset($_REQUEST['report']) ? $_REQUEST['report'] : 'exit';
+$file_end = $subject = '';
+$mail_content = isset($_REQUEST['mail_content']) ? $_REQUEST['mail_content'] : 'Please find attached report.';
+
+if ($report_name == 'stoppageMail') {
+    require_once 'reports_stoppage_functions.php';
+
+    $file_end = "_StoppageReport";
+    $subject = "Stoppage Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getstoppagereportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime']);
+    } else {
+        getstoppagereportcsv($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime']);
+    }
+} elseif ($report_name == 'overspeedMail') {
+    require_once 'reports_overspeed_functions.php';
+
+    $file_end = "_OverSpeedReport";
+    $subject = "Overspeed Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getoverspeedreportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime']);
+    } else {
+        getoverspeedreportcsv($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime']);
+    }
+} elseif ($report_name == 'harsh_breakMail') {
+    require_once 'reports_advanced_functions.php';
+
+    $file_end = "_HarshBreak_Report";
+    $subject = "Harh Break Analysis Report";
+    $column_name = "harsh_break";
+
+    ob_start();
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    if ($mail_type === 'pdf') {
+        generate_pdf_harsh_break($STdate, $EDdate);
+    } else {
+        generate_excel_harsh_break($STdate, $EDdate);
+    }
+} elseif ($report_name == 'sudden_accMail') {
+    require_once 'reports_advanced_functions.php';
+
+    $file_end = "_SuddenAcc_Report";
+    $subject = 'Sudden Acceleration';
+    $column_name = "sudden_acc";
+
+    ob_start();
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    if ($mail_type === 'pdf') {
+        generate_pdf_sudden_acc($STdate, $EDdate);
+    } else {
+        generate_excel_sudden_acc($STdate, $EDdate);
+    }
+} elseif ($report_name == 'sharp_turnMail') {
+    require_once 'reports_advanced_functions.php';
+
+    $file_end = "_SharpTurn_Report";
+    $subject = 'Sharp Turn Report';
+    $column_name = "sharp_turn";
+
+    ob_start();
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    if ($mail_type === 'pdf') {
+        generate_pdf_sharp_turn($STdate, $EDdate);
+    } else {
+        generate_excel_sharp_turn($STdate, $EDdate);
+    }
+} elseif ($report_name == 'towingMail') {
+    require_once 'reports_advanced_functions.php';
+
+    $file_end = "_Towing_Report";
+    $subject = 'Towing Report';
+    $column_name = "towing";
+
+    ob_start();
+    list($STdate, $EDdate) = validate_set_vals($_REQUEST['sdate'], $_REQUEST['edate']);
+    $totaldays = gendays($STdate, $EDdate);
+    if ($mail_type === 'pdf') {
+        generate_pdf_towing($STdate, $EDdate);
+    } else {
+        generate_excel_towing($STdate, $EDdate);
+    }
+} elseif ($report_name == 'travelHistMail') {
+    require_once 'reports_travel_functions.php';
+
+    $file_end = "_travelhistory";
+    $subject = "Travel History Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        get_travel_history_report_pdf($_REQUEST['vehicleid'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['geocode'], $cust_no);
+    } else {
+        $geocode = '1';
+        get_travel_history_report_excel($cust_no, $_REQUEST['vehicleid'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['stime'], $_REQUEST['etime'], $geocode);
+    }
+} elseif ($report_name == 'gensetHistMail') {
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_gensetHistory";
+    $subject = "Genset Sensor History";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getgensetreportpdfMultipleDays($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno']);
+    } else {
+        getgensetreportexcel($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno']);
+    }
+} elseif ($report_name == 'gensetHistDetailMail') {
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_gensetHistorydetails";
+    $subject = "Genset Sensor History Details";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getgensetreportpdfMultipleDays_details($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'],$_REQUEST['stime'],$_REQUEST['etime']);
+    } else {
+        getgensetreportexceldetails($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'],$_REQUEST['stime'],$_REQUEST['etime']);
+    }
+} elseif ($report_name == 'gensetHistSummaryMail') {
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_gensetHistorysummary";
+    $subject = "Genset Sensor Summary";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getgensetreportpdfMultipleDays_summary($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno']);
+    } else {
+        getgensetreportexcelsummary($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno']);
+    }
+} elseif ($report_name == 'tempMail') {
+
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_TemperatureReport";
+    $subject = "Temperature Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        echo gettempreportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], null, 'pdf');
+    } else {
+        gettempreportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], null, 'xls');
+    }
+} elseif ($report_name == 'overspeedMail') {
+    require_once 'reports_overspeed_functions.php';
+
+    $file_end = "_OverSpeedReport";
+    $subject = "Overspeed Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getoverspeedreportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime']);
+    } else {
+        getoverspeedreportcsv($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime']);
+    }
+} elseif ($report_name == 'tempMail') {
+
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_TemperatureReport";
+    $subject = "Temperature Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        gettempreportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime']);
+    } else {
+        gettempreportxls($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime']);
+    }
+} elseif ($report_name == 'tempExcepMail') {
+
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_TemperatureExceptionReport";
+    $subject = "Temperature Exception Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        gettempreportpdf_Excep($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['tempselect']);
+    } else {
+        gettempreportxlsExcep($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['tempselect']);
+    }
+} elseif ($report_name == 'overspeedMail') {
+    require_once 'reports_overspeed_functions.php';
+
+    $file_end = "_OverSpeedReport";
+    $subject = "Overspeed Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getoverspeedreportpdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime']);
+    } else {
+        getoverspeedreportcsv($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['stime'], $_REQUEST['etime']);
+    }
+} elseif ($report_name == 'doorHistMail') {
+    require_once 'reports_door_functions.php';
+
+    $file_end = "_DoorHistReport";
+    $subject = "DOOR Sensor History";
+    $vehicleno = retval_issetor($_REQUEST['vehicleno']);
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getDoorHist_pdf($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $vehicleno);
+    } else {
+        getDoorHist_excel($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $vehicleno);
+    }
+} elseif ($report_name == 'tempHumidityMail') {
+
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_Temperature&HumidityReport";
+    $subject = "Humidity And Temperature Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        gettemphumidityreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto']);
+    } else {
+        gettemphumidityreportxls($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto']);
+    }
+} elseif ($report_name == 'HumidityMail') {
+
+    require_once 'reports_common_functions.php';
+
+    $file_end = "_HumidityReport";
+    $subject = "Humidity Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        gethumidityreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], null, 'pdf');
+    } else {
+        gethumidityreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno'], $_REQUEST['interval'], $_REQUEST['stime'], $_REQUEST['etime'], $_REQUEST['switchto'], null, 'pdf');
+    }
+} elseif ($report_name == 'getLocationMail') {
+    require_once 'reports_location_functions.php';
+    $file_end = "_locationHistory";
+    $deviceid = 0;
+    $deviceid = GetSafeValueString($_REQUEST['vehicleid'], 'long');
+    $vehicleno = GetSafeValueString($_REQUEST['vehicleno'], 'string');
+    if ((!isset($deviceid) || $deviceid == 0 || $deviceid == "NULL" || $deviceid == '') && isset($_REQUEST['vehicleno'])) {
+        $deviceid = get_deviceid_fromvehno($vehicleno);
+    }
+    $subject = "Location History for " . $vehicleno;
+    /*
+    $mail_content .= "<html><table><tr>"
+    . "<td>Vehicle No: </td>" . "<td>" . $vehicleno . "</td>"
+    . "<td>Start Date: </td>" . "<td>" . $_REQUEST['sdate'] . " " . $_REQUEST['stime'] . "</td>"
+    . "<td>End Date: </td>" . "<td>" . $_REQUEST['edate'] . " " . $_REQUEST['etime'] . "</td>"
+    . "</tr></table></html>";
+     */
+    ob_start();
+    if ($mail_type === 'pdf') {
+        //getgensetreportpdfMultipleDays($cust_no, $_REQUEST['sdate'], $_REQUEST['edate'], $_REQUEST['vehicleid'], $_REQUEST['vehicleno']);
+        if (isset($_REQUEST['interval']) && $_REQUEST['distance'] == 'undefined') {
+            getlocationreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $deviceid, $vehicleno, $_REQUEST['interval'], null, $_REQUEST['stime'], $_REQUEST['etime'], $_SESSION['userid'], $_REQUEST['tripid'], $_REQUEST['triplogno']);
+        } elseif (isset($_REQUEST['distance']) && $_REQUEST['interval'] == 'undefined') {
+            getlocationreportpdf($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $deviceid, $vehicleno, null, $_REQUEST['distance'], $_REQUEST['stime'], $_REQUEST['etime'], $_SESSION['userid'], $_REQUEST['tripid'], $_REQUEST['triplogno']);
+        }
+    } else {
+        if (isset($_REQUEST['interval']) && $_REQUEST['distance'] == 'undefined') {
+            getlocationreportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $deviceid, $vehicleno, $_REQUEST['interval'], null, $_REQUEST['stime'], $_REQUEST['etime'], $_SESSION['userid'], $_REQUEST['tripid'], $_REQUEST['triplogno']);
+        } elseif (isset($_REQUEST['distance']) && $_REQUEST['interval'] == 'undefined') {
+            getlocationreportcsv($_REQUEST['customerno'], $_REQUEST['sdate'], $_REQUEST['edate'], $deviceid, $vehicleno, null, $_REQUEST['distance'], $_REQUEST['stime'], $_REQUEST['etime'], $_SESSION['userid'], $_REQUEST['tripid'], $_REQUEST['triplogno']);
+        }
+    }
+} elseif ($report_name == 'FuelHistMaintenanceMail') {
+
+    require_once 'reports_fuelefficiency_functions.php';
+
+    $file_end = "_FuelHistoryReport";
+    $subject = "Fuel History Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        generate_maintenance_fuel_pdf($_REQUEST['vehicleid'], $_REQUEST['vehno'], $_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['dealer'], $_REQUEST['customerno']);
+    } else {
+        generate_maintenance_fuel_xls($_REQUEST['vehicleid'], $_REQUEST['vehno'], $_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['dealer'], $_REQUEST['customerno']);
+    }
+} elseif ($report_name == 'vehrenewalmail') {
+
+    require_once 'reports_renewal_functions.php';
+
+    $file_end = "_VehicleRenewalReport";
+    $subject = "Vehicle Renewal Report";
+
+    ob_start();
+    if ($mail_type === 'pdf') {
+        getvehicles_renewal_pdf();
+    } else {
+        getvehicles_renewal_xls();
+    }
+} elseif ($report_name == 'transHistMaintenanceMail') {
+
+    require_once 'reports_fuelefficiency_functions.php';
+
+    $file_end = "_TransactionHistoryReport";
+    $subject = "Transaction History Report";
+    $customerno = $_REQUEST['customerno'];
+    ob_start();
+    if ($mail_type === 'pdf') {
+        pdf_maintenance_trans_hist($_REQUEST['vehicleid'], $_REQUEST['vehno'], $_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['dealer'], $customerno, $_REQUEST['category'], $_REQUEST['status']);
+    } else {
+        xls_maintenance_trans_hist($_REQUEST['vehicleid'], $_REQUEST['vehno'], $_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['dealer'], $customerno, $_REQUEST['category'], $_REQUEST['status']);
+    }
+} elseif ($report_name == 'toggleswitchhistory') {
+    include_once 'reports_toggleswitch_functions.php';
+    $file_end = "_toggleswitchhistory";
+    if ($_REQUEST['vehicleno'] != '') {
+        $subject = "Toggle Switch History for " . $_REQUEST['vehicleno'];
+    } else {
+        $subject = "Toggle Switch History";
+    }
+    if ($mail_type === 'pdf') {
+        $mail_type = "PDF";
+    } else {
+        $mail_type = "XLS";
+    }
+    ob_start();
+    $subTitle = array();
+    $columns = array();
+    $customerno = $_REQUEST['customerno'];
+    $title = getTitle("Trip Report");
+    $subTitle = getSubtitle($_REQUEST);
+    $columns = getColumns('PDF');
+    $arrToggleSwitchDetails = isset($_SESSION['arrToggleSwitchDetails']) ? $_SESSION['arrToggleSwitchDetails'] : '';
+    if ($arrToggleSwitchDetails == '') {
+        $arrToggleSwitchDetails = getToggleSwitchReport($_REQUEST['STdate'], $_REQUEST['EDdate'], $_REQUEST['STime'], $_REQUEST['ETime'], $_REQUEST['vehicleid'], $_REQUEST['groupid'], $customerno);
+    }
+
+    $cm = new CustomerManager($customerno);
+    $customer_details = $cm->getcustomerdetail_byid($customerno);
+    toggleswitchhistory_html($title, $subTitle, $columns, $customer_details, $arrToggleSwitchDetails, $mail_type);
+
+}
+
+if ($file_end == '' && $subject == '') {
+    echo "Please select Report";
+    exit;
+}
+get_save_send($file_end, $subject, $mail_content);
+
+function get_save_send($file_end, $subject, $mail_content) {
+
+    global $mail_type, $cust_no;
+    //$serverpath = "/var/www/html/speed";
+    $serverpath = "../..";
+    $def_mail = 'sanketsheth@elixiatech.com';
+    $to = isset($_REQUEST['emailid']) ? $_REQUEST['emailid'] : $def_mail;
+    $arrToMailIds = explode(",", $to);
+    //Remove empty elements of an array
+    $arrToMailIds = array_filter($arrToMailIds);
+
+    $veh_no = isset($_REQUEST['vehicleno']) ? str_replace(' ', '', $_REQUEST['vehicleno']) : '';
+    $file_name = $veh_no . "_" . date("d-m-Y") . $file_end;
+    $full_path = $serverpath . "/customer/" . $cust_no . "/" . $file_name;
+    //$full_path = 'C:\xampp\htdocs\ak_test\\'.$file_name;
+    $content = ob_get_clean();
+
+    if ($mail_type === 'pdf') {
+        if ($content == 'File Does not exist') {
+            echo $content;
+            exit;
+        }
+        $ext = ".pdf";
+        save_pdf($full_path . $ext, $content);
+    } else {
+        $ext = ".xls";
+        save_xls($full_path . $ext, $content);
+    }
+    if ($mail_content == '') {
+        $mail_content = 'PFA';
+    }
+
+    $mailSentCounter = 0;
+    foreach ($arrToMailIds as $toMailId) {
+        $isMailSent = sendMail($toMailId, $subject, $mail_content, $full_path . $ext, $file_name . $ext);
+        if ($isMailSent) {
+            $mailSentCounter++;
+        }
+    }
+    if ($mailSentCounter == count($arrToMailIds)) {
+        echo "<span style='color:green;'>Mail sent</span>";
+    } else {
+        echo "<span style='color:red;'>One or more e-mail sending failed</span>";
+    }
+}
+
+function sendMail($to, $subject, $mail_content, $file_to_attach, $name_of_file) {
+    include_once "../cron/class.phpmailer.php";
+    /* email send process starts */
+    $mail = new PHPMailer();
+    $mail->IsMail();
+    $mail->AddAddress($to);
+    $mail->From = "noreply@elixiatech.com";
+    $mail->FromName = "Elixia Speed";
+    $mail->Sender = "noreply@elixiatech.com";
+    $mail->Subject = $subject;
+    $mail->Body = $mail_content;
+    $mail->AddAttachment($file_to_attach, $name_of_file);
+    /* email send process ends */
+    //$mail->IsHTML(true);
+    //$mail->AddBCC($cc);
+    //$mail->AddReplyTo($from,"Elixia Speed");
+    return $mail->Send();
+}
+
+function save_pdf($full_path, $content) {
+    require_once 'html2pdf.php';
+    try {
+        $html2pdf = new HTML2PDF('L', 'A4', 'en');
+        $html2pdf->pdf->SetDisplayMode('fullpage');
+        $html2pdf->writeHTML($content);
+        $html2pdf->Output($full_path, 'F');
+    } catch (HTML2PDF_exception $e) {
+        echo $e;
+        exit;
+    }
+}
+
+function save_xls($full_path, $content) {
+    include '../../lib/bo/simple_html_dom.php';
+    $html = str_get_html($content);
+    $fp = fopen($full_path, "w");
+    fwrite($fp, $html);
+    fclose($fp);
+}
+
+function get_deviceid_fromvehno($vehno) {
+    $devicemanager = new DeviceManager($_SESSION['customerno']);
+    $devices = $devicemanager->devicesformapping_byId($vehno);
+    if ($devices) {
+        foreach ($devices as $row) {
+            $deviceid = $row->deviceid;
+        }
+    }
+    return $deviceid;
+}
+
+?>

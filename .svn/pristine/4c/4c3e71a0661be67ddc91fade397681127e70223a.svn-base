@@ -1,0 +1,116 @@
+<?php
+include_once("session.php");
+include_once("db.php");
+include_once("../../lib/system/utilities.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("../../lib/system/DatabaseManager.php");
+include_once("../../lib/system/Sanitise.php");
+$db = new DatabaseManager();
+
+if (IsHead()) {
+	$msg = "<P>You are an authorized user</p>";
+} else {
+	header( "Location: index.php");
+	exit;
+}
+
+// Based on details passed in, Create the customer.
+$custname = GetSafeValueString($_POST["cname"], "string");
+$custcompany = GetSafeValueString($_POST["ccompany"], "string");
+$custphone = GetSafeValueString($_POST["cphone"], "string");
+$custemail = GetSafeValueString($_POST["cemail"], "string");
+$custsms = GetSafeValueString($_POST["csmspack"], "long");
+$teamid = GetSafeValueString(GetLoggedInUserId(), "long");
+$primaryusername = GetSafeValueString($_POST["cprimaryname"], "string");
+$primaryuserlogin = GetSafeValueString($_POST["cprimaryusername"], "string");
+$primaryuserpassword = GetSafeValueString($_POST["cprimarypassword"], "string");
+
+// Use Loading
+$cloading=1;
+if (!isset($_POST["cloading"])) {
+ $cloading=0;
+}    
+
+// Use Geo Location
+$cgeolocation=1;
+if (!isset($_POST["cgeolocation"])) {
+ $cgeolocation=0;
+}    
+
+// Use Maintenance
+$cmaintenance=1;
+if (!isset($_POST["cmaintenance"])) {
+ $cmaintenance=0;
+}    
+
+// Use Portable
+$cportable=1;
+if (!isset($_POST["cportable"])) {
+ $cportable=0;
+}    
+
+// Temperature Sensors
+$ctempsensor=GetSafeValueString($_POST["ctempsensor"], "long");
+
+date_default_timezone_set("Asia/Calcutta");                             
+$today = date("Y-m-d");
+
+$SQL = sprintf( "INSERT INTO customer (
+`customername` ,`customercompany` ,`customerphone` ,`customeremail` ,`dateadded` , `totalsms`,`smsleft`,`teamid`,`use_msgkey`,`use_geolocation`,`use_maintenance`,`temp_sensors`,`use_portable`)
+VALUES (
+'%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')" ,
+    $custname,$custcompany,$custphone,$custemail, Sanitise::Date($today),Sanitise::Long($custsms), Sanitise::Long($custsms), Sanitise::Long($teamid), Sanitise::Long($cloading), Sanitise::Long($cgeolocation), Sanitise::Long($cmaintenance), Sanitise::Long($ctempsensor), Sanitise::Long($cportable));
+$db->executeQuery($SQL);
+$customerid = $db->get_insertedId();
+
+$SQL = sprintf('SELECT totalsms FROM customer WHERE customerno = '.$customerid);
+$db->executeQuery($SQL);
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $totalsms = $row["totalsms"];
+    }    
+}
+
+date_default_timezone_set("Asia/Calcutta");                             
+$today = date("Y-m-d H:i:s");
+$SQLunit = sprintf( "INSERT INTO trans_history (
+`customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+VALUES (
+$customerid, 0, '%s', 2, '%s', 0, '%s', '%s', '%s', '%s')",
+ GetLoggedInUserId(), Sanitise::DateTime($today), "SMS Added : ".$custsms.". Total SMS : ".$totalsms,"", "", "");
+$db->executeQuery($SQLunit);
+
+// If the customer record was saved OK, Create their directories.
+$relativepath = "../..";
+if(!is_dir( $relativepath.'/customer/'.$customerid ))
+{
+    // Directory doesn't exist.
+    mkdir($relativepath.'/customer/'.$customerid,0777, true ) or die("Could not create directory");
+}
+if(!is_dir( $relativepath.'/customer/'.$customerid.'/unitno' ))
+{
+    // Directory doesn't exist.
+    mkdir($relativepath.'/customer/'.$customerid.'/unitno',0777, true ) or die("Could not create directory");
+}
+if(!is_dir( $relativepath.'/customer/'.$customerid.'/reports' ))
+{
+    // Directory doesn't exist.
+    mkdir($relativepath.'/customer/'.$customerid.'/reports',0777, true ) or die("Could not create directory");
+}
+
+// Add the primary user.
+$userkey1 = mt_rand();    
+$sql ="INSERT into user (customerno, realname, username, password, role, userkey)
+VALUES ($customerid,'$primaryusername','$primaryuserlogin', sha1('$primaryuserpassword'),'Administrator', $userkey1)";
+$db->executeQuery($sql);
+
+// Add the support user.
+$userkey2 = mt_rand();
+$sql ="INSERT into user (customerno, realname, username, password, role, userkey)
+VALUES ($customerid, 'Elixir', 'elixir$customerid', sha1('el!365x!@'),'elixir', $userkey2)";
+$db->executeQuery($sql);
+
+header("Location: customers.php");
+?>

@@ -1,0 +1,37 @@
+//mod-vision
+.mod-vision {
+    margin-bottom: 60px;
+    .icon {
+        font-size: 60px;
+        line-height: 60px;
+        color: $clr-root;
+        margin-bottom: 10px;
+        display: block;
+    }
+    .title {
+        font-size: 48px;
+        line-height: 50px;
+        color: $clr-root;
+        font-weight: $fnt-bold;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+    .desc {
+        p {
+            font-size: 18px;
+            line-height: 26px;
+            color: $clr-root;
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .mod-vision {
+        // margin-bottom: 35px;
+        .title {
+            font-size: 28px;
+            line-height: 30px;
+            margin-bottom: 10px;
+        }
+    }
+}

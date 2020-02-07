@@ -1,0 +1,79 @@
+/**
+	# Author: Pratik Raut
+	# Date created: 01-10-2019
+	# Stored procedure written for Inserting checkpoint 
+***/
+
+/* Create dbpatch */
+    INSERT INTO `dbpatches` ( 
+    `patchid`,
+    `patchdate`, 
+    `appliedby`, 
+    `patchdesc`,
+    `isapplied`
+    ) 
+    VALUES
+    ( 
+    '727', '2019-10-01 04:05:00', 
+    'Pratik Raut','Stored procedure written for Inserting checkpoint','0');
+	
+	ALTER TABLE `checkpointmanage` ADD `isErp` ENUM('0','1') NOT NULL DEFAULT '0' AFTER `customerno`;
+	
+	--
+	-- Dumping routines for database 'speed'
+	--
+	/*!50003 DROP PROCEDURE IF EXISTS `insertCheckPoint` */;
+	/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+	/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+	/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+	/*!50003 SET character_set_client  = utf8 */ ;
+	/*!50003 SET character_set_results = utf8 */ ;
+	/*!50003 SET collation_connection  = utf8_general_ci */ ;
+	/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+	/*!50003 SET sql_mode              = '' */ ;
+
+	DROP procedure IF EXISTS `insertCheckPoint`;
+
+	DELIMITER $$
+
+	CREATE  PROCEDURE `fetch_data_for_route_wise_report`(IN `routeIdParam` INT, IN `customerNoParam` INT)
+		COMMENT 'This routine is used to fetch the data for routewise report'
+	BEGIN
+		SELECT 
+		a.routeid,
+		a.routename,
+		b.vehicleid,
+		d.vehicleno,
+		c.checkpointid,
+		c.sequence,
+		ch.cname,
+		c.eta,
+		c.etd,
+		a.routeTat
+	FROM
+		route AS a
+			LEFT JOIN
+		vehiclerouteman AS b ON a.routeid = b.routeid
+			LEFT JOIN
+		routeman AS c ON a.routeid = c.routeid
+			LEFT JOIN
+		vehicle AS d ON d.vehicleid = b.vehicleid
+			left join
+		checkpoint AS ch ON c.checkpointid = ch.checkpointid    
+	WHERE
+		a.isdeleted = 0 AND a.routeid = routeIdParam
+			AND b.isdeleted = 0
+			AND c.isdeleted = 0
+			AND d.isdeleted = 0
+			AND a.customerno = customerNoParam
+			AND d.customerno = customerNoParam
+	ORDER BY a.routeid , b.vehicleid,c.sequence;
+	END$$
+
+	DELIMITER ;
+
+/* Updating dbpatche 727 */
+    UPDATE  dbpatches
+    SET     patchdate = '2019-10-01 04:05:00',isapplied =1
+    WHERE   patchid = 727;
+

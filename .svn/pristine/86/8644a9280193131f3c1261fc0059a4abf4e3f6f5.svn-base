@@ -1,0 +1,82 @@
+<html>
+<head>
+    <title>Advisoty Report</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type='text/css'>
+        body{
+          font-family:Arial;
+          font-size: 11pt;
+        }
+        table{
+          text-align: center;
+          border-right:1px solid black;
+          border-bottom:1px solid black;
+          border-collapse:collapse;
+          font-family:Arial;
+          font-size: 10pt;
+          width: 45%;
+        }
+        td, th{
+          border-left:1px solid black;
+          border-top:1px solid black;
+        }
+        .green{
+          background-color: green;
+        }
+        .yellow{
+          background-color: yellow;
+        }
+        .red{
+          background-color: red;
+        }
+        span{
+          font-weight:bold;
+        }
+    </style>
+</head>
+<body>Dear Mr. {{REALNAME}},
+    <br/>
+    <br/>
+    Greetings from I&S Team!<br/><br/>
+
+    Please be informed that for the subject period it was observed that the
+    <br/>vehicle Number {{VEHICLENUMBER}} used by you has recorded {{OVERSPEED}}.
+    <br/>
+    <br/>We advise precaution as driving the vehicle at high speed, excessive acceleration <br/>
+    or travelling at late part of the night is a risk to you as well as company asset. <br/>
+    Request you to refrain from it.
+    <br/>
+    <br/>
+    High Speed Exception:
+    <br/>
+    Company Vehicle Plying above 90 Km/Hr is recorded as a High Speed / Over Speed Exception.
+    <br/>
+    <br/>
+    <table border='1'>
+        <tr>
+            <th class='green'>Green Zone</th>
+            <th class='yellow'>Yellow Zone</th>
+            <th class='red'>Red Zone</th>
+        </tr>
+        <tr>
+            <td>If the High Speed instances is below 35</td>
+            <td>If the High Speed instances above 35 and less than Equal to 55</td>
+            <td>If the High Speed instances above 55</td>
+        </tr>
+
+    </table>
+    <br/>
+    <p>In case of further queries, kindly call / write the undersigned.</p>
+    <br/>
+
+    Thanking you, <br/>Yours Truly,
+    <br/>
+    {{PARENTUSER}}<br/>
+    Regional I&S<br/>
+    {{PARENTMOBILENO}}<br/>
+    {{PARENTEMAIL}}<br/>
+
+    <br/>
+</body>
+</html>

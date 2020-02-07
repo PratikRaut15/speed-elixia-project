@@ -1,0 +1,82 @@
+#ajaxstatus{text-align:center;font-weight:bold;display:none}
+.mandatory{color:red;font-weight:bold;}
+
+#statusform table{width:50%;}
+#statusform .frmlblTd{text-align:center}
+#statusformedit table{width:50%;}
+#statusformedit .frmlblTd{text-align:center}
+
+#consigneeform table{width:50%;}
+#consigneeform .frmlblTd{text-align:center}
+#consigneeformedit table{width:50%;}
+#consigneeformedit .frmlblTd{text-align:center}
+
+#consignorform table{width:50%;}
+#consignorform .frmlblTd{text-align:center}
+#consignorformedit table{width:50%;}
+#consignorformedit .frmlblTd{text-align:center}
+
+#addtripform table{width:50%;}
+#addtripform .frmlblTd{text-align:center}
+#edittripform table{width:50%;}
+#edittripform .frmlblTd{text-align:center}
+
+////map css
+
+.links a{
+color:#000000;
+}
+.links a:hover {
+color:#000000;
+
+text-decoration:underline;
+}
+
+select{
+    min-width: 150px;
+}
+
+.menutab
+{
+    padding: 2px;
+    margin: 2px;
+    margin-top: 10px;
+    margin-bottom: 0px;
+    width: 75px;
+    float: left;
+    border: 1px solid black;
+    border-bottom: 0;
+    cursor: pointer;
+    cursor: hand;
+    font-size: 10pt;
+    font-weight: normal;
+    text-align: center;
+}
+.menutab:hover { background-color: #FEE67C; }
+
+
+.bubbleclose{
+    text-align:right;
+}
+.bubbleclose:hover{
+    cursor:pointer;
+}
+
+.bubbleclose1{
+    text-align:right;
+}
+.bubbleclose1:hover{
+    cursor:pointer;
+}
+
+.bubble {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    visibility: hidden;
+    width:400px; 
+    left:35%; 
+    top:380px;
+    padding: 5px;
+}

@@ -1,0 +1,317 @@
+<style type="text/css">
+    table
+    {
+        border-spacing: 0;
+    }
+    table td, table th
+    {
+        padding: 0;
+    }
+    .tab {
+        left: 12em;
+    }
+    hr {
+        display: block;
+        height: 2px;
+        border: 0;
+        border-top: 1px solid #0C9BAF;
+        margin: 1em 0;
+        padding: 0;
+    }
+</style>
+
+<page>
+    <div style="width:750px;">
+        <table align="right" style="border:none;">
+            <tr>
+                <td style="width:328px;height:77px;border:none;text-align:right">
+                    <img style="width:100%;height:100%;" src="../../images/elixiatech-logo.png">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <span style="font: bold 100% sans-serif; letter-spacing: 0.3em; text-align: center; text-transform: uppercase;">
+        <h2>{{INVOICETYPE}} INVOICE</h2>
+    </span>
+    <br>
+    <table align="center" style="width:600px;font-size:13px;border:2px solid #000;" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="width:50% ;border-right:2px solid #000;border-bottom:1px solid #000; padding-left: 5px;">
+                {{LEDGERNAME}}<br> {{ADDRESS1}} <br> {{ADDRESS2}}  <br> {{ADDRESS3}} 
+            </td>
+            <td style="width:50%;border-bottom:1px solid #000;">
+                <table>
+                    <tr>
+                        <td>
+                            INVOICE NO: {{INVOICENO}}
+                        </td>
+                        <td>
+                            DATE: {{INVOICEDATE}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            P.O.NO: NA
+                        </td>
+                        <td>DATE: NA</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Due Date:  {{INVOICEDUEDATE}}</td>
+
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <table style="width:100%; font-size:14px;" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="width:10%;border:1px solid #000;text-align:center">
+                            Sr. No.
+                        </td>
+                        <td style="width:50%;border:1px solid #000;text-align:center">
+                            Description
+                        </td>
+                        <td style="width:15%;border:1px solid #000;text-align:center">
+                            Quantity (Nos.)
+                        </td>
+                        <td style="width:15%;border:1px solid #000;text-align:center">
+                            Rate (Rs.)
+                        </td>
+                        <td style="width:10%;border:1px solid #000;text-align:center">
+                            Total<br>
+                            Amount
+                        </td>
+                    </tr>
+                    <tr style="height: 20px;vertical-align: top;">
+                        <td style="width:10%;border:1px solid #000;text-align:center; ">1</td>
+                        <td style="width:50%;border:1px solid #000;text-align:left">
+                            Elixia Speed Subscription Charges (Service Charges)<br>
+                            Valid From {{STARTDATE}} to {{ENDDATE}}       
+                        </td>
+                        <td style="width:15%;border:1px solid #000;text-align:center">
+                            {{QUANTITY}}
+                        </td>
+                        <td style="width:15%;border:1px solid #000;text-align:center">
+                            {{PRICE}}
+                        </td>
+                        <td style="width:10%;border:1px solid #000;text-align:center">
+                            {{STOTAL}}
+                        </td>
+                    </tr>
+                    <tr style="height:100px;">
+                        <td style="width:10%;border:1px solid #000;text-align:center;height:100px;">
+
+                        </td>
+                        <td style="width:50%;border:1px solid #000;text-align:center;height:100px;">
+
+                        </td>
+                        <td style="width:15%;border:1px solid #000;text-align:center;height:100px;">
+
+                        </td>
+                        <td style="width:15%;border:1px solid #000;text-align:center;height:100px;">
+
+                        </td>
+                        <td style="width:10%;border:1px solid #000;text-align:center;height:100px;">
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:15%; text-align: center;border:1px solid #000;" colspan="4"> Sub Total</td>
+                        <td style="width:10%;text-align:center;border:1px solid #000;">
+                            {{ALLTOTAL}}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <table style="border:1px solid #000;width:100%; font-size:12px" cellpadding="0" cellspacing="0">
+                    <tr style="height: 40px;text-align:center">
+                        <td style="width:70%;text-align:center">
+                            Add: SERVICE TAX @ 14%
+                        </td>
+                        <td style="width:30%;text-align:right;padding-right: 20px;">
+                            {{VAT}}
+                        </td>
+                    </tr>
+                    <tr style="height: 25px;text-align:center">
+                        <td style="width:70%;text-align:center">
+                            Add: Swachh Bharat Cess @ 0.5%
+                        </td>
+                        <td style="width:30%;text-align:right;padding-right: 20px;">
+                            {{SWACHH}}
+                        </td>
+                    </tr>
+                    <tr style="height: 25px;text-align:center">
+                        <td style="width:70%;text-align:center">
+                            Add: Krishi Kalyan Cess @ 0.5%
+                        </td>
+                        <td style="width:30%;text-align:right;padding-right: 20px;">
+                            {{KRISHIK}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+
+                <table style="border:1px solid #000;width:100%; font-size:13px" cellpadding="0" cellspacing="0">
+                    <tr style="height: 40px">
+                        <td style="width:80%">
+                            <b>TOTAL AMOUNT:</b>
+                        </td>
+                        <td style="width:5%">
+                        </td>
+                        <td style="width:15%;text-align: right;padding-right: 5px;">
+                            <b>Rs. {{GRANDAMT}} /-</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:80%">
+                            <b>Rupees {{INWORDAMT}} Only
+                            </b>
+                        </td>
+                        <td></td>
+                        <td style="width:10%;text-align:right">
+                            <b>E. & O.E.</b>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <table style="border:1px solid #000;width:82%;" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="width:60%; border-right: 2px solid #000;">
+                            <table style="width:100%;font-weight:bold;font-size:12.3px" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="border-bottom: 2px solid #000;">
+                                <u>Note:</u><br>
+                                1. <span style="font-size:123%;">Cheque should be issued in the name of Elixia Tech Solutions Ltd.</span><br>
+                                2. Subject to Mumbai Jurisdiction<br>
+                                3. Devices once sold will not be taken back<br>
+                                4. For device, our responsibility ceases when the installation has been completed<br>
+                                5. Installation & implementation will be done only after amount is credited<br>
+                                6. Software is issued subject to terms & conditions specified on the web application
+                                </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:60%">
+                                        <table style=" width:100%; font-size:13.5px" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <b>PARTY SERVICE TAX NO:-{{PARTYSTNO}}</b><br>
+                                                    <b>PARTY VAT TIN NO:-{{PARTYVATNO}}</b><br>
+                                                    <b>PARTY CST TIN NO:-{{PARTYCSTNO}}</b>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:40%;padding:2px;" >
+
+                            <table style="width:82%; height:100%;font-weight:bold;font-size:13.5px" cellpadding="0" cellspacing="0" >
+                                <tr>
+                                    <td style="text-align:center">
+                                <u>ONLINE TRANSFER DETAILS</u>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Elixia Tech Solutions Ltd.<br>
+                            Bank Name: IDBI Bank<br>
+                            Branch: Ghatkopar (East), Mumbai<br>
+                            A/C No: 0033102000014650<br>
+                            IFSC Code: IBKL0000033<br>
+                            MICR Code: 400259008<br>
+                            Address: Rupa Plaza, Ground Floor,<br>
+                            Jawahar Road, Plot No 4, TPS 1,<br>
+                            Near LIC Building, Ghatkopar (East),<br>
+                            Mumbai, Maharashtra 400077<br>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</td>
+</tr>
+<tr>
+    <td colspan="2" style="border:1px solid #000;">
+        <b>CIN NO:-U72300MH2011PTC219715</b>
+    </td>
+</tr>
+<tr>
+    <td colspan="2">
+        <table style="border:1px solid #000;width:80%;" cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="width:60%;border-right:2px solid #000">
+                    <table style="width:100%; font-size:13px" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td style="border-bottom:2px solid #000">
+                                <b>SERVICE TAX NO: AACCE7724QSD001</b><br>
+                                <b>VAT TIN No: 27055259309V w.e.f. 17-5-13</b><br>
+                                <b>CST TIN No:  27055259309C w.e.f. 17-5-13</b>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:60%">
+                                <table style="width:100%;font-weight:bold;font-size:10px" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td>
+                                            I/We hereby certify that my/our registration certificate under the Maharashtra Value Added Tax Act, 2002<br>
+                                            is in force on the date on which the sale of the goods specified in this Tax Invoice is made by me/us and<br>
+                                            that the transaction of sale covered by this Tax Invoice has been effected by me/us and it shall be <br>
+                                            accounted for in the turnover of sales while filing of return and the due tax, if any, payable on the same<br>
+                                            has been paid or shall be paid
+
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="width:40%;vertical-align:top;">
+                    <table style="width:100%; font-size:13px" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td style="text-align:center;font-weight:bold;">
+                                For Elixia Tech Solutions Ltd.
+                            </td>
+                        </tr>
+                        <tr style="height:60px;">
+                            <td style="height:60px;">
+                                <img alt="" src="../../images/stampsign1.png">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;vertical-align:bottom;">
+                                Authorized Signatory
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </td>
+</tr>
+</table>
+<page_footer>
+    <div align="center"  style="background-color:#0C9BAF;">
+        <span style="color:#FFFFFF">Elixia Tech Solutions Ltd.</span>
+    </div>
+    <div align="center"  style="background-color:#0C9BAF;">
+        <span style="color:#FFFFFF">715, Neelkanth Corporate Park, Vidyavihar West, Mumbai - 400086.</span>
+    </div>
+    <div align="center" style="background-color:#0C9BAF;">
+        <span style="color:#FFFFFF">Landline: +91 22 2513 7470/71  |  Email: sales@elixiatech.com  |  Website: www.elixiatech.com</span>
+    </div>
+</page_footer>
+</page>
+{{VEHTABLE}}

@@ -1,0 +1,340 @@
+//bs-header
+.bs-header {
+    padding: 30px 45px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    // background: black;
+    display: block;
+    @include transition (all, 0.5s, ease);
+    .logo {
+        background: rgba(255, 255, 255, 1);
+        position: absolute;
+        top: 0;
+        padding: 30px 25px;
+        border-radius: 0;
+        width: 325px;
+        @include transition (all, 0.5s, ease);
+        img {
+            width: 100%;
+        }
+    }
+    .menu {
+        float: right;
+        position: relative;
+        margin-top: 8px;
+        @include transition (all, 0.5s, ease);
+        .nav-list {
+            display: block;
+            .item {
+                display: inline-block;
+                margin-right: 25px;
+                position: relative;
+                &:last-child {
+                    margin: 0px;
+                }
+                position: relative;
+                .mod-sub-menu {
+                    .item {
+                        display: block;
+                        margin-right: 0;
+                        margin-bottom: 20px;
+                        &:last-of-type {
+                            margin-bottom: 0px;
+                        }
+                    }
+                    .nav-link {
+                        color: #555555;
+                        &:hover {
+                            color: $clr-primary;
+                        }
+                    }
+                    .sub-menu-list {
+                        width: 200px;
+                        &.typ-level2 {
+                            .item {
+                                padding-left: 10px;
+                                margin-bottom: 10px;
+                                font-size: 14px;
+                                line-height: 16px;
+                                position: relative;
+                                &:before {
+                                    content: "";
+                                    position: absolute;
+                                    left: 5px;
+                                    width: 5px;
+                                    height: 2px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    background: $clr-primary;
+                                }
+                                &:last-of-type {
+                                    margin-bottom: 0px;
+                                }
+                                .nav-link {
+                                    font-weight: $fnt-regular;
+                                }
+                            }
+                        }
+                        &.typ-big {
+                            display: block;
+                            width: 450px;
+                            margin: 0 -15px;
+                            .item {
+                                width: 33.3%;
+                                float: left;
+                                padding: 0 15px;
+                                margin: 0;
+                                .nav-link {
+                                    &.head {
+                                        margin-bottom: 15px;
+                                        font-weight: $fnt-bold;
+                                    }
+                                }
+                            }
+                            .sub-menu-list {
+                                &.typ-level2 {
+                                    .item {
+                                        font-size: 13px;
+                                        line-height: 15px;
+                                        width: auto;
+                                        float: none;
+                                        display: block;
+                                        padding-left: 10px;
+                                        margin-bottom: 8px;
+                                        &:before {
+                                            content: "";
+                                            position: absolute;
+                                            left: 5px;
+                                            width: 5px;
+                                            height: 2px;
+                                            top: 50%;
+                                            transform: translateY(-50%);
+                                            background: $clr-primary;
+                                        }
+                                        &:last-of-type {
+                                            margin-bottom: 0px;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                &:hover {
+                    .mod-sub-menu {
+                        opacity: 1;
+                        visibility: visible;
+                    }
+                }
+            }
+        }
+        .nav-link {
+            font-size: 13px;
+            line-height: 15px;
+            color: $clr-root;
+            font-weight: $fnt-medium;
+            padding: 10px 5px;
+            text-transform: uppercase;
+            display: block;
+            position: relative;
+        }
+        .bar-line {
+            min-width: 50px;
+            height: 2px;
+            position: absolute;
+            bottom: 0px;
+            left: 5px;
+            background: $clr-root;
+        }
+    }
+    &.sticky {
+        background: $clr-root;
+        box-shadow: 0px 0px 7px 0px #afaeae;
+        padding: 15px 45px;
+        z-index: 20;
+        .nav-link {
+            color: $clr-secondary;
+        }
+        .logo {
+            width: 230px;
+            // position: relative;
+            top: 17px;
+            padding: 5px 10px;
+        }
+        .menu {
+            margin-top: 10px;
+        }
+        // .mod-sub-menu {
+        //     top: 60px;
+        // }
+        .bar-line {
+            background: $clr-primary;
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .bs-header {
+        padding: 16px;
+        .logo {
+            width: 180px;
+            padding: 5px 15px;
+            border-radius: 8px;
+            float: left;
+            position: static;
+        }
+        .menu {
+            position: fixed;
+            background: #152f3c;
+            top: 0;
+            right: -100%;
+            bottom: 0;
+            left: 100%;
+            z-index: 3;
+            margin: 0;
+            transition: all .3s ease-in;
+            width: 100%;
+            overflow-y: auto;
+            .bar-line {
+                display: none;
+            }
+            &.active {
+                left: 0;
+                right: auto;
+            }
+            .nav-list {
+                padding: 0 20px 0;
+                position: relative;
+                margin-top: 70px;
+                text-align: left;
+                .item {
+                    display: block;
+                    margin: 0;
+                    transition: all 0.6s ease-in;
+                    .nav-link {
+                        font-size: 22px;
+                        line-height: 26px;
+                        padding: 10px;
+                        display: inline-block;
+                    }
+                    &.active {
+                        .nav-link {
+                            color: $clr-primary;
+                        }
+                    }
+                    .mod-sub-menu {
+                        position: absolute;
+                        background: transparent;
+                        box-shadow: none;
+                        transform-origin: 0% 0%;
+                        left: auto;
+                        top: auto;
+                        padding: 10px;
+                        transform: none;
+                        .sub-menu-list {
+                            width: auto;
+                            .item {
+                                margin-bottom: 10px;
+                                .nav-link {
+                                    color: $clr-root;
+                                    font-size: 14px;
+                                    line-height: 16px;
+                                }
+                            }
+                            &.typ-big {
+                                width: auto;
+                                margin: 0;
+                                .item {
+                                    width: 100%;
+                                    float: none;
+                                    margin-bottom: 8px;
+                                    padding: 0;
+                                    .nav-link {
+                                        font-size: 16px;
+                                        line-height: 18px;
+                                    }
+                                }
+                                .sub-menu-list {
+                                    &.typ-level2 {
+                                        .item {
+                                            padding-left: 20px;
+                                            .nav-link {
+                                                font-size: 14px;
+                                                line-height: 16px;
+                                            }
+                                            &:before {
+                                                left: 15px;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        &.active {
+                            visibility: visible;
+                            opacity: 1;
+                        }
+                    }
+                }
+            }
+        }
+        .hamburger {
+            position: fixed;
+            right: 16px;
+            top: 22px;
+            z-index: 3;
+            .line {
+                background: $clr-root;
+                width: 28px;
+                height: 2px;
+                display: block;
+                margin-bottom: 5px;
+                transition: all .3s ease-in;
+                border-radius: 1px;
+            }
+            &.active {
+                .line {
+                    position: relative;
+                    transform: rotate(45deg);
+                    width: 24px;
+                    top: 4px;
+                    &:nth-child(2) {
+                        display: none;
+                    }
+                    &:nth-child(3) {
+                        transform: rotate(-45deg);
+                        top: -3px;
+                    }
+                }
+            }
+        }
+        &.sticky {
+            padding: 15px;
+            z-index: 11;
+            .logo {
+                width: 150px;
+                position: relative;
+                top: 2px;
+            }
+            .hamburger {
+                .line {
+                    background: $clr-secondary;
+                }
+                &.active {
+                    .line {
+                        background: $clr-root;
+                    }
+                }
+            }
+            .nav-link {
+                color: $clr-root;
+            }
+            .menu {
+                margin-top: 0;
+            }
+        }
+    }
+}

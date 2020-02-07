@@ -1,0 +1,349 @@
+body 
+{
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+form {margin:0;}
+
+  .clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+    }
+
+
+/* Hide from IE5-mac. Only IE-win sees this. \*/
+* html .clearfix[id] {
+    zoom: 1;
+}
+/* End hide from IE5/mac */
+
+.menu
+{
+    background-color:#ffffff;
+    background-image:url(../images/menugrad.png);background-repeat:repeat-x;
+    margin:0px;
+    padding:0px;
+    list-style-type:none;
+    font-weight:bold;
+    min-height:32px;
+}
+
+.menu li
+{
+    float:left;
+    margin:0px;
+    padding:0px;
+}
+
+.menu a
+{
+    float:left;
+    width:160px;
+    text-align:center;
+    text-decoration:none;
+    line-height:2.5;
+    border-right:1px solid #aaa;
+}
+
+.menu a:hover
+{
+    background-image:url(../images/toolbar/toolbarbuttonhighlight.png);background-repeat:repeat-x;important;
+}
+
+.toolbarseperatoricon
+{
+    position:relative;
+    left:-3px;
+    min-width:24px;
+    width:24px;
+    text-align:center;
+    float:left;
+}
+
+table tr td{ vertical-align:top; }
+
+.bar
+{
+    width:30px;
+    background-color:#eeffee;
+    border:1px solid #00ff00;
+}
+
+.graph
+{
+    background-color:#ffffff;
+    border:1px solid #000000;
+}
+
+.graphyear
+{
+    background-color:#eeeeee;
+    text-align:center;
+}
+
+.graphmonth
+{
+    background-color:#aaaaaa;
+    color:#ffffff;
+    text-align:center;
+}
+
+.mainpage
+{
+    margin-bottom:32px;
+    width:1024px;
+    min-height:600px;
+    background-color:#ffffff;
+    margin:auto;
+    position:relative;
+}
+
+.centerpane
+{
+    width:300px;
+    margin:auto;
+    margin-top:32px;
+    padding:16px;
+    background-image:url(../images/menugrad.png);background-repeat:repeat-x;
+    background-color:#eeeeff;    
+    float:left;    
+}
+
+.centerpane div
+{
+    padding:8px;
+}
+.centerpane div label
+{
+    float:left;
+    margin-right:1em;
+}
+.centerpane div input
+{
+
+}
+
+A:link {text-decoration: none}
+A:visited {text-decoration: none}
+A:active {text-decoration: none}
+A:hover {text-decoration: underline overline; color: red;}
+
+.clickimage { cursor:pointer;}
+
+
+.messagebar {
+    text-align:center;
+    border: solid #646464;
+    background-color:#EEEEEE;
+    padding:4px;
+    width:auto;
+
+}
+
+.notebar {
+    text-align:center;
+    border: solid #0A0AFF 1px;
+    background-color:#AFAFEE;
+    color:#0A0AAA;
+    padding:4px;
+    width:auto;
+    font-size:small;
+}
+
+.messagebar a{
+    cursor:pointer;
+    cursor:hand;
+}
+
+.titlecontainer
+{
+    position:relative;
+    width:auto;
+}
+
+.messagecontainer
+{
+    width:auto;
+    padding:4px;
+    margin:4px;
+    border:black solid 1px;
+}
+
+.messageheader
+{
+    background: #ffaaaa;
+    text-align: center;
+    font-weight: bold;
+}
+
+.messageconfirm
+{
+    text-align:center;
+    width:auto;
+}
+
+.error
+{
+	color: red;
+	font-size: 10pt;
+}
+
+.even
+{
+	background-color: #FFFFFF;
+    font-weight:bold;
+}
+
+.odd
+{
+	background-color: #DDDDDD;
+    font-weight:bold;
+}
+
+.required
+{
+    background-color:#FFFFCC;
+    font-weight:bold;
+}
+
+.normal
+{
+    font-weight:bold;
+}
+
+.even:hover{background-color:#ffc523;}
+.odd:hover{background-color:#ffc523;}
+
+.even td { padding:4px;}
+.odd td { padding:4px;}
+.required td { padding:4px;}
+.normal td { padding:4px;}
+
+table
+{
+    font-size:8pt;
+}
+
+.sortable .tableHeading
+{
+    cursor:pointer;
+    cursor:hand;
+}
+
+.tableHeading
+{
+    color: white;
+    background-color: black;
+}
+
+.tableHeading th
+{
+    padding:4px;
+    text-align:left;
+}
+
+.messagebody { padding:8px;}
+
+@media print 
+{
+     .noprint { display: none; }
+}
+
+.menuitem 
+{
+    font-size:small;
+}
+
+.whitepanel
+{
+    background-color:#ffffff;
+    border:orange solid 1px;
+    padding:8px;
+    overflow:auto;
+    font-size:10pt;
+    position:relative;
+}
+
+.panel
+{
+    position:relative;
+    top:16px;
+    width:1024px;
+    margin:auto;
+    border:black solid 1px;
+    background-color:#ECD872;
+    float:left;
+}
+
+.subpanel
+{
+    position:relative;
+    top:16px;
+    width:auto;
+    margin:auto;
+    border:black solid 1px;
+    background-color:#fefee5;
+    padding:8px;
+}
+
+.paneltitle
+{
+    width:1008px;
+    background-color:#000000;
+    color:#ffffff;
+    padding:8px;
+    font-weight:bold;
+}
+
+.panelcontents
+{
+    padding:8px;
+}
+
+.optiongroup
+{
+    margin:8px;
+    border:#eeeeee solid 1px;
+    padding:8px;
+    width:365px;
+    min-height:120px;
+    height:120px;
+    float:left;
+    background-color:#ffffe6;
+}
+
+.panelsubtitle
+{
+    font-weight:bold;
+}
+
+.paneloption
+{
+    list-style:none;
+    padding:0px;
+}
+
+.imagebutton
+{
+    text-decoration:none;
+    border:0;
+}
+
+.imagebutton img
+{
+    border:0;
+}
+
+.copyright
+{
+    width:1024px;
+    margin:auto;
+    text-align:center;
+    font-size:8pt;
+    height:32px;
+    background-color:#ffffff;
+    border-top:1px solid #000000;
+}

@@ -1,0 +1,63 @@
+<?php
+
+if (!isset($RELATIVE_PATH_DOTS) || trim($RELATIVE_PATH_DOTS) == "") {
+    $RELATIVE_PATH_DOTS = "../../";
+}
+require_once $RELATIVE_PATH_DOTS . "lib/system/utilities.php";
+
+function rad($x) {
+    return $x * pi() / 180;
+}
+
+function calculate($devicelat, $devicelong, $cgeolat, $cgeolong, $isGoogleDistance = 0, $customerno = 0) {
+    if ($isGoogleDistance == 1) {
+        $distance = array("min" => -1, "km" => -1);
+        try {
+            $url = signLocationUrl("https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . $cgeolat . "," . $cgeolong . "&destinations=" . $devicelat . "," . $devicelong . "&mode=driving&language=pl-PLsensor=false&client=gme-elixiatechsolutions", 'JJV_YuyiXZ6YjiWZ2WA6kjkpPrk=');            //echo "<br/><br/>";
+            $json = file_get_contents($url);
+            $details = json_decode($json, true);
+            if (isset($details['rows'][0]['elements'][0]['status']) && $details['rows'][0]['elements'][0]['status'] == "OK") {
+                $distance['min'] = ceil(($details['rows'][0]['elements'][0]['duration']['value']) / 60);
+                $distance['km'] = round(($details['rows'][0]['elements'][0]['distance']['value']) / 1000, 2);
+            }
+        }
+        catch (Exception $ex) {
+            $log = new Log();
+            $log->createlog($customerno, $ex, "CRON_ALL", speedConstants::MODULE_VTS, __FUNCTION__);
+        }
+        return $distance;
+    }
+    else {
+        //Earth's mean radius in km
+        $ERadius = 6371;
+
+        //Difference between devicelatlong and checkpointlatlong
+        $diffLat = rad($cgeolat - $devicelat);
+        $diffLong = rad($cgeolong - $devicelong);
+
+        //Converting between devicelatlong to radians
+        $devlat_rad = rad($devicelat);
+        $devlong_rad = rad($cgeolat);
+
+        //Calculation Using Haversine's formula
+        //Applying Haversine formula
+        $a = sin($diffLat / 2) * sin($diffLat / 2) + cos($devlat_rad) * cos($devlong_rad) * sin($diffLong / 2) * sin($diffLong / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        //Distance
+        $diffdist = $ERadius * $c;
+
+        return $diffdist;
+    }
+}
+
+function calculate_by_odometer($firstodometer,$maxodometer,$lastodometer,$vehicleid){
+    if ($lastodometer < $firstodometer){
+        $lastodometer = $maxodometer;
+    }
+    $distance = $lastodometer / 1000 - $firstodometer / 1000;
+    return $distance;
+}
+
+
+?>

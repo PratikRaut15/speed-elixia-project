@@ -1,0 +1,89 @@
+<?php
+
+//to resolve commit issue
+
+class Log {
+
+    public function createlog($customerno, $data, $username, $module = null, $method = null) {
+        $mpath = '';
+        if (defined('RELATIVE_PATH_DOTS')) {
+            $mpath = RELATIVE_PATH_DOTS;
+        }
+        else {
+            $mpath = "../../";
+        }
+        $un = isset($_SESSION['username']) ? $_SESSION['username'] : $username;
+
+        if (isset($customerno) && $customerno != '' && $module != null) {
+            $date = new DateTime();
+            $timestamp = $date->format('Y-m-d H:i:s');
+            $datesuffix = $date->format('d_m_Y');
+            $file = $mpath . 'customer/' . $customerno . '/log/errorlog_' . $datesuffix . '.txt';
+            $current = "#Time: " . $timestamp . "\r\n #User_Name: " . $un . " \r\n #Action: " . $data . " \r\n #Module: " . $module . " \r\n #Method: " . $method . "";
+            $current.="\r\n-----------------------------------------------------------------------------------------------------------------\r\n";
+
+            $filename = $mpath . 'customer/' . $customerno . '/';
+            $filename1 = $mpath . 'customer/' . $customerno . '/log/';
+
+            if (!file_exists($filename)) {
+                mkdir($mpath . "customer/" . $customerno, 0777);
+            }
+            else if (!file_exists($filename1)) {
+                mkdir($mpath . "customer/" . $customerno . "/log", 0777);
+                $fh = fopen($file, 'w');
+                fwrite($fh, $current . "\r\n");
+            }
+            else {
+                if (file_exists($file)) {
+                    $fh = fopen($file, 'a');
+                    fwrite($fh, $current . "\r\n");
+                }
+                else {
+                    $fh = fopen($file, 'w');
+                    fwrite($fh, $current . "\r\n");
+                }
+            }
+
+            fclose($fh);
+            return true;
+        }
+        else if (isset($customerno) && $customerno != '' && $module == null) {
+            $date = new DateTime();
+            $timestamp = $date->format('Y-m-d H:i:s');
+            $datesuffix = $date->format('d_m_Y');
+            $file = $mpath . 'customer/' . $customerno . '/log/log_' . $datesuffix . '.txt';
+            $current = "#Time: " . $timestamp . "\r\n #User_Name: " . $un . " \r\n #Action: " . $data . "";
+            $current.="\r\n-----------------------------------------------------------------------------------------------------------------\r\n";
+
+            $filename = $mpath . 'customer/' . $customerno . '/';
+            $filename1 = $mpath . 'customer/' . $customerno . '/log/';
+
+            if (!file_exists($filename)) {
+                mkdir($mpath . "customer/" . $customerno, 0777);
+            }
+            else if (!file_exists($filename1)) {
+                mkdir($mpath . "customer/" . $customerno . "/log", 0777);
+                $fh = fopen($file, 'w');
+                fwrite($fh, $current . "\r\n");
+            }
+            else {
+                if (file_exists($file)) {
+                    $fh = fopen($file, 'a');
+                    fwrite($fh, $current . "\r\n");
+                }
+                else {
+                    $fh = fopen($file, 'w');
+                    fwrite($fh, $current . "\r\n");
+                }
+            }
+            fclose($fh);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+}
+
+?>

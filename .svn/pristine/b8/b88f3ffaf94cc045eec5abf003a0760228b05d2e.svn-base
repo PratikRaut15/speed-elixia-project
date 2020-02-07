@@ -1,0 +1,50 @@
+//bs-blog
+.bs-blog {
+    display: block;
+    position: relative;
+    .blog-img {
+        img {
+            width: 100%;
+        }
+    }
+    .blog-info {
+        position: absolute;
+        left: 20px;
+        bottom: 25px;
+        right: 20px;
+        z-index: 10;
+        .title {
+            font-size: 18px;
+            line-height: 24px;
+            margin-bottom: 20px;
+            color: $clr-root;
+            font-weight: $fnt-bold;
+            letter-spacing: 0px;
+        }
+        .desc {
+            p {
+                font-size: 14px;
+                line-height: 20px;
+                padding-bottom: 15px;
+                color: $clr-root;
+                letter-spacing: 0px;
+                font-weight: $fnt-light;
+            }
+        }
+        .link {
+            color: $clr-primary;
+            letter-spacing: 0px;
+            font-weight: $fnt-bold;
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .bs-blog {
+        margin: 0 -25px;
+        .blog-img {
+            height: 254px;
+            overflow: hidden;
+        }
+    }
+}

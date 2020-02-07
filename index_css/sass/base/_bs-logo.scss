@@ -1,0 +1,76 @@
+//bs-logo
+.bs-logo {
+    padding: 0 25px;
+    .logo-list {
+        display: block;
+        .item {
+            display: inline-block;
+            margin-right: 45px;
+            margin-top: 50px;
+            width: auto;
+            height: auto;
+            &.last {
+                margin-right: 0px;
+            }
+        }
+    }
+    &.typ-lg {
+        padding: 0px;
+        .logo-list {
+            .item {
+                margin-right: 45px;
+                .logo-wrap {
+                    width: 180px;
+                    padding: 10px;
+                    img {
+                        width: 100%;
+                    }
+                }
+                &.last {
+                    margin-right: 0px;
+                }
+            }
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .bs-logo {
+        padding: 0;
+        .swiper-container {
+            margin: 0 -10px;
+        }
+        .logo-list {
+            text-align: center;
+            margin: 20px -10px 0;
+            display: block;
+            &.swiper-wrapper {
+                display: flex;
+            }
+            .item {
+                margin: 0;
+                width: 48%;
+                .logo-wrap {
+                    width: 75%;
+                    margin: 0 auto;
+                    img {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+        &.typ-lg {
+            .logo-list {
+                .item {
+                    margin: 4px 2px;
+                    border: 1px solid #f1f1f1;
+                    .logo-wrap {
+                        width: auto;
+                        margin: 0;
+                        padding: 10px;
+                    }
+                }
+            }
+        }
+    }
+}

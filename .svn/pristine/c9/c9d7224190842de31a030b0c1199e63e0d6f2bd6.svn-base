@@ -1,0 +1,6 @@
+VO: Value Objects
+
+These objects are the transport mechanism for all data to and from the database.
+They reflect the fields within the tables and provide an easy way to pass records around the application.
+
+We always use VO objects to represent individual records and arrays of VO objects to represent rows.

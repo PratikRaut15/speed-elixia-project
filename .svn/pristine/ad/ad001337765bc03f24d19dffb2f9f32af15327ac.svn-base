@@ -1,0 +1,116 @@
+<?php
+
+//file required
+error_reporting(E_ALL ^ E_STRICT);
+ini_set('display_errors', 'on');
+
+if (!isset($RELATIVE_PATH_DOTS) || trim($RELATIVE_PATH_DOTS) == "") {
+    $RELATIVE_PATH_DOTS = "../../../";
+}
+include_once $RELATIVE_PATH_DOTS . "lib/autoload.php";
+require_once $RELATIVE_PATH_DOTS."lib/system/utilities.php";
+require_once $RELATIVE_PATH_DOTS."lib/autoload.php";
+require_once $RELATIVE_PATH_DOTS."lib/system/Sanitise.php";
+require_once "../../api/vts/class/model/RequestClass.php";
+require_once "../../api/vts/class/class.vtsapi.php";
+require_once "../../api/vts/class/model/ResponseClass.php";
+require_once "../../../vendor/autoload.php";
+
+
+
+$action = "";
+$apiobj = new api();
+$output = null;
+$objJsonMapper = new JsonMapper();
+$objJsonMapper->bExceptionOnUndefinedProperty = true;
+$objJsonMapper->bExceptionOnMissingData = true;
+$objJsonMapper->bEnforceMapType = false;
+extract($_REQUEST);
+/*print("<pre>");
+print_r($_REQUEST); die;*/
+    try {
+        $status = 0;
+        // $reqGetLatestVehDetails = json_decode($jsonreq, true);
+        //Log input request in DB
+        // $objGetLatestVehicleRequest = $objJsonMapper->map($reqGetLatestVehDetails, new RequestClass());
+        $objGetLatestVehicleRequest = new stdClass();
+        /*print("<pre>");
+        print_r($objGetLatestVehicleRequest);*/
+        $objGetLatestVehicleRequest->userkey = "a041155ad2c0401d5592b67f3cbc10a64cd28b2e"; // for 742
+        // $objGetLatestVehicleRequest->userkey = "410a565591c8665edbd51a4fc728489ba2eb9099"; // for 135
+            $objGetLatestVehicleRequest->pageindex = isset($objGetLatestVehicleRequest->pageindex) ? $objGetLatestVehicleRequest->pageindex : 1;
+            /* If pagesize is -1, it means we need to give all the records in a single page */
+            $objGetLatestVehicleRequest->pagesize = isset($objGetLatestVehicleRequest->pagesize) ? $objGetLatestVehicleRequest->pagesize : -1;
+            /* If search string is set, it means we need to return all the records matching this string */
+            $objGetLatestVehicleRequest->searchstring = isset($objGetLatestVehicleRequest->searchstring) ? $objGetLatestVehicleRequest->searchstring : '';
+            $objGetLatestVehicleRequest->groupid = isset($objGetLatestVehicleRequest->groupid) ? $objGetLatestVehicleRequest->groupid : 0;
+            $objGetLatestVehicleRequest->iswarehouse = isset($objGetLatestVehicleRequest->iswarehouse) ? $objGetLatestVehicleRequest->iswarehouse : 0;
+            $objGetLatestVehicleRequest->isRequiredThirdParty = isset($objGetLatestVehicleRequest->isRequiredThirdParty) ? $objGetLatestVehicleRequest->isRequiredThirdParty : 0;
+
+            $arrVTSResult = $apiobj->get_userdetails_by_key($objGetLatestVehicleRequest->userkey);
+            // print("<pre>"); print_r($arrVTSResult); die;
+            if (empty($arrVTSResult)) {
+                $output = $apiobj->failure('No Userdata');
+                //Log error in DB
+            } else {
+                $customerno = $arrVTSResult['customerno'];
+                $validDays = $apiobj->checkValidity($customerno);
+                if ($validDays > 0) {
+                    $objGetLatestVehicleRequest->customerno = $customerno;
+                    $getdata['result'] = $apiobj->getlatestvehicledata($objGetLatestVehicleRequest);
+                    if($customerno == 742){
+                        $getdata['vendorDetails']['userName'] = "surjan";
+                        $getdata['vendorDetails']['pwd'] = "Bsl@123456789";
+                        if(isset($getdata) && !empty($getdata)){ 
+                            $status = executePostVehicleDataCurlRequest($getdata);
+                            if($status){
+                               $output = "Data Posted Successfully.";
+                            }else{
+                               $output = "Data Not Posted Successfully.";
+                            }
+                        }    
+                    }
+                    //Log success response in DB
+                } else {
+                    $output = $apiobj->failure("Device Validity expired.");
+                    //Log error in DB
+                }
+            }
+        
+    }catch (Exception $ex) {
+        $output = $apiobj->failure("Whoops!!  Looks like there is an unknown exception");
+        //Log error in DB
+    }
+
+
+
+
+ function executePostVehicleDataCurlRequest($postData){
+    $status = 0;
+    $url = "https://test.transworldiot.oracleiotcloud.com/cgw/OraGenericConnector";
+    $objCurl = curl_init();
+    curl_setopt($objCurl, CURLOPT_URL, $url);
+    curl_setopt($objCurl, CURLOPT_POST, 1);
+    curl_setopt($objCurl, CURLOPT_POSTFIELDS, http_build_query($postData['result']));
+    curl_setopt($objCurl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_setopt($objCurl, CURLOPT_USERPWD, $postData['vendorDetails']['userName'] . ":" . $postData['vendorDetails']['pwd']);
+    curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, 1); // return into a variable
+    curl_setopt($objCurl, CURLOPT_TIMEOUT, 30);
+    //Get Response from resource
+    $jsonResponse = curl_exec($objCurl);
+
+    if (curl_error($objCurl)) {
+        echo 'error:' . curl_error($objCurl);
+    }else{
+        $status = 1;
+    }
+    curl_close($objCurl);
+    return $status;
+}
+
+
+if (!isset($output)) {
+    $output = $apiobj->failure("Seems like you are playing around without any actions !!");
+}
+echo json_encode($output);
+?>

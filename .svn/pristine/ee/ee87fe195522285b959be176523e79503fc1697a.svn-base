@@ -1,0 +1,89 @@
+//btn
+.btn {
+    font-size: 18px;
+    line-height: 20px;
+    @include transition(all, 0.5s, ease);
+    &.btn-default {
+        padding: 12px 40px;
+        background: $clr-secondary;
+        color: $clr-root;
+        border-radius: 25px;
+        border: 1px solid transparent;
+        &:active {
+            &:focus {
+                background: $clr-secondary;
+                color: $clr-root;
+            }
+        }
+        &.btn-inverse {
+            background: $clr-root;
+            color: $clr-secondary;
+            border-color: transparent;
+            &:hover {
+                background: $clr-secondary;
+                color: $clr-root;
+            }
+        }
+        &:hover {
+            background: $clr-root;
+            border-color: $clr-secondary;
+            color: $clr-secondary;
+        }
+    }
+    &.btn-link {
+        padding: 5px;
+        background: none;
+        color: $clr-primary;
+        border: none;
+    }
+    &.btn-primary {
+        font-size: 16px;
+        line-height: 18px;
+        color: $clr-primary;
+        border-radius: 50px;
+        font-weight: $fnt-regular;
+        background: $clr-root;
+        padding: 6px 15px;
+        border: none;
+        text-transform: uppercase;
+        &:hover,
+        &.active {
+            background: $clr-primary;
+            color: $clr-root;
+            // font-weight: $fnt-medium;
+        }
+    }
+    &.btn-dark-link {
+        font-size: 14px;
+        line-height: 16px;
+        text-transform: uppercase;
+        color: $clr-text;
+        text-decoration: underline;
+        padding: 0;
+        &:hover,
+        &:focus,
+        &:active {
+            color: $clr-secondary;
+        }
+    }
+    &:hover,
+    &:focus,
+    &:active {
+        outline: none;
+        box-shadow: none;
+    }
+    &:active {
+        &:focus {
+            outline: none;
+            box-shadow: none;
+        }
+    }
+}
+
+@media only screen and(max-width:$mobile-breakpoint) {
+    .btn {
+        &.btn-primary {
+            font-size: 14px;
+        }
+    }
+}

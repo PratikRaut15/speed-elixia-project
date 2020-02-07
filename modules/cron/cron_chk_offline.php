@@ -1,0 +1,119 @@
+<?php
+require_once "../../lib/system/utilities.php";
+require_once '../../lib/bo/CronManager.php';
+require_once 'files/calculatedist.php';
+require_once 'files/push_sqlite.php';
+$cm = new CronManager();
+$data = $cm->getofflinedata();
+if (isset($data)) {
+    foreach ($data as $thisdata) {
+        $location = "../../customer/$thisdata->customerno/reports/chkreport.sqlite";
+        if (file_exists($location)) {
+            $location = "sqlite:" . $location;
+            $chkdata = PullChkData($location, $thisdata->vehicleid, $thisdata->lastupdated);
+            if ($chkdata->status == '0') {
+                $chk_mysql_data = $cm->pull_chk_mysql_data($chkdata->chkid, $thisdata->customerno);
+                $distance = calculate($thisdata->latitude, $thisdata->longitude, $chk_mysql_data->cgeolat, $chk_mysql_data->cgeolong);
+                $crad = (float) $chk_mysql_data->crad;
+                if ($distance >= $crad) {
+                    ChkSqlite($thisdata->customerno, $chkdata->chkid, 1, $thisdata->lastupdated, $thisdata->vehicleid, $chkdata->chktype);
+                }
+            }
+            if ($chkdata->status == '1') {
+                $chkpts = $cm->get_all_checkpoints($thisdata->customerno);
+                if (isset($chkpts)) {
+                    foreach ($chkpts as $thischkpt) {
+                        $cgeolat = $thischkpt->cgeolat;
+                        $cgeolong = $thischkpt->cgeolong;
+                        $crad = (float) $thischkpt->crad;
+                        $distance = calculate($thisdata->latitude, $thisdata->longitude, $cgeolat, $cgeolong);
+                        if ($distance < $crad) {
+                            ChkSqlite($thisdata->customerno, $thischkpt->chkid, 0, $thisdata->lastupdated, $thisdata->vehicleid, $thischkpt->chktype);
+                        }
+                    }
+                }
+            }
+            $first_row = true;
+            $chk_clean = PullComplete($location, $thisdata->vehicleid, $thisdata->lastupdated);
+            if (isset($chk_clean)) {
+                foreach ($chk_clean as $this_chk) {
+                    if ($first_row == true) {
+                        $first_row = false;
+                        $first_data = new stdClass();
+                        $first_data->chkid = $this_chk->chkid;
+                        $first_data->status = $this_chk->status;
+                    } else {
+                        if ($first_data->chkid == $this_chk->chkid && $first_data->status == $this_chk->status) {
+                            DeleteChkData($location, $thisdata->vehicleid, $this_chk->chkrepid);
+                        }
+                        $first_data->chkid = $this_chk->chkid;
+                        $first_data->status = $this_chk->status;
+                    }
+                }
+            }
+        }
+    }
+    $cm->delete_chk_offline();
+}
+function PullComplete($location, $vehicleid, $lastupdated) {
+    $datas = Array();
+    $query = "SELECT status,chkid,date,chkrepid
+              from V$vehicleid WHERE DATE(`date`) = DATE('$lastupdated')
+            ORDER BY date ASC";
+    try {
+        $database = new PDO($location);
+        $result = $database->query($query);
+        if (isset($result) && $result != "") {
+            foreach ($result as $row) {
+                $chkdata = new stdClass();
+                $chkdata->chkid = $row['chkid'];
+                $chkdata->date = $row['date'];
+                $chkdata->status = $row['status'];
+                $chkdata->chkrepid = $row['chkrepid'];
+                $datas[] = $chkdata;
+            }
+        }
+    } catch (PDOException $e) {
+        die($e);
+    }
+    return $datas;
+}
+
+function DeleteChkData($location, $vehicleid, $chkrepid) {
+    $db = new PDO($location);
+    $Query = "DELETE FROM V$vehicleid WHERE chkrepid = $chkrepid";
+    $db->exec('BEGIN IMMEDIATE TRANSACTION');
+    $db->exec($Query);
+    $db->exec('COMMIT TRANSACTION');
+}
+
+function PullChkData($location, $vehicleid, $lastupdated) {
+    $table = 'V' . $vehicleid;
+    if (IsColumnExistInSqlite($location, $table, 'chktype')) {
+        $query = "SELECT status,chkid,chktype,date
+              from V$vehicleid
+            WHERE date <= '$lastupdated' ORDER BY date DESC LIMIT 1";
+    } else {
+        $query = "SELECT status,chkid,date
+              from V$vehicleid
+            WHERE date <= '$lastupdated' ORDER BY date DESC LIMIT 1";
+    }
+    try {
+        $database = new PDO($location);
+        $result = $database->query($query);
+        if (isset($result) && $result != "") {
+            foreach ($result as $row) {
+                $chkdata = new stdClass();
+                $chkdata->chkid = $row['chkid'];
+                $chkdata->chktype = $row['chktype'];
+                $chkdata->date = $row['date'];
+                $chkdata->status = $row['status'];
+            }
+        }
+    } catch (PDOException $e) {
+        die($e);
+    }
+    return $chkdata;
+}
+
+?>

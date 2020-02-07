@@ -1,0 +1,84 @@
+<?php
+
+//file required
+//error_reporting(E_ALL ^E_STRICT);
+//ini_set('display_errors', 'on');
+$RELATIVE_PATH_DOTS = "../../../../";
+require_once($RELATIVE_PATH_DOTS . "lib/system/utilities.php");
+require_once ($RELATIVE_PATH_DOTS . "lib/system/Sanitise.php");
+require_once("class/class.api.php");
+// require_once("class/model/RequestClass.php");
+require_once("class/model/ResponseClass.php");
+require_once($RELATIVE_PATH_DOTS . "vendor/autoload.php");
+
+$jsonreqData = isset($_REQUEST['jsonreq']) ? $_REQUEST['jsonreq'] : "";
+$jsonreq = json_decode($jsonreqData);
+
+if(isset($jsonreq->apiUrl) && $jsonreq->apiUrl != ""){
+    define("RYT_MAP_LOCATION_API", "$jsonreq->apiUrl");    
+}else{
+    define("RYT_MAP_LOCATION_API", "");
+}
+
+define("TIMEOUT_SECS", "30");
+$action = "";
+extract($_REQUEST);
+
+$objApi = new api();
+
+$jsonreq = json_decode($jsonreq);
+
+$jsonResponse = array();
+$apiUrlConstant = RYT_MAP_LOCATION_API;
+$arrOutputData = $objApi->failure("Missing params");
+if(isset($apiUrlConstant) && $apiUrlConstant!=""){
+    if ($action == "getAllVehicleData") {
+        //Resource Address
+        $url = $apiUrlConstant."user_api_hash=".$jsonreq->userHashKey;         
+        
+        //Send Request to resource
+        $objCurl = curl_init();
+
+        curl_setopt($objCurl, CURLOPT_URL, $url);
+        curl_setopt($objCurl, CURLOPT_RETURNTRANSFER, 1); // return into a variable
+        curl_setopt($objCurl, CURLOPT_POSTFIELDS, http_build_query($postDataForConsumeApi));
+        curl_setopt($objCurl, CURLOPT_TIMEOUT, TIMEOUT_SECS);
+
+        //Get Response from resource
+        $jsonResponse = curl_exec($objCurl);
+        
+        // var_dump($jsonResponse); die;
+        // print_r($jsonResponse[0]->items); die;
+
+        if (curl_error($objCurl)) {
+            $errorMsg = 'error:' . curl_error($objCurl);
+        }
+        curl_close($objCurl);
+        $jsonResponse = json_decode($jsonResponse);
+        //Process the response
+        if (isset($jsonResponse) && !empty($jsonResponse)) {
+            $newArray = array();
+            $newArray['Message'] = "Success";
+            $newArray['Status'] = "1";
+            $newArray[2] = $jsonResponse[0]->items;
+            if(isset($newArray['Status']) && $newArray['Status'] == '1' || $newArray['Status'] == 'true'){
+                $arrOutput = array_values($newArray);            
+                $arrOutputData = $objApi->success("Fetched Data successfully", $arrOutput[2]);
+            }
+        }
+        else {
+            $arrOutputData = $objApi->failure("Unable to fetch data - " . $errorMsg);
+        }
+        // print_r($arrOutputData); die;
+    }
+
+} // end if - url is not exist
+else{
+    $arrOutputData = $objApi->failure("API URL is Missing");    
+}
+if (!isset($arrOutputData)) {
+    $arrOutputData = $objApi->failure("Seems like you are playing around with incorrect actions or without any actions !!");
+}
+//print_r($arrOutputData);  die;
+echo json_encode($arrOutputData);
+?>

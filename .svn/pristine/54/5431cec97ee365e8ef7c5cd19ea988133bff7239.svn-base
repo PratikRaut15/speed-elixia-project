@@ -1,0 +1,651 @@
+<?php
+include_once("session.php");
+include("loginorelse.php");
+include_once("../../constants/constants.php");
+include_once("db.php");
+include_once("../../lib/components/gui/datagrid.php");
+include_once("../../lib/system/DatabaseManager.php");
+include_once("../../lib/system/Sanitise.php");
+
+$_scripts[] = "../../scripts/trash/prototype.js";
+ 
+include("header.php");
+
+class testing{
+    
+}
+date_default_timezone_set("Asia/Calcutta");
+$today = date("Y-m-d H:i:s");
+$db = new DatabaseManager();
+
+// UNIT PURCHASE
+if(isset($_POST["usubmit"]))
+{    
+    $punitno = GetSafeValueString($_POST["punitno"], "string");     
+    
+    // AC Sensor
+    $pdigital=1;
+    if (!isset($_POST["pdigital"])) {
+     $pdigital=0;
+    }    
+	// AC Opposite
+    $pdigitalopp=1;
+    if (!isset($_POST["pdigitalopp"])) {
+     $pdigitalopp=0;
+    }  
+    $SQLunit = sprintf( "INSERT INTO unit (
+    `customerno` ,`unitno`,`acsensor`, `is_ac_opp`, `trans_statusid`)
+    VALUES (
+    1, '%s', '%d', '%d', 1)",
+    $punitno, $pdigital, $pdigitalopp);
+    $db->executeQuery($SQLunit);
+    $unitid = $db->get_insertedId();
+    
+    // Temperature Sensor 1
+    $ctempsen = GetSafeValueString($_POST["panalog"], "long");     
+    if($ctempsen!=0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen."_sen=1 where unitno='%s'",$punitno);
+        $db->executeQuery($SQL);
+    }
+
+    // Temperature Sensor 2
+    $ctempsen2 = GetSafeValueString($_POST["panalog2"], "long");     
+    if($ctempsen2!=0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen2."_sen=1 where unitno='%s'",$punitno);
+        $db->executeQuery($SQL);
+    }
+    
+    // Populate Devices
+    $devicekey = mt_rand();
+    
+    $expiry = date('Y-m-d', strtotime('+1 year'));    
+    $SQL = sprintf( "INSERT INTO devices (
+    `customerno` ,`devicekey`,`registeredon`,`uid`,`expirydate`)
+    VALUES (
+    1, '%s', '%s', '%d', '%s')",
+    $devicekey, Sanitise::DateTime($today), $unitid, $expiry);
+    $db->executeQuery($SQL);
+
+    // Populate Vehicles
+    $Query = "INSERT INTO vehicle (vehicleno,customerno, uid) VALUES ('%s',%d, %d)";
+    $SQL = sprintf($Query,'V'.$punitno,1, $unitid);
+    $db->executeQuery($SQL);
+    $vehicleid = $db->get_insertedId();
+    
+    // Update Unit
+    $SQL = sprintf('UPDATE unit SET vehicleid=%d where uid=%d',$vehicleid, $unitid);
+    $db->executeQuery($SQL);
+    
+    // Populate Drivers
+    $SQL = sprintf("INSERT INTO driver (drivername,driverlicno,customerno, vehicleid) VALUES ('%s','%s',%d,%d)",
+    'D'.$punitno,
+    'LIC'.$punitno,
+    1,
+    $vehicleid);
+    $db->executeQuery($SQL);
+    $driverid = $db->get_insertedId();
+
+    // Update Vehicle
+    $SQL = sprintf('UPDATE vehicle SET driverid=%d where vehicleid=%d',$driverid, $vehicleid);
+    $db->executeQuery($SQL);    
+
+    // Populate Event Alerts
+    $SQL = sprintf("INSERT INTO eventalerts (vehicleid,overspeed, tamper, powercut, temp, ac, customerno) VALUES (%d,0,0,0,0,0,%d)",
+            $vehicleid, 1);
+    $db->executeQuery($SQL);    
+     
+    // Populate Ignition Alert
+    $SQL = sprintf("INSERT INTO ignitionalert (vehicleid,last_status, last_check, count, status, customerno) VALUES (%d,0,0,0,0,%d)",
+            $vehicleid, 1);
+    $db->executeQuery($SQL);    
+       
+    // Populate AC Alert
+    if($pdigital == 1)
+    {
+        $SQL = sprintf("INSERT INTO acalerts (last_ignition, customerno, vehicleid, aci_status) VALUES (0,%d,%d,0)",
+                1, $vehicleid);
+        $db->executeQuery($SQL);        
+    }
+    
+    // Create unit directory
+    $relativepath = "../..";
+    if(!is_dir( $relativepath.'/customer/1/unitno/'.$punitno ))
+    {
+        // Directory doesn't exist.
+        mkdir($relativepath.'/customer/1/unitno/'.$punitno,0777, true ) or die("Could not create directory");
+    }
+    
+    if(!is_dir( $relativepath.'/customer/1/unitno/'.$punitno.'/sqlite' ))
+    {
+        // Directory doesn't exist.
+        mkdir($relativepath.'/customer/1/unitno/'.$punitno.'/sqlite',0777, true ) or die("Could not create directory");
+    }        
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', 1, '%s','%s','%s','%s')",
+    $unitid, GetLoggedInUserId(), Sanitise::DateTime($today), "New Purchase","","","");
+    $db->executeQuery($SQLunit);    
+}    
+
+// SIMCARD PURCHASE
+if(isset($_POST["ssubmit"]))
+{
+    $psimcardno = GetSafeValueString($_POST["psimcardno"], "string");     
+    
+    $vendorid = GetSafeValueString($_POST["pvendor"], "long");     
+    
+    $SQL = sprintf("INSERT INTO simcard (simcardno,vendorid,trans_statusid,customerno) VALUES ('%s',%d,%d,%d)",
+    $psimcardno, $vendorid, 11, 1);
+    $db->executeQuery($SQL); 
+    $simcardid = $db->get_insertedId();    
+    
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 1, '%s', 11, '%s','%s','%s','%s')",
+    $simcardid, GetLoggedInUserId(), Sanitise::DateTime($today), "New Purchase","","","");
+    $db->executeQuery($SQLsim);        
+}
+
+if(isset($_POST["discsim"]))
+{
+    $simcardno = GetSafeValueString($_POST["discsimcard"], "string");     
+
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 16, customerno = -1 where id='.$simcardno);
+    $db->executeQuery($SQL);
+    
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    '-1', '%d', '%s', 1, '%s', 16, '%s','%s','%s','%s')",
+    $simcardno, GetLoggedInUserId(), Sanitise::DateTime($today), "Disconnected","","","");
+    $db->executeQuery($SQLsim);                    
+    
+}
+
+if(isset($_POST["react_sim"]))
+{
+    $simcardno = GetSafeValueString($_POST["discsimcard"], "string");     
+
+    $SQL = sprintf('UPDATE simcard SET trans_statusid= 11, customerno = 1 where id='.$simcardno);
+    $db->executeQuery($SQL);
+    
+    $SQLsim = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`simcard_id`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 1, '%s', 11, '%s','%s','%s','%s')",
+    $simcardno, GetLoggedInUserId(), Sanitise::DateTime($today), "Disconnected","","","");
+    $db->executeQuery($SQLsim);                    
+    
+}
+
+if(isset($_POST["urepair"]))
+{
+    $unitno = GetSafeValueString($_POST["urepairunit"], "string");     
+
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 7, customerno = -1 where uid='.$unitno);
+    $db->executeQuery($SQL);
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    -1, '%d', '%s', 0, '%s', 7, '%s','%s','%s','%s')",
+    $unitno, GetLoggedInUserId(), Sanitise::DateTime($today), "Sent to Repair","","","");
+    $db->executeQuery($SQLunit);    
+}
+
+if(isset($_POST["urepaired"]))
+{
+    $unitno = GetSafeValueString($_POST["urepairedunit"], "string");     
+
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 4, customerno = 1 where uid='.$unitno);
+    $db->executeQuery($SQL);
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', 4, '%s','%s','%s','%s')",
+    $unitno, GetLoggedInUserId(), Sanitise::DateTime($today), "Receive Repaired","","","");
+    $db->executeQuery($SQLunit);    
+    
+}
+
+if(isset($_POST["ureplace"]))
+{
+    $unitno = GetSafeValueString($_POST["ureplaceunit"], "string");     
+
+    $SQL = sprintf('UPDATE unit SET trans_statusid= 9, customerno = -1 where uid='.$unitno);
+    $db->executeQuery($SQL);
+    
+    $punitno = GetSafeValueString($_POST["newunitno"], "string");     
+    
+    // AC Sensor
+    $pdigital=1;
+    if (!isset($_POST["pdigital"])) {
+     $pdigital=0;
+    }    
+	// AC Opposite
+    $pdigitalopp=1;
+    if (!isset($_POST["pdigitalopp"])) {
+     $pdigitalopp=0;
+    }  
+    $SQLunit = sprintf( "INSERT INTO unit (
+    `customerno` ,`unitno`,`acsensor`, `is_ac_opp`, `trans_statusid`)
+    VALUES (
+    1, '%s', '%d', '%d', 1)",
+    $punitno, $pdigital, $pdigitalopp);
+    $db->executeQuery($SQLunit);
+    $unitid = $db->get_insertedId();
+    
+    // Temperature Sensor 1
+    $ctempsen = GetSafeValueString($_POST["panalog"], "long");     
+    if($ctempsen!=0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen."_sen=1 where unitno='%s'",$punitno);
+        $db->executeQuery($SQL);
+    }
+    
+    // Temperature Sensor 2
+    $ctempsen2 = GetSafeValueString($_POST["panalog2"], "long");     
+    if($ctempsen2!=0)
+    {
+        $SQL = sprintf("UPDATE unit SET analog".$ctempsen2."_sen=1 where unitno='%s'",$punitno);
+        $db->executeQuery($SQL);
+    }
+    
+    // Populate Devices
+    $devicekey = mt_rand();
+    
+    $expiry = date('Y-m-d', strtotime('+1 year'));    
+    $SQL = sprintf( "INSERT INTO devices (
+    `customerno` ,`devicekey`,`registeredon`,`uid`,`expirydate`)
+    VALUES (
+    1, '%s', '%s', '%d', '%s')",
+    $devicekey, Sanitise::DateTime($today), $unitid, $expiry);
+    $db->executeQuery($SQL);
+
+    // Populate Vehicles
+    $Query = "INSERT INTO vehicle (vehicleno,customerno, uid) VALUES ('%s',%d, %d)";
+    $SQL = sprintf($Query,'V'.$punitno,1, $unitid);
+    $db->executeQuery($SQL);
+    $vehicleid = $db->get_insertedId();
+    
+    // Update Unit
+    $SQL = sprintf('UPDATE unit SET vehicleid=%d where uid=%d',$vehicleid, $unitid);
+    $db->executeQuery($SQL);
+    
+    // Populate Drivers
+    $SQL = sprintf("INSERT INTO driver (drivername,driverlicno,customerno, vehicleid) VALUES ('%s','%s',%d,%d)",
+    'D'.$punitno,
+    'LIC'.$punitno,
+    1,
+    $vehicleid);
+    $db->executeQuery($SQL);
+    $driverid = $db->get_insertedId();
+
+    // Update Vehicle
+    $SQL = sprintf('UPDATE vehicle SET driverid=%d where vehicleid=%d',$driverid, $vehicleid);
+    $db->executeQuery($SQL);    
+
+    // Populate Event Alerts
+    $SQL = sprintf("INSERT INTO eventalerts (vehicleid,overspeed, tamper, powercut, temp, ac, customerno) VALUES (%d,0,0,0,0,0,%d)",
+            $vehicleid, 1);
+    $db->executeQuery($SQL);    
+     
+    // Populate Ignition Alert
+    $SQL = sprintf("INSERT INTO ignitionalert (vehicleid,last_status, last_check, count, status, customerno) VALUES (%d,0,0,0,0,%d)",
+            $vehicleid, 1);
+    $db->executeQuery($SQL);    
+       
+    // Populate AC Alert
+    if($cacsensor == 1)
+    {
+        $SQL = sprintf("INSERT INTO acalerts (last_ignition, customerno, vehicleid, aci_status) VALUES (0,%d,%d,0)",
+                1, $vehicleid);
+        $db->executeQuery($SQL);        
+    }
+    
+    // Create unit directory
+    $relativepath = "../..";
+    if(!is_dir( $relativepath.'/customer/1/unitno/'.$punitno ))
+    {
+        // Directory doesn't exist.
+        mkdir($relativepath.'/customer/1/unitno/'.$punitno,0777, true ) or die("Could not create directory");
+    }
+    
+    if(!is_dir( $relativepath.'/customer/1/unitno/'.$punitno.'/sqlite' ))
+    {
+        // Directory doesn't exist.
+        mkdir($relativepath.'/customer/1/unitno/'.$punitno.'/sqlite',0777, true ) or die("Could not create directory");
+    }                
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    -1, '%d', '%s', 0, '%s', 9, '%s', '%s', '%s', '%s')",
+    $unitno, GetLoggedInUserId(), Sanitise::DateTime($today), "Replaced by: ".$punitno,"", "", "");
+    $db->executeQuery($SQLunit);    
+    
+    $SQL = sprintf('SELECT unitno FROM unit WHERE uid = '.$unitno);
+    $db->executeQuery($SQL);
+    if ($db->get_rowCount() > 0) {
+        while ($row = $db->get_nextRow())
+        {
+            $oldunitno = $row["unitno"];
+        }    
+    }
+    
+    $SQLunit = sprintf( "INSERT INTO trans_history (
+    `customerno` ,`unitid`,`teamid`, `type`, `trans_time`, `statusid`, `transaction`, `simcardno`, `invoiceno`, `expirydate`)
+    VALUES (
+    1, '%d', '%s', 0, '%s', 1, '%s', '%s', '%s', '%s')",
+    $unitid, GetLoggedInUserId(), Sanitise::DateTime($today), "Replaced against: ".$oldunitno,"", "", "");
+    $db->executeQuery($SQLunit);    
+}
+
+$SQL = sprintf("SELECT * FROM vendor");
+$db->executeQuery($SQL);
+$vendors = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $vendor = new testing();
+        $vendor->name = $row["vendorname"];
+        $vendor->id = $row["id"];        
+        $vendors[] = $vendor;        
+    }    
+}
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT * FROM unit INNER JOIN trans_status ON trans_status.id = unit.trans_statusid WHERE trans_statusid IN (3)");
+$db->executeQuery($SQL);
+$badunits = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new testing();
+        $unit->unitno = $row["unitno"]."[ ".$row["status"]." ]";
+        $unit->uid = $row["uid"];        
+        $badunits[] = $unit;        
+    }    
+}
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT * FROM unit INNER JOIN trans_status ON trans_status.id = unit.trans_statusid WHERE trans_statusid IN (7)");
+$db->executeQuery($SQL);
+$urunits = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new testing();
+        $unit->unitno = $row["unitno"]."[ ".$row["status"]." ]";
+        $unit->uid = $row["uid"];        
+        $urunits[] = $unit;        
+    }    
+}
+
+$db = new DatabaseManager();
+$SQL = sprintf("SELECT simcard.id as simid, simcard.simcardno, trans_status.status FROM simcard INNER JOIN trans_status ON trans_status.id = simcard.trans_statusid WHERE trans_statusid IN (15)");
+$db->executeQuery($SQL);
+$discsims = Array();
+if ($db->get_rowCount() > 0) {
+    while ($row = $db->get_nextRow())
+    {
+        $unit = new testing();
+        $unit->simcardno = $row["simcardno"]."[ ".$row["status"]." ]";
+        $unit->id = $row["simid"];        
+        $discsims[] = $unit;        
+    }    
+}
+
+
+if(IsHead())
+{
+?>
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        New Purchase</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="purchase.php" enctype="multipart/form-data">
+    <table width="40%">
+        <tr>
+            <td colspan="2"><h3>Device</h3></td>
+        </tr>
+        <tr>
+        <td>Unit No.</td><td><input name = "punitno" id="punitno" type="text"></td>            
+        </tr>        
+
+        <tr>
+        <td>Digital Sensor</td>
+        <td> <input name="pdigital" id="pdigital" type="checkbox"/> Is Opposite? <input name="pdigitalopp" id="pdigitalopp" type="checkbox"/>
+        </td>
+        </tr>
+
+         <tr>
+        <td>Analog Sensor 1 </td>
+        <td><select name="panalog">
+                <option value="0">Select Output</option>
+                <option value="1">Analog 1</option>
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+            </select>
+        </td>
+        </tr>
+
+         <tr>
+        <td>Analog Sensor 2 </td>
+        <td><select name="panalog2">
+                <option value="0">Select Output</option>
+                <option value="1">Analog 1</option>
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+            </select>
+        </td>
+        </tr>
+        
+    </table>
+
+    <div><input type="submit" id="usubmit" name="usubmit" value="Purchase Unit"/></div>
+    </form>
+        <hr/>
+    <form method="post" name="myform" id="myform" action="purchase.php" enctype="multipart/form-data">
+    <table width="40%">
+        <tr>
+            <td colspan="2"><h3>Sim Card</h3></td>
+        </tr>
+        <tr>
+        <td>Sim Card No.</td><td><input name = "psimcardno" id="psimcardno" type="text"></td>            
+        </tr>        
+         <tr>
+        <td>Vendor </td>
+        <td><select name="pvendor">
+                <?php
+                foreach($vendors as $thisvendor)
+                {
+                ?>
+                <option value="<?php echo($thisvendor->id); ?>"><?php echo($thisvendor->name); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+        </td>
+        </tr>
+        
+    </table>
+
+    <div><input type="submit" id="ssubmit" name="ssubmit" value="Purchase Sim Card"/></div>
+    </form>
+    </div>
+    </div>
+<?php
+}
+if(!IsData())
+{
+?>
+
+<!-- Repair -->
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Repair</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="purchase.php" enctype="multipart/form-data">
+    <table width="40%">
+        <tr>
+            <td colspan="2"><h3>Send to Repair</h3></td>
+            </tr>
+         <tr>
+        <td>Unit No. </td>
+        <td><select name="urepairunit">
+                <?php
+                foreach($badunits as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->uid); ?>"><?php echo($thisunit->unitno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Bad Device List)
+        </td>
+        </tr>
+
+    </table>
+
+    <div><input type="submit" id="urepair" name="urepair" value="Send"/></div>
+    </form>
+        <hr/>
+    <form method="post" name="myform" id="myform" action="purchase.php" enctype="multipart/form-data">
+    <table width="40%">
+            <td colspan="2"><h3>Receive Repaired</h3></td>        
+         <tr>
+        <td>Unit No. </td>
+        <td><select name="urepairedunit">
+                <?php
+                foreach($urunits as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->uid); ?>"><?php echo($thisunit->unitno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Under Repair Device List)
+        </td>
+        </tr>
+
+    </table>
+
+    <div><input type="submit" id="urepaired" name="urepaired" value="Receive"/></div>
+    </form>
+        
+<hr/>        
+    <form method="post" name="myform" id="myform" action="purchase.php" enctype="multipart/form-data">
+    <table width="40%">
+            <td colspan="2"><h3>Replace Bad Devices</h3></td>                
+         <tr>
+        <td>Old Unit No. </td>
+        <td><select name="ureplaceunit">
+                <?php
+                foreach($urunits as $thisunit)
+                {
+                ?>
+                <option value="<?php echo($thisunit->uid); ?>"><?php echo($thisunit->unitno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Under Repair Device List)
+        </td>
+        </tr>
+
+         <tr>
+        <td>New Unit No. </td>
+        <td><input name = "newunitno" id="newunitno" type="text"></td>
+        </tr>
+        
+        <tr>
+        <td>Digital Sensor</td>
+        <td> <input name="pdigital" id="pdigital" type="checkbox"/> Is Opposite? <input name="pdigitalopp" id="pdigitalopp" type="checkbox"/>
+        </td>
+        </tr>
+
+         <tr>
+        <td>Analog Sensor 1 </td>
+        <td><select name="panalog">
+                <option value="0">Select Output</option>
+                <option value="1">Analog 1</option>
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+            </select>
+        </td>
+        </tr>
+
+         <tr>
+        <td>Analog Sensor 2 </td>
+        <td><select name="panalog2">
+                <option value="0">Select Output</option>
+                <option value="1">Analog 1</option>
+                <option value="2">Analog 2</option>
+                <option value="3">Analog 3</option>
+                <option value="4">Analog 4</option>
+            </select>
+        </td>
+        </tr>
+        
+        
+    </table>
+
+    <div><input type="submit" id="ureplace" name="ureplace" value="Replace"/></div>
+    </form>
+    </div>
+    </div>
+
+<?php
+if(IsAdmin() || IsHead())
+{
+?>    
+    <div class="panel">
+    <div class="paneltitle" align="center">
+        Disconnection</div>
+    <div class="panelcontents">
+    <form method="post" name="myform" id="myform" action="purchase.php" enctype="multipart/form-data">
+    <table width="50%">
+        <tr>
+            <td colspan="2"><h3>Sim Card</h3></td>
+        </tr>
+        <tr>
+        <td><select name="discsimcard">
+                <?php
+                foreach($discsims as $thiscard)
+                {
+                ?>
+                <option value="<?php echo($thiscard->id); ?>"><?php echo($thiscard->simcardno); ?></option>
+                <?php
+                }
+                ?>
+            </select>
+            ( Apply for Disconnection Simcard List)</td>            
+        </tr>        
+
+    </table>
+
+    <div><input type="submit" id="discsim" name="discsim" value="Disconnect"/>&nbsp;<input type="submit" id="react_sim" name="react_sim" value="Reactivate"/></div>
+    </form>
+
+        <?php
+}
+}
+?>
+        
+<br/>
+
+<?php
+include("footer.php");
+?>

@@ -1,0 +1,251 @@
+<style type="text/css">
+
+    table td, table th
+    {   
+        padding: 0;
+    }
+    .tab {
+        left: 12em;
+    }
+
+    .back td{
+        background: lightgray;
+        text-align: center;
+    }
+    .center{
+        text-align: center;
+    }
+    .right{
+        text-align: right;
+    }
+    .upper td,th{
+        padding: 3px;
+    }
+</style>
+
+<page>
+    <div style="width:750px;">
+        <table align="right" style="border:none;">
+            <tr>
+                <td style="width:350px;height:70px;border:none;text-align:right">
+                    <img style="width:100%;height:100%;" src="../../images/logo.png">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <span style="font: bold 100% sans-serif; letter-spacing: 0.3em; text-align: center; text-transform: uppercase;">
+        <h2>{{INVOICETYPE}}</h2>
+    </span>
+    <br>
+
+    <table align="center" style="width:750px;font-size:13px;border:2px solid #000;height:1000px;" cellpadding="0" cellspacing="0">
+        <tr>
+            <td colspan="2" style="border-bottom:2px solid #000;">
+                <table style="border-collapse: collapse;border: 1px solid black;" class="upper">
+                    <tr>
+                        <td>GSTIN</td>
+                        <td style="border-right:1px solid #000;">27AACCE7724Q1Z2</td>
+                        <td>Name</td>
+                        <td>Elixia Tech Solutions Ltd.</td>
+                    </tr>
+                    <tr>
+                        <td>Address</td>
+                        <td style="border-right:1px solid #000;">715,Neelkanth Corporate Park,Vidyavihar(W),Mumbai - 400086</td>
+                         <td>&nbsp;</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>State</td>
+                        <td style="border-right:1px solid #000;">Maharashtra</td>
+                        <td>State Code</td>
+                        <td>27</td>
+                    </tr>
+                    <tr>
+                        <td>PAN</td>
+                        <td style="border-right:1px solid #000;">AACCE7724Q</td>
+                        
+                    </tr>
+                    <tr>
+                        <td>Credit Note No.</td>
+                        <td style="border-right:1px solid #000;">{{CREDITNOTENO}}</td>
+                        <td>Credit Note Date</td>
+                        <td>{{CREDITNOTEDATE}}</td>
+                       
+                    </tr>
+                    <tr>
+                         <td>Against Invoice No.</td>
+                        <td style="border-right:1px solid #000;">{{INVOICENO}}</td>
+                         <td>Date of Invoice</td>
+                        <td>{{INVOICEDATE}}</td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" style="border-bottom:2px solid #000;">
+                <table style="border-collapse: collapse;"  class="upper">
+                    <tr>
+                        <th colspan="2" style="border-right:2px solid #000;border-bottom:2px solid #000; text-align: center;">Details of Receiver (Billed to)</th>
+                        <th colspan="2" style="border-bottom:2px solid #000; text-align: center;width:47.5%;">Details of Consignee (Shipped to)</th>
+                    </tr>
+                    <tr><td style="width: 15%">Name</td><td style="border-right:1px solid #000;width: 35%">{{LEDGERNAME}}</td><td style="width: 15%">Name</td><td style="width: 35%;">{{LEDGERNAME}}</td></tr>
+                    <tr><td style="width: 15%">Address</td><td style="border-right:1px solid #000;width: 35%;">{{ADDRESS1}} {{ADDRESS2}} {{ADDRESS3}}</td><td style="width: 15%">Address</td><td style="width: 35%;">{{ADDRESS1}} {{ADDRESS2}} {{ADDRESS3}}</td></tr>
+                    <tr><td style="width: 15%">State</td><td style="border-right:1px solid #000;width: 35%;">{{PARTYSTATE}}</td><td style="width: 15%">State</td><td style="width: 35%;">{{PARTYSTATE}}</td></tr>
+                    <tr><td style="width: 15%">State Code</td><td style="border-right:1px solid #000;width: 35%;">{{PARTYSTATECODE}}</td><td style="width: 15%">State Code</td><td style="width: 35%;">{{PARTYSTATECODE}}</td></tr>
+                    <tr><td style="width: 15%">GSTIN</td><td style="border-right:1px solid #000;width: 35%;">{{PARTYGSTNO}}</td><td style="width: 15%">GSTIN</td><td style="width: 35%;">{{PARTYGSTNO}}</td></tr>
+                    <tr><td style="width: 15%">PAN No</td><td style="border-right:1px solid #000;width: 35%;">{{PARTYPANNO}}</td><td style="width: 15%">PAN No</td><td style="width: 35%;">{{PARTYPANNO}}</td></tr>
+                </table>
+            </td>
+        </tr>
+        <tr style="width:100%">
+            <td colspan="2">
+                <table style="border-collapse: collapse;border: 1px solid black;" cellpadding="0" cellspacing="0">
+                    <tr class="back">
+                        <td rowspan="2" style="border-right:1px solid #000;border-bottom: 1px solid #000;width:30px;">S.No.</td>
+                        <td rowspan="2" style="border-right:1px solid #000;border-bottom: 1px solid #000;width:325px;">Description</td>
+                        <td rowspan="2" style="border-right:1px solid #000;border-bottom: 1px solid #000;width:100px;">{{HSN}} Code</td>
+                        <td rowspan="2" style="border-right:1px solid #000;border-bottom: 1px solid #000;width:120px;">Taxable Amount</td>
+                        {{GST_HEADING}}
+                    </tr>
+                    <tr class="back">
+                        {{GST_SUB_HEAD}}
+                    </tr>
+                    {{INVOICE_ROW}}
+                    <tr>
+                        <td style="border-right:1px solid #000;border-bottom: 1px solid #000;"></td>
+                        <td style="border-right:1px solid #000;border-bottom: 1px solid #000;">Total</td>
+                        <td style="border-right:1px solid #000;border-bottom: 1px solid #000;"></td>
+                        <td style="border-right:1px solid #000;border-bottom: 1px solid #000;" class="center">{{TAX_VAL}}</td>
+                        {{GST_TOTAL}}
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="border-right:2px solid #000;border-bottom: 1px solid #000;">
+                <table style="margin-left: 2px;" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>Total invoice value (In figures)</td>
+                    </tr>
+                    <tr>
+                        <td>Total invoice value (In words)</td>
+                    </tr>
+                    <tr>
+                        <td>Amount of Tax subject to Reverse Charges</td>
+                    </tr>
+                </table>
+            </td>
+            <td style="border-bottom: 1px solid #000;" >
+                <table style="margin-left: 150px;float:right;margin-right:0px;width:100%" cellpadding="0" cellspacing="0" >
+                    <tr>
+                        <td style="text-align: right;margin-right: 0px;" class="right">Rs. <b>{{GRANDAMT}}</b>/-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;margin-right: 0px;" class="right">{{INWORDAMT}} Only</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;margin-right: 0px;" class="right">Rs. 0/-</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <!-- <tr>
+            <td colspan="2">
+                <table  cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="width:60%; border-right: 2px solid #000;">
+                            <table style="width:100%;font-size:12.3px" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                <u><b>Note</b></u>:<br>
+                                1. Cheque should be issued in the name of Elixia Tech Solutions Ltd.<br>
+                                2. Subject to Mumbai Jurisdiction<br>
+                                3. Devices once sold will not be taken back<br>
+                                4. For device, our responsibility ceases when the installation has been completed<br>
+                                5. Installation & implementation will be done only after amount is credited<br>
+                                6. Software is issued subject to terms & conditions specified on the web application
+                                </td>
+                                </tr>
+
+                            </table>
+                        </td>
+                        <td style="width:40%;padding:2px;" >
+                            <table style="width:82%; height:100%;font-size:13.5px" cellpadding="0" cellspacing="0" >
+                                <tr>
+                                    <td style="text-align:center">
+                                <u><b>ONLINE TRANSFER DETAILS</b></u>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0">
+                                            <tr><td colspan="2"><b>Elixia Tech Solutions Ltd.</b></td></tr>
+                                            <tr><td>Bank Name</td><td>: <b>IDBI Bank</b></td></tr>
+                                            <tr><td>Branch</td><td>: <b>Ghatkopar (East), Mumbai</b></td></tr>
+                                            <tr><td>A/C No</td><td>: <b>0033102000014650</b></td></tr>
+                                            <tr><td>IFSC Code</td><td>: <b>IBKL0000033</b></td></tr>
+                                            <tr><td>MICR Code</td><td>: <b>400259008</b></td></tr>
+                                            <tr><td>Address</td><td>: <b>Rupa Plaza, Ground Floor,</b></td></tr>
+                                            <tr><td colspan="2"><b>Jawahar Road, Plot No 4, TPS 1,</b></td></tr>
+                                            <tr><td colspan="2"><b>Near LIC Building, Ghatkopar (East),</b></td></tr>
+                                            <tr><td colspan="2"><b>Mumbai, Maharashtra 400077</b></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr> -->
+        <tr>
+            <td colspan="2">
+                <table style="width: 99%;" cellpadding="0"  cellspacing="0" >
+                    <tr>
+                       <!--  <td style="padding-left: 2px;width:64.5%;border-right:2px solid #000;border-top: 2px solid #000;font-size:10px;font-weight:bold;">
+                            I/We hereby certify that my/our registration certificate under the Maharashtra Value Added Tax Act, 2002
+                            is in force on the date on which the sale of the goods specified in this Tax Invoice is made by me/us and
+                            that the transaction of sale covered by this Tax Invoice has been effected by me/us and it shall be
+                            accounted for in the turnover of sales while filing of return and the due tax, if any, payable on the same
+                            has been paid or shall be paid.
+                        </td> -->
+                        <!-- <td style="padding-left: 2px;width:64.5%;border-right:2px solid #000;border-top: 2px solid #000;font-size:10px;font-weight:bold;"></td> -->
+                        <td style="padding-left: 550px; width: 100%;border-top: 1px solid #000;">
+                            <table style="font-size:13px;text-align: center;" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="text-align:center;font-weight:bold;">
+                                        For Elixia Tech Solutions Ltd.
+                                    </td>
+                                </tr>
+                                <tr style="height:60px;">
+                                    <td style="height:60px;">
+                                        <img style="height:60px;" alt="" src="../../images/stampsign1.png">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center;vertical-align:bottom;">
+                                        Authorized Signatory
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <page_footer>
+        <div align="center"  style="background-color:#0C9BAF;">
+            <span style="color:#FFFFFF">Elixia Tech Solutions Ltd.</span>
+        </div>
+        <div align="center"  style="background-color:#0C9BAF;">
+            <span style="color:#FFFFFF">715, Neelkanth Corporate Park, Vidyavihar West, Mumbai - 400086.</span>
+        </div>
+        <div align="center" style="background-color:#0C9BAF;">
+            <span style="color:#FFFFFF">Landline: +91 22 2513 7470/71  |  Email: sales@elixiatech.com  |  Website: www.elixiatech.com</span>
+        </div>
+    </page_footer>
+</page>

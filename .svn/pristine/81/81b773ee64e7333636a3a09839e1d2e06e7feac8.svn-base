@@ -1,0 +1,105 @@
+<?php
+    if (!isset($RELATIVE_PATH_DOTS) || trim($RELATIVE_PATH_DOTS) == "") {
+        $RELATIVE_PATH_DOTS = "../../";
+    }
+    include_once 'reports_route_functions.php';
+    $SDate = '';
+    $EDate = '';
+    $holdtime = '';
+    if (isset($_GET['work']) && $_GET['work'] != "routehistory" && isset($_POST['vehicleid']) && isset($_POST['SDate']) && isset($_POST['EDate']) && $_POST['STime'] && $_POST['ETime']) {
+        $STime = GetSafeValueString($_POST['STime'], "string");
+        $ETime = GetSafeValueString($_POST['ETime'], "string");
+        route_histNew($_POST['vehicleid'], $_POST['SDate'], $_POST['EDate'], $STime, $ETime);
+    }
+    if (isset($_GET['work']) && $_GET['work'] == "checkpointlist" && isset($_POST['vehicleid'])) {
+        get_checkpoint_from_chkmanage($_POST['vehicleid']);
+    }
+    if (isset($_GET['work']) && $_GET['work'] == "routehistory") {
+        $SDate = GetSafeValueString($_POST['SDate'], "string");
+        $EDate = GetSafeValueString($_POST['EDate'], "string");
+        $holdtime = GetSafeValueString($_POST['holdtime'], "int");
+        $flag = 1;
+        route_histNewRefined($_POST['vehicleid'], $SDate, $EDate, $holdtime, $flag);
+    }
+    if (isset($_REQUEST['work']) && $_REQUEST['work'] == "getmail" && isset($_REQUEST['customerno'])) {
+        $customerno = $_REQUEST['customerno'];
+        $term = $_REQUEST['term'];
+        $devicemanager = new DeviceManager($customerno);
+        $mailIds = $devicemanager->getEmailList($term);
+        echo $mailIds;
+    }
+    if (isset($_REQUEST['work']) && $_REQUEST['work'] == "insertmail" && isset($_REQUEST['dataTest']) && isset($_REQUEST['customerno1'])) {
+        $emailText = $_REQUEST['dataTest'];
+        $customerno = $_REQUEST['customerno1'];
+        $devicemanager = new DeviceManager($customerno);
+        $devices = $devicemanager->insertEmailId($emailText, $customerno);
+        echo $devices;
+    }
+    if (isset($_REQUEST['work']) && $_REQUEST['work'] == "addReason") {
+        //echo"6"; exit();
+        $objReason = new stdClass();
+        $objReason->vehicleid = $_POST['vehicleid'];
+        $objReason->starttime = date('Y-m-d H:i:s', $_POST['starttime']);
+        $objReason->endtime = date('Y-m-d H:i:s', $_POST['endtime']);
+
+        $objReason->lat = $_POST['lat'];
+        $objReason->lng = $_POST['lng'];
+        $objReason->reason = $_POST['reason'];
+        $objReason->customerno = $_POST['customerno'];
+        $objReason->userid = $_POST['userid'];
+
+        $objDeviceManager = new DeviceManager($objReason->customerno);
+        $reasonid = $objDeviceManager->addStoppageReason($objReason);
+        echo $reasonid;
+    }
+
+    if (isset($_REQUEST['work']) && $_REQUEST['work'] == "addOtherReason") {
+        //echo"6"; exit();
+        $objReason = new stdClass();
+        $objReason->vehicleid = $_POST['vehicleid'];
+        $objReason->starttime = date('Y-m-d H:i:s', $_POST['starttime']);
+        $objReason->endtime = date('Y-m-d H:i:s', $_POST['endtime']);
+
+        $objReason->lat = $_POST['lat'];
+        $objReason->lng = $_POST['lng'];
+        $objReason->reason = $_POST['reason'];
+        $objReason->customerno = $_POST['customerno'];
+        $objReason->userid = $_POST['userid'];
+        $objReason->remarks = $_POST['remarks'];
+
+        $objDeviceManager = new DeviceManager($objReason->customerno);
+        $reasonid = $objDeviceManager->addStoppageOtherReason($objReason);
+        echo $reasonid;
+    }
+
+    if (isset($_REQUEST['work']) && $_REQUEST['work'] == "updateReason") {
+        $objReason = new stdClass();
+
+        $objReason->sid = $_POST['sid'];
+        $objReason->reason = $_POST['reason'];
+        $objReason->customerno = $_POST['customerno'];
+        $objReason->userid = $_POST['userid'];
+        $objDeviceManager = new DeviceManager($objReason->customerno);
+        $reasonid = $objDeviceManager->updateStoppageReason($objReason);
+        echo $reasonid;
+    }
+
+    if (isset($_REQUEST['act']) && $_REQUEST['act'] == "edit") {
+        include_once 'reports_sqlite_function.php';
+        $msg = updateSqlite($_POST['column'], $_POST['editval'], $_POST['id'], $_POST['date'], $_POST['vehicleid'], $_POST['uid']);
+    }
+
+    if (isset($_REQUEST['act']) && $_REQUEST['act'] == "deleteInsert") {
+        include_once 'reports_sqlite_function.php';
+        //print_r($_REQUEST); die;
+        deleteInsertSqlite($_POST);
+    }
+
+    if (isset($_REQUEST['act']) && $_REQUEST['act'] == "updateSqliteToDatabase") {
+        include_once 'reports_sqlite_function.php';
+        updateSqliteDataToDatabase($_POST);
+    }
+
+?>
+
+

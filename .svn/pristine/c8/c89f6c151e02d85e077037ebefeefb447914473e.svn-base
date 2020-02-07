@@ -1,0 +1,35 @@
+	.errorClass{
+		margin: 0 30%;
+		font-size: 30px;
+		color: #DB4437;
+	}
+	.profile_grid{ 
+		color:#fff;
+		height: 200px;
+		width: 350px;  
+		position: relative;
+		float: left;
+		margin:30px;  
+		text-align: center;
+		padding-top: 20px;
+		border-radius: 5px;
+	}
+	.check_in{
+		background: #0F9D58;
+	}
+	.busy{
+		background:#DB4437;
+	}
+	.check_out{
+		background:#FF8C00;
+	}
+	.name_employee{
+		font-size:24px;
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+	.phone_ext{
+		margin-top: 30%;
+		font-size: 60px;
+		font-weight: 600;
+	}

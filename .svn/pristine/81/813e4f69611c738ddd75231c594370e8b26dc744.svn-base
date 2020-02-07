@@ -1,0 +1,32 @@
+<?php
+
+//print_r($_REQUEST);
+$origin = $_REQUEST['origin'];
+$destination = $_REQUEST['destination'];
+
+$file_to_send = "https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=AIzaSyAokJCJZpSDa56PatYdoVBUCg-S0mGJAJM";
+//$file_to_send = "https://maps.googleapis.com/maps/api/directions/json?origin=19.0813075,72.8987418&destination=18.5247663,73.7927557&key=AIzaSyAokJCJZpSDa56PatYdoVBUCg-S0mGJAJM";
+$data = file_get_contents($file_to_send);
+
+$arrData = json_decode($data);
+//echo "<pre>";
+print_r($arrData->routes[0]->overview_polyline->points);
+
+/*
+$datalog = $arrData->routes[0]->legs[0]->steps;
+$string = array();
+foreach ($datalog as $key => $row) {
+//print_r($row);
+//die
+
+$cord = $row->start_location->lat . "," . $row->start_location->lng;
+$string[] = $cord;
+if ($key !== 0) {
+$cord = $row->end_location->lat . "," . $row->end_location->lng;
+$string[] = $cord;
+}
+
+}
+echo implode("|", $string);
+ */
+?>

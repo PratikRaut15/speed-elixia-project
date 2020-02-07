@@ -1,0 +1,25 @@
+ <html>
+	<head>
+<style>
+			table{
+                                text-align: left;
+                                border-collapse:collapse;
+                                font-family:Arial;
+                                font-size: 10pt;
+                                width: 60%;
+                            }
+                            th{
+                                text-align: center;
+                                font-size: 11pt;
+                                padding: 10px;
+                            }
+</style>
+	</head>
+	<body>
+	Dear {{CREATORNAME}},<br/><br/>
+	Greetings from Elixia Tech!<br/>
+	Please find the transaction details below:<br/><br/>
+	{{PRINTDATA}}
+	<br/><br/>In case of any queries, you may contact us at 25137470 / 71. Thank you for choosing Elixia Tech!
+	</body>
+</html>

@@ -1,0 +1,257 @@
+<link rel="stylesheet" type="text/css" href="../../scripts/datatables/jquery.dataTables_new.css">
+<style>
+    #depotmaster_filter{display: none}
+    .dataTables_length{display: none}
+</style>
+<br/>
+<div class='container' >
+    <?php
+
+    class Object {
+        
+    }
+
+    ;
+    ?>
+    <center>
+        1.) SKU Weight for date required for each SKU id <br/>
+        <?php
+        echo "<pre>";
+        $objSku = new Sku();
+        $objSku->customerno = $_SESSION['customerno'];
+        $weight = get_skuweight($objSku);
+        //print_r($weight);
+        echo "<hr/>";
+        echo "2.) SKU Weight for date required for each Factory and Depot <br/>";
+        $factory = get_skuweight_factory($objSku);
+        $factorywiseResult = array();
+        $skulist = array();
+        $transwise_weights = array();
+        $vehicletypes = array();
+        $transporterlist = array();
+        foreach ($factory as $fact) {
+            if ($fact['date_required'] == '2015-07-23') {
+                $objResult = new Object();
+
+                /* Get particular depot details */
+                $objDepot = new Depot();
+                $objDepot->depotid = $fact['depotid'];
+                $currentDepotDetail = get_depots($objDepot);
+
+                /* Get transporters by zone */
+                $objTransporterShare = new TransporterShare();
+                $objTransporterShare->zoneid = $currentDepotDetail[0]['zoneid'];
+                $transporters = get_transportershare($objTransporterShare);
+
+
+                foreach ($transporters as $trans) {
+                    //print_r($trans);
+                    $transporter = new Object();
+                    $transporter->skuid = $fact['skuid'];
+                    $transporter->factoryid = $fact['factoryid'];
+                    $transporter->depotid = $fact['depotid'];
+                    $weight_share = $trans['sharepercent'] / 100 * $fact['weight'];
+                    $transporter->id = $trans['transporterid'];
+                    $transporter->share_skuTotalWeight = $weight_share;
+
+
+                    /* Get SKU details for this delivery */
+                    $objSku = new Sku();
+                    $objSku->customerno = $_SESSION['customerno'];
+                    $objSku->skuid = $fact['skuid'];
+                    $skudetail = get_sku($objSku);
+
+                    $transporter->share_skuTotalUnits = floor($weight_share / $skudetail[0]['weight']);
+                    $transporter->share_skuTotalVolume = floor($transporter->share_skuTotalUnits * $skudetail[0]['volume']);
+
+                    //$transporter->sharepercent = $trans['sharepercent'];
+
+                    $transporterlist[] = $transporter;
+                    if (!isset($transwise_weights[$transporter->id])) {
+                        $transwise_weights[$transporter->id] = 0;
+                    }
+                    $transwise_weights[$transporter->id] += $weight_share;
+                }
+
+
+                /*
+                  $vehicles = array();
+                  foreach ($transporters as $trans) {
+                  $vehicle = new Vehicle();
+                  $vehicle->transporterid = $trans['transporterid'];
+                  $vehicles = get_vehicles($vehicle);
+                  }
+                 */
+                $objResult->date_required = $fact['date_required'];
+                $objResult->weight = $fact['weight'];
+                $objResult->skuid = $fact['skuid'];
+                $objResult->depotid = $fact['depotid'];
+                $objResult->zoneid = $currentDepotDetail[0]['zoneid'];
+                $objResult->transporters = $transporterlist;
+                //$objResult->vehicles = $vehicles;
+
+
+                $factorywiseResult[] = $objResult;
+            }
+        }
+
+        //print_r($factorywiseResult);
+        //print_r($skulist);
+        //print_r($vehicletypes);
+        //print_r($transwise_weights);
+        //print_r($transporterlist);
+
+        function sort_vehicles_by_weight($veh1, $veh2) {
+            if ($veh1->weight == $veh2->weight) {
+                return 0;
+            }
+            return ($veh1->weight > $veh2->weight) ? -1 : 1;
+        }
+
+        $arrTransporterWiseVehicleList = array();
+        foreach ($transwise_weights as $key => $val) {
+            $vehicletypelist = array();
+            $objVehicle = new Object();
+            $objVehicle->customerno = $_SESSION['customerno'];
+            $objVehicle->transporterid = $key;
+            $vehicletypes = get_vehicletype_count($objVehicle);
+
+
+            foreach ($vehicletypes as $vehtype) {
+                if ($key == $vehtype['transporterid']) {
+                    $obj = new Object();
+                    $obj->transporterid = $vehtype['transporterid'];
+                    $obj->vehicletypeid = $vehtype['vehicletypeid'];
+                    $obj->weight = $vehtype['weight'];
+                    $obj->volume = $vehtype['volume'];
+                    $obj->count = $vehtype['vehiclecount'];
+                    $vehicletypelist[] = $obj;
+                }
+            }
+            usort($vehicletypelist, "sort_vehicles_by_weight");
+
+            $arrTransporterWiseVehicleList[$key] = $vehicletypelist;
+        }
+
+
+        //print_r($arrTransporterWiseVehicleList);
+
+
+
+        $weight = 0;
+        $arrIndent = array();
+        $arrLeftOver = array();
+        foreach ($transporterlist as $transporter) {
+            if ($transporter->id == 2) {
+                $load_weight = $transporter->share_skuTotalWeight;
+                $load_volume = $transporter->share_skuTotalVolume;
+                $load_units = $transporter->share_skuTotalUnits;
+
+                $weight = $transporter->share_skuTotalWeight;
+                $unit = $load_units;
+                /* Get SKU details for this delivery */
+                $objSku = new Sku();
+                $objSku->customerno = $_SESSION['customerno'];
+                $objSku->skuid = $transporter->skuid;
+                $skudetail = get_sku($objSku);
+                $perunitweight = $skudetail[0]['weight'];
+                $i = 1;
+                foreach ($arrTransporterWiseVehicleList[$transporter->id] as $vehlist) {
+                    $weight_left = 0;
+                    $unit_left = 0;
+                    if ($weight >= $vehlist->weight) {
+                        echo $weight;
+                        echo "<br>";
+                        $weight_left = $weight - $vehlist->weight;
+                        $arrTemp["id"] = $i++;
+                        $arrTemp["units"] = floor($vehlist->weight / $perunitweight);
+                        $arrTemp["transporterid"] = $transporter->id;
+                        $arrTemp["vehicletypeid"] = $vehlist->vehicletypeid;
+                        $arrTemp["weight"] = $vehlist->weight;
+                        $arrTemp["factoryid"] = $transporter->factoryid;
+                        $arrTemp["depotid"] = $transporter->depotid;
+                        $arrIndent[] = $arrTemp;
+                        $unit_left = $unit - $arrTemp["units"];
+                    } else {
+                        $weight_left = $weight;
+                        $unit_left = $unit;
+                    }
+                    $weight = $weight_left;
+                    $unit = $unit_left;
+                }
+                if ($weight != 0 && $unit != 0) {
+                    $arrTempLO = array();
+                    $arrTempLO["transporterid"] = $transporter->id;
+                    $arrTempLO["weight"] = $weight;
+                    $arrTempLO["factoryid"] = $transporter->factoryid;
+                    $arrTempLO["depotid"] = $transporter->depotid;
+                    $arrTempLO["units"] = floor($weight / $perunitweight);
+                    $arrLeftOver[] = $arrTempLO;
+                }
+            }
+        }
+        print_r($arrIndent);
+        print_r($arrLeftOver);
+        ?>
+        <hr/>
+        <h3>Indents TO Transporter</h3>
+        <table>
+            <tr>
+                <td> No of indents per factory delivery record </td>
+                <td>Transporterid</td>
+                <td>Vehicle Type</td>
+                <td>Factory ID</td>
+                <td>Depot ID</td>
+                <td>Weight</td>
+                <td>Units</td>
+            </tr>
+            <?php
+            foreach ($arrIndent as $row) {
+                ?>
+                <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td><?= $row['transporterid'] ?></td>
+                    <td><?= $row['vehicletypeid'] ?></td>
+                    <td><?= $row['factoryid'] ?></td>
+                    <td><?= $row['depotid'] ?></td>
+                    <td><?= $row['weight'] ?></td>
+                    <td><?= $row['units'] ?></td>
+                </tr>
+                <?php
+            }
+            ?>
+        </table>
+
+        <h3>LeftOvers</h3>
+        <table>
+            <tr>
+                <td>Sr. No</td>
+                <td>Transporterid</td>
+                <td>Factory ID</td>
+                <td>Depot ID</td>
+                <td>Weight</td>
+                <td>Units</td>
+
+            </tr>
+            <?php
+            $i = 1;
+            foreach ($arrLeftOver as $row) {
+                ?>
+                <tr>
+                    <td><?= $i++; ?></td>
+                    <td><?= $row['transporterid'] ?></td>
+
+                    <td><?= $row['factoryid'] ?></td>
+                    <td><?= $row['depotid'] ?></td>
+                    <td><?= $row['weight'] ?></td>
+                    <td><?= $row['units'] ?></td>
+
+                </tr>
+                <?php
+            }
+            ?>
+        </table>
+
+    </center>
+</div>    
+<hr/>
