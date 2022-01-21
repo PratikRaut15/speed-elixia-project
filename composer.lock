@@ -1,11 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "hash": "f1a3a67602f896af8a0ccabe226eae65",
-    "content-hash": "fe5c7399ab865651048f113c35a4fbe8",
+    "content-hash": "9bdeb8623cb155df978c10497f5910b1",
     "packages": [
         {
             "name": "netresearch/jsonmapper",
@@ -44,44 +43,45 @@
                 }
             ],
             "description": "Map nested JSON structures onto PHP classes",
-            "time": "2015-09-24 12:43:26"
+            "time": "2015-09-24T12:43:26+00:00"
         },
         {
             "name": "spipu/html2pdf",
-            "version": "v4.5.1",
+            "version": "v5.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spipu/html2pdf.git",
-                "reference": "48169a2029586b3e96dc4722e10b5e2bf27942be"
+                "reference": "dcb5671cac3d60ff486cf16df389e3bd0dc16ba4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spipu/html2pdf/zipball/48169a2029586b3e96dc4722e10b5e2bf27942be",
-                "reference": "48169a2029586b3e96dc4722e10b5e2bf27942be",
+                "url": "https://api.github.com/repos/spipu/html2pdf/zipball/dcb5671cac3d60ff486cf16df389e3bd0dc16ba4",
+                "reference": "dcb5671cac3d60ff486cf16df389e3bd0dc16ba4",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.2",
-                "tecnickcom/tcpdf": "~6.2.0"
+                "ext-gd": "*",
+                "ext-mbstring": "*",
+                "php": "^5.6 || ^7.0 || ^8.0",
+                "tecnickcom/tcpdf": "^6.3"
+            },
+            "require-dev": {
+                "phake/phake": "^2.0",
+                "phpunit/phpunit": "^5.0"
             },
             "suggest": {
                 "ext-gd": "Allows to embed images into the PDF",
-                "fagundes/zff-html2pdf": "zff-html2pdf module ~0.1.1, if you need to integrate HTML2PDF with Zend Framework 2 (zf2)"
+                "fagundes/zff-html2pdf": "if you need to integrate Html2Pdf with Zend Framework 2 (zf2)"
             },
             "type": "library",
             "autoload": {
-                "files": [
-                    "html2pdf.class.php",
-                    "_class/exception.class.php",
-                    "_class/locale.class.php",
-                    "_class/myPdf.class.php",
-                    "_class/parsingHtml.class.php",
-                    "_class/parsingCss.class.php"
-                ]
+                "psr-4": {
+                    "Spipu\\Html2Pdf\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "LGPL"
+                "OSL-3.0"
             ],
             "authors": [
                 {
@@ -90,27 +90,31 @@
                     "role": "Developer"
                 }
             ],
-            "description": "HTML2PDF is a HTML to PDF converter written in PHP5 (it uses TCPDF). OFFICIAL PACKAGE",
+            "description": "Html2Pdf is a HTML to PDF converter written in PHP5 (it uses TCPDF). OFFICIAL PACKAGE",
             "homepage": "http://html2pdf.fr/",
             "keywords": [
                 "html",
                 "html2pdf",
                 "pdf"
             ],
-            "time": "2016-03-02 21:47:15"
+            "support": {
+                "issues": "https://github.com/spipu/html2pdf/issues",
+                "source": "https://github.com/spipu/html2pdf/tree/v5.2.4"
+            },
+            "time": "2021-12-16T15:23:31+00:00"
         },
         {
             "name": "tecnickcom/tcpdf",
-            "version": "6.2.12",
+            "version": "6.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tecnickcom/TCPDF.git",
-                "reference": "2f732eaa91b5665274689b1d40b285a7bacdc37f"
+                "reference": "42cd0f9786af7e5db4fcedaa66f717b0d0032320"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/2f732eaa91b5665274689b1d40b285a7bacdc37f",
-                "reference": "2f732eaa91b5665274689b1d40b285a7bacdc37f",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/42cd0f9786af7e5db4fcedaa66f717b0d0032320",
+                "reference": "42cd0f9786af7e5db4fcedaa66f717b0d0032320",
                 "shasum": ""
             },
             "require": {
@@ -119,7 +123,6 @@
             "type": "library",
             "autoload": {
                 "classmap": [
-                    "fonts",
                     "config",
                     "include",
                     "tcpdf.php",
@@ -140,13 +143,13 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "LGPLv3"
+                "LGPL-3.0-only"
             ],
             "authors": [
                 {
                     "name": "Nicola Asuni",
                     "email": "info@tecnick.com",
-                    "homepage": "http://nicolaasuni.tecnick.com"
+                    "role": "lead"
                 }
             ],
             "description": "TCPDF is a PHP class for generating PDF documents and barcodes.",
@@ -160,7 +163,17 @@
                 "pdf417",
                 "qrcode"
             ],
-            "time": "2015-09-12 10:08:34"
+            "support": {
+                "issues": "https://github.com/tecnickcom/TCPDF/issues",
+                "source": "https://github.com/tecnickcom/TCPDF/tree/6.4.4"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&currency_code=GBP&business=paypal@tecnick.com&item_name=donation%20for%20tcpdf%20project",
+                    "type": "custom"
+                }
+            ],
+            "time": "2021-12-31T08:39:24+00:00"
         }
     ],
     "packages-dev": [],
@@ -170,5 +183,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.2.0"
 }
